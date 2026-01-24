@@ -25,6 +25,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>
+		<string>healthkit</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

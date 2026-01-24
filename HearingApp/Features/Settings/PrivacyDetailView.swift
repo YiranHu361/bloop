@@ -1,11 +1,9 @@
 import SwiftUI
 
-/// Detailed privacy information view for bloop.
-/// Emphasizes: HealthKit-only, no mic, no content analysis
+/// Detailed privacy information view
 struct PrivacyDetailView: View {
     var body: some View {
         List {
-            // Hero Section
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 12) {
@@ -20,11 +18,11 @@ struct PrivacyDetailView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Privacy is Our Promise")
+                            Text("Your Privacy is Protected")
                                 .font(AppTypography.headline)
                                 .foregroundColor(AppColors.label)
                             
-                            Text("bloop. measures loudness, not listening")
+                            Text("SafeSound is designed with privacy at its core")
                                 .font(AppTypography.caption1)
                                 .foregroundColor(AppColors.secondaryLabel)
                         }
@@ -33,131 +31,127 @@ struct PrivacyDetailView: View {
                 .padding(.vertical, 8)
             }
             
-            // What We Access
             Section("What We Access") {
                 dataAccessRow(
                     icon: "heart.fill",
                     iconColor: .red,
-                    title: "HealthKit Headphone Audio",
-                    description: "Volume levels only — not what your child listens to",
+                    title: "HealthKit Audio Levels",
+                    description: "Volume levels from your headphones (not audio content)",
                     accessType: "Read Only"
+                )
+
+                dataAccessRow(
+                    icon: "sparkles",
+                    iconColor: AppColors.primaryFallback,
+                    title: "AI Insights (Gemini)",
+                    description: "Personalized hearing advice powered by AI",
+                    accessType: "Optional"
                 )
             }
             
-            // Core Privacy Promise
             Section {
-                VStack(alignment: .leading, spacing: 16) {
-                    privacyPromiseRow(
-                        icon: "mic.slash.fill",
-                        iconColor: AppColors.safe,
-                        title: "No Microphone Access",
-                        description: "bloop. never uses the microphone. We can't hear conversations, music, or any audio."
-                    )
-                    
-                    Divider()
-                    
-                    privacyPromiseRow(
-                        icon: "phone.down.fill",
-                        iconColor: AppColors.safe,
-                        title: "Phone Calls Stay Private",
-                        description: "iOS doesn't allow apps to access call audio. Phone calls are completely private."
-                    )
-                    
-                    Divider()
-                    
-                    privacyPromiseRow(
-                        icon: "music.note",
-                        iconColor: AppColors.safe,
-                        title: "Content Stays Secret",
-                        description: "We measure volume, not content. We never know what songs, videos, or apps are being used."
-                    )
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.safe.opacity(0.12))
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: "phone.down.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(AppColors.safe)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Phone Calls Are Private")
+                                .font(AppTypography.headline)
+                                .foregroundColor(AppColors.label)
+                            
+                            Text("iOS does not allow apps to access phone call audio. Your calls are completely private.")
+                                .font(AppTypography.caption1)
+                                .foregroundColor(AppColors.secondaryLabel)
+                        }
+                    }
                 }
                 .padding(.vertical, 8)
             } header: {
-                Text("Our Privacy Promise")
-            } footer: {
-                Text("bloop. protects kids' ears without spying, nagging, or interrupting.")
-                    .font(AppTypography.caption1)
+                Text("Important")
             }
             
-            // What We DON'T Access
             Section("What We DON'T Access") {
-                noAccessRow(icon: "mic.slash.fill", title: "Microphone", reason: "Never used — not even for features")
                 noAccessRow(icon: "phone.down.fill", title: "Phone Calls", reason: "iOS prevents apps from accessing call audio")
-                noAccessRow(icon: "music.note", title: "Audio Content", reason: "We only see volume levels, not what's playing")
-                noAccessRow(icon: "text.bubble", title: "Messages", reason: "Not needed for hearing protection")
-                noAccessRow(icon: "location.slash.fill", title: "Location", reason: "Not needed for this app")
+                noAccessRow(icon: "music.note", title: "Audio Content", reason: "We don't know what you're listening to")
+                noAccessRow(icon: "record.circle", title: "Audio Recording", reason: "We never record or store any audio")
+                noAccessRow(icon: "location.slash.fill", title: "Location", reason: "Not needed for hearing protection")
+                noAccessRow(icon: "person.crop.circle.badge.xmark", title: "Contacts", reason: "This is a personal health app")
                 noAccessRow(icon: "camera.slash.fill", title: "Camera", reason: "Not needed for this app")
             }
             
-            // Data Storage
             Section("Data Storage") {
                 storageRow(
                     icon: "iphone",
                     title: "On-Device Only",
-                    description: "All listening data stays on this device. Nothing is uploaded to servers."
+                    description: "All your listening data is stored locally on your device and never leaves it."
                 )
                 
                 storageRow(
                     icon: "trash",
-                    title: "Parent Controls Deletion",
-                    description: "Delete all data anytime from Settings → Data & Storage."
+                    title: "You Control Deletion",
+                    description: "You can delete all data at any time from Settings → Data & Storage."
                 )
                 
                 storageRow(
                     icon: "icloud.slash",
                     title: "No Cloud Sync",
-                    description: "Data is not synced to iCloud or any external service."
+                    description: "Your data is not synced to iCloud or any external servers."
                 )
             }
             
-            // Network Activity
             Section("Network Activity") {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(AppColors.safe.opacity(0.12))
+                            .fill(AppColors.primaryFallback.opacity(0.12))
                             .frame(width: 40, height: 40)
-                        
-                        Image(systemName: "wifi.slash")
+
+                        Image(systemName: "sparkles")
                             .font(.system(size: 16))
-                            .foregroundColor(AppColors.safe)
+                            .foregroundColor(AppColors.primaryFallback)
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Works Completely Offline")
+                        Text("AI Insights Only")
                             .font(AppTypography.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(AppColors.label)
-                        
-                        Text("bloop. doesn't send data to servers, track usage, or collect analytics.")
+
+                        Text("Network is only used for AI-powered insights via Gemini. Only anonymized dose data (percentages) is sent - never personal information or listening history.")
                             .font(AppTypography.caption1)
                             .foregroundColor(AppColors.secondaryLabel)
                     }
                 }
                 .padding(.vertical, 4)
             }
-            
-            // Third-Party Services
+
             Section("Third-Party Services") {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
                             .fill(AppColors.safe.opacity(0.12))
                             .frame(width: 40, height: 40)
-                        
-                        Image(systemName: "checkmark.shield.fill")
+
+                        Image(systemName: "brain.head.profile")
                             .font(.system(size: 16))
                             .foregroundColor(AppColors.safe)
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("No Third-Party SDKs")
+                        Text("Google Gemini AI")
                             .font(AppTypography.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(AppColors.label)
-                        
-                        Text("Only Apple's native frameworks are used. No ads, no analytics, no tracking.")
+
+                        Text("Powers personalized hearing advice. Only anonymous dose percentages are shared - no personal data, audio, or listening history.")
                             .font(AppTypography.caption1)
                             .foregroundColor(AppColors.secondaryLabel)
                     }
@@ -165,39 +159,16 @@ struct PrivacyDetailView: View {
                 .padding(.vertical, 4)
             }
             
-            // Your Rights
             Section("Your Rights") {
-                rightRow(title: "Access", description: "View all stored data in the app")
+                rightRow(title: "Access", description: "View all your stored data in the app")
                 rightRow(title: "Delete", description: "Remove all data at any time")
                 rightRow(title: "Export", description: "Download your data in standard formats")
-                rightRow(title: "Control", description: "Adjust alerts and monitoring level")
+                rightRow(title: "Control", description: "Choose what level of monitoring you want")
             }
-            
-            // Debug-only mic section
-            #if DEBUG
-            if FeatureFlags.micSpectrumEnabled {
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("DEBUG: Mic Spectrum Enabled", systemImage: "ant.fill")
-                            .font(AppTypography.caption1Bold)
-                            .foregroundColor(AppColors.caution)
-                        
-                        Text("The spectrum visualization feature uses the microphone in Debug builds only. This is disabled in App Store releases.")
-                            .font(AppTypography.caption1)
-                            .foregroundColor(AppColors.secondaryLabel)
-                    }
-                    .padding(.vertical, 8)
-                } header: {
-                    Text("Developer Mode")
-                }
-            }
-            #endif
         }
         .navigationTitle("Privacy Details")
         .navigationBarTitleDisplayMode(.inline)
     }
-    
-    // MARK: - Row Builders
     
     private func dataAccessRow(icon: String, iconColor: Color, title: String, description: String, accessType: String) -> some View {
         HStack(spacing: 12) {
@@ -228,31 +199,6 @@ struct PrivacyDetailView: View {
                 .clipShape(Capsule())
         }
         .padding(.vertical, 4)
-    }
-    
-    private func privacyPromiseRow(icon: String, iconColor: Color, title: String, description: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.12))
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(iconColor)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(AppTypography.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(AppColors.label)
-                
-                Text(description)
-                    .font(AppTypography.caption1)
-                    .foregroundColor(AppColors.secondaryLabel)
-            }
-        }
     }
     
     private func noAccessRow(icon: String, title: String, reason: String) -> some View {
@@ -320,6 +266,19 @@ struct PrivacyDetailView: View {
             }
         }
         .padding(.vertical, 2)
+    }
+    
+    private func privacyBullet(text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(AppColors.safe)
+                .padding(.top, 2)
+            
+            Text(text)
+                .font(AppTypography.subheadline)
+                .foregroundColor(AppColors.label)
+        }
     }
 }
 

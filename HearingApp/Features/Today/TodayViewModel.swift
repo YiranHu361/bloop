@@ -21,15 +21,24 @@ final class TodayViewModel: ObservableObject {
     @Published var safeListeningScore: Int = 100
     @Published var currentStreak: Int = 0
     @Published var scoreTrend: SafeListeningScoreCard.ScoreTrend = .stable
-    
+    @Published var isInitialLoadComplete: Bool = false
+
+    // AI Insight data
+    @Published var aiInsight: AIInsight = .inactive
+    @Published var geminiInsightMessage: String?
+    @Published var isLoadingGeminiInsight: Bool = false
+
     private var modelContext: ModelContext?
+    private var lastGeminiFetchTime: Date?
+    private let geminiRefreshInterval: TimeInterval = 60 // Fetch new AI advice every 1 minute max
     private var cancellables = Set<AnyCancellable>()
     private var doseModel: DoseModel = .niosh
     private var refreshTimer: Timer?
     private var isRefreshInProgress = false
     
-    /// Refresh interval in seconds (while dashboard is visible) - reduced for real-time feel
-    static let refreshInterval: TimeInterval = 5
+    /// Refresh interval in seconds (while dashboard is visible)
+    /// Reduced to 2 seconds for more responsive real-time updates
+    static let refreshInterval: TimeInterval = 2
     
     var currentStatus: ExposureStatus {
         guard let dose = todayDose else { return .safe }
@@ -44,13 +53,17 @@ final class TodayViewModel: ObservableObject {
     
     // MARK: - Real-time Refresh
     
-    /// Subscribe to HealthKit data update notifications
+    /// Subscribe to HealthKit data update notifications for real-time updates
     private func subscribeToHealthKitUpdates() {
         NotificationCenter.default.publisher(for: .healthKitDataUpdated)
-            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .debounce(for: .milliseconds(50), scheduler: DispatchQueue.main)  // Faster response
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    await self?.loadData()
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "HH:mm:ss"
+                    print("🎯 [\(formatter.string(from: Date()))] HealthKit data notification received")
+                    // Use silent load to avoid flashing loading indicator
+                    await self?.loadDataSilently()
                 }
             }
             .store(in: &cancellables)
@@ -58,6 +71,7 @@ final class TodayViewModel: ObservableObject {
     
     /// Start periodic refresh timer (call when view appears)
     func startPeriodicRefresh() {
+        guard isInitialLoadComplete else { return }  // Prevent timer before initial load
         stopPeriodicRefresh()
         refreshTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshInterval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
@@ -74,15 +88,22 @@ final class TodayViewModel: ObservableObject {
     
     /// Silent refresh that doesn't show loading indicator (for background updates)
     func silentRefresh() async {
-        guard !isRefreshInProgress else { return }
-        isRefreshInProgress = true
-        defer { isRefreshInProgress = false }
-        
-        do {
-            try await HealthKitSyncService.shared.performIncrementalSync()
-        } catch {
-            print("Silent sync error: \(error)")
+        let refreshTime = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        print("🔄 [\(formatter.string(from: refreshTime))] Live exposure refresh triggered")
+
+        // Don't block if already refreshing - just skip the sync but still reload local data
+        if !isRefreshInProgress {
+            isRefreshInProgress = true
+            do {
+                try await HealthKitSyncService.shared.performIncrementalSync()
+            } catch {
+                print("Silent sync error: \(error)")
+            }
+            isRefreshInProgress = false
         }
+        // Always reload local data even if sync was skipped
         await loadDataSilently()
     }
     
@@ -109,18 +130,17 @@ final class TodayViewModel: ObservableObject {
             let doses = try context.fetch(doseDescriptor)
             todayDose = doses.first
             
-            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) else { return }
+            guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) else { return }
             let eventPredicate = #Predicate<ExposureEvent> { event in
-                event.startDate >= yesterday
+                event.startDate >= today && event.startDate < endOfDay
             }
-            
+
             var eventDescriptor = FetchDescriptor<ExposureEvent>(predicate: eventPredicate)
             eventDescriptor.sortBy = [SortDescriptor(\.startDate, order: .reverse)]
             eventDescriptor.fetchLimit = 10
-            
+
             recentEvents = try context.fetch(eventDescriptor)
 
-            guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) else { return }
             let samplePredicate = #Predicate<ExposureSample> { sample in
                 sample.startDate >= today && sample.startDate < endOfDay
             }
@@ -167,20 +187,19 @@ final class TodayViewModel: ObservableObject {
             let doses = try context.fetch(doseDescriptor)
             todayDose = doses.first
             
-            // Load recent events (last 24 hours)
-            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) else { return }
+            // Load recent events (today only)
+            guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) else { return }
             let eventPredicate = #Predicate<ExposureEvent> { event in
-                event.startDate >= yesterday
+                event.startDate >= today && event.startDate < endOfDay
             }
-            
+
             var eventDescriptor = FetchDescriptor<ExposureEvent>(predicate: eventPredicate)
             eventDescriptor.sortBy = [SortDescriptor(\.startDate, order: .reverse)]
             eventDescriptor.fetchLimit = 10
-            
+
             recentEvents = try context.fetch(eventDescriptor)
 
             // Load today's samples for analytics/visualizations
-            guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) else { return }
             let samplePredicate = #Predicate<ExposureSample> { sample in
                 sample.startDate >= today && sample.startDate < endOfDay
             }
@@ -194,7 +213,9 @@ final class TodayViewModel: ObservableObject {
             
             // Calculate Safe Listening Score
             await calculateSafeListeningScore()
-            
+
+            isInitialLoadComplete = true
+
         } catch {
             self.error = error
         }
@@ -286,13 +307,188 @@ final class TodayViewModel: ObservableObject {
             exposureTimeline = []
             currentLevelDB = nil
             exposureSummary = nil
+            aiInsight = .inactive
             return
         }
 
-        currentLevelDB = todaySamples.last?.levelDBASPL
+        let newLevel = todaySamples.last?.levelDBASPL
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        let timestamp = formatter.string(from: Date())
+
+        if let level = newLevel {
+            let dosePercent = todayDose?.dosePercent ?? 0
+            print("📊 [\(timestamp)] Current dB: \(String(format: "%.1f", level)) | Dose: \(String(format: "%.1f", dosePercent))% | Samples today: \(todaySamples.count)")
+        }
+
+        currentLevelDB = newLevel
         exposureBands = Self.buildBands(from: todaySamples)
         exposureTimeline = Self.buildTimeline(from: todaySamples)
         exposureSummary = Self.buildSummary(from: todayDose, samples: todaySamples)
+
+        // Calculate AI insight
+        calculateAIInsight()
+    }
+
+    // MARK: - AI Insight Calculation
+
+    private func calculateAIInsight() {
+        let currentDose = todayDose?.dosePercent ?? 0
+
+        // Get samples from the last 30 minutes for burn rate calculation
+        let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
+        let recentSamples = todaySamples.filter { $0.startDate >= thirtyMinutesAgo }
+
+        // Get typical burn rate from personalization if available
+        let typicalBurnRate = calculateTypicalBurnRate()
+
+        let calculator = DoseCalculator(model: doseModel)
+        var insight = calculator.generateInsight(
+            currentDosePercent: currentDose,
+            recentSamples: recentSamples,
+            typicalBurnRate: typicalBurnRate
+        )
+
+        // If we have a Gemini message, use it instead of the default
+        if let geminiMessage = geminiInsightMessage {
+            insight = AIInsight(
+                type: insight.type,
+                message: geminiMessage,
+                etaToLimit: insight.etaToLimit,
+                estimatedLimitTime: insight.estimatedLimitTime,
+                burnRatePerHour: insight.burnRatePerHour,
+                isActivelyListening: insight.isActivelyListening
+            )
+        }
+
+        aiInsight = insight
+
+        // Fetch new Gemini insight if needed (rate limited)
+        Task {
+            await fetchGeminiInsightIfNeeded()
+        }
+    }
+
+    // MARK: - Gemini AI Integration
+
+    /// Fetch personalized insight from Gemini API (rate limited)
+    private func fetchGeminiInsightIfNeeded() async {
+        // Check if API is configured
+        guard APIConfig.isGeminiConfigured else { return }
+
+        // Rate limit: don't fetch more often than every 30 seconds
+        if let lastFetch = lastGeminiFetchTime,
+           Date().timeIntervalSince(lastFetch) < geminiRefreshInterval {
+            return
+        }
+
+        // Don't fetch if already loading
+        guard !isLoadingGeminiInsight else { return }
+
+        // Only fetch if actively listening
+        guard aiInsight.isActivelyListening else { return }
+
+        isLoadingGeminiInsight = true
+        defer { isLoadingGeminiInsight = false }
+
+        lastGeminiFetchTime = Date()
+
+        do {
+            let message = try await GeminiService.shared.generateHearingInsight(
+                dosePercent: todayDose?.dosePercent ?? 0,
+                burnRatePerHour: aiInsight.burnRatePerHour,
+                etaMinutes: aiInsight.etaToLimit.map { $0 / 60 },
+                isActivelyListening: aiInsight.isActivelyListening,
+                averageDB: todayDose?.averageLevelDBASPL,
+                peakDB: todayDose?.peakLevelDBASPL
+            )
+
+            // Update the message and rebuild the insight
+            geminiInsightMessage = message
+
+            // Rebuild insight with new message
+            let calculator = DoseCalculator(model: doseModel)
+            let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
+            let recentSamples = todaySamples.filter { $0.startDate >= thirtyMinutesAgo }
+            let typicalBurnRate = calculateTypicalBurnRate()
+
+            var insight = calculator.generateInsight(
+                currentDosePercent: todayDose?.dosePercent ?? 0,
+                recentSamples: recentSamples,
+                typicalBurnRate: typicalBurnRate
+            )
+
+            insight = AIInsight(
+                type: insight.type,
+                message: message,
+                etaToLimit: insight.etaToLimit,
+                estimatedLimitTime: insight.estimatedLimitTime,
+                burnRatePerHour: insight.burnRatePerHour,
+                isActivelyListening: insight.isActivelyListening
+            )
+
+            aiInsight = insight
+
+        } catch {
+            // Silently fail - we'll use the default message
+            print("Gemini insight error: \(error.localizedDescription)")
+        }
+    }
+
+    /// Calculate typical burn rate from historical data
+    private func calculateTypicalBurnRate() -> Double? {
+        guard let context = modelContext else { return nil }
+
+        do {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+
+            // Get last 7 days of data (excluding today)
+            guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: today) else {
+                return nil
+            }
+
+            let weekAgoComponents = calendar.dateComponents([.year, .month, .day], from: weekAgo)
+            let todayComponents = calendar.dateComponents([.year, .month, .day], from: today)
+
+            guard let weekYear = weekAgoComponents.year,
+                  let weekMonth = weekAgoComponents.month,
+                  let weekDay = weekAgoComponents.day,
+                  let todayYear = todayComponents.year,
+                  let todayMonth = todayComponents.month,
+                  let todayDay = todayComponents.day else {
+                return nil
+            }
+
+            // Fetch historical daily doses (excluding today)
+            let predicate = #Predicate<DailyDose> { dose in
+                (dose.year > weekYear ||
+                 (dose.year == weekYear && dose.month > weekMonth) ||
+                 (dose.year == weekYear && dose.month == weekMonth && dose.day >= weekDay)) &&
+                !(dose.year == todayYear && dose.month == todayMonth && dose.day == todayDay)
+            }
+
+            let descriptor = FetchDescriptor<DailyDose>(predicate: predicate)
+            let historicalDoses = try context.fetch(descriptor)
+
+            guard !historicalDoses.isEmpty else { return nil }
+
+            // Calculate average dose per hour of listening
+            var totalDose: Double = 0
+            var totalListeningHours: Double = 0
+
+            for dose in historicalDoses {
+                totalDose += dose.dosePercent
+                totalListeningHours += dose.totalExposureSeconds / 3600.0
+            }
+
+            guard totalListeningHours > 0 else { return nil }
+
+            return totalDose / totalListeningHours
+        } catch {
+            print("Error calculating typical burn rate: \(error)")
+            return nil
+        }
     }
 
     // Build 8 loudness zone bars from time spent at each dB level

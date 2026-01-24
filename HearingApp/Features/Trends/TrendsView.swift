@@ -123,13 +123,15 @@ struct WeeklyBarChart: View {
     private var chartData: [(day: String, dose: DailyDose?, percent: Double)] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        
-        return (0..<7).reversed().map { daysAgo in
-            let date = calendar.date(byAdding: .day, value: -daysAgo, to: today)!
-            let dayName = daysAgo == 0 ? "Today" : 
+
+        return (0..<7).reversed().compactMap { daysAgo in
+            guard let date = calendar.date(byAdding: .day, value: -daysAgo, to: today) else {
+                return nil
+            }
+            let dayName = daysAgo == 0 ? "Today" :
                           daysAgo == 1 ? "Yday" :
                           DateFormatter().shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
-            
+
             let dose = doses.first { calendar.isDate($0.date, inSameDayAs: date) }
             return (dayName, dose, dose?.dosePercent ?? 0)
         }
@@ -215,9 +217,9 @@ struct WeeklyBarChart: View {
             
             // Legend
             HStack(spacing: 16) {
-                legendItem(color: AppColors.safe, label: "Safe (<60%)")
-                legendItem(color: AppColors.caution, label: "Caution (60-90%)")
-                legendItem(color: AppColors.danger, label: "Risk (>90%)")
+                legendItem(color: AppColors.safe, label: "Safe (<50%)")
+                legendItem(color: AppColors.caution, label: "Moderate (50-80%)")
+                legendItem(color: AppColors.danger, label: "High (>80%)")
             }
             .font(AppTypography.caption2)
         }
@@ -232,11 +234,7 @@ struct WeeklyBarChart: View {
     }
     
     private func barColor(for percent: Double) -> Color {
-        switch percent {
-        case ..<60: return AppColors.safe
-        case 60..<90: return AppColors.caution
-        default: return AppColors.danger
-        }
+        AppColors.statusColor(for: percent)  // Use centralized thresholds
     }
     
     private func legendItem(color: Color, label: String) -> some View {

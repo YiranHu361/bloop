@@ -3,17 +3,19 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AICARD00000000000000001 /* AIInsightCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AICARD00000000000000002 /* AIInsightCard.swift */; };
+		APICONF0000000000000001 /* APIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = APICONF0000000000000002 /* APIConfig.swift */; };
+		GEMINI00000000000000001 /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = GEMINI00000000000000002 /* GeminiService.swift */; };
 		0175519A0712F63228ADC2AF /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4778164EF93E0BC942699A83 /* UserSettings.swift */; };
 		0573BAB6E84CF46C5D87EF25 /* ExposureSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */; };
 		0E9846BC09C70E3A7D98AA72 /* LiveRiskIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5653B1D0AC3FC1865D43BA6 /* LiveRiskIndicator.swift */; };
 		0FF3C7125B347F0CABBB86F5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3727F53B5D59E9796BDB8A6B /* GlassCard.swift */; };
 		16D8E101E55017F6C68F7B74 /* AppTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B6AC37D612540CF43BBE96 /* AppTypography.swift */; };
 		24096176355E3F22226E66D3 /* WeeklyDigestScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E272FB23A79A81B68C8D0618 /* WeeklyDigestScheduler.swift */; };
-		244D1A3CD2CB5A3EB135CEAD /* AudioSpectrumService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */; };
 		25F11C66C8161B08AEF89B87 /* SessionSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8BA14E99A8F91CF4D81FB9A /* SessionSummaryCard.swift */; };
 		2875C24D51672F925A8CDEC8 /* GradientBackgrounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60029EEB7CD727C58B07DB29 /* GradientBackgrounds.swift */; };
 		2CE7422962AA830EFCBD5F20 /* DoseRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5057FBA8B953E59D8FC42C6 /* DoseRingView.swift */; };
@@ -33,7 +35,6 @@
 		73F3843F3EEF7D683BBCFF90 /* PersonalizedThreshold.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED87A7573119D151D96A866 /* PersonalizedThreshold.swift */; };
 		7CCD46431F168235B2F9F0C4 /* WidgetTimelineProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 621A04E03522254A9221DD1D /* WidgetTimelineProvider.swift */; };
 		805BAED06173C64CEA1E04A1 /* HealthKitSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */; };
-		83A863C4E772F8B2A1276B30 /* LiveSpectrumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7AEB4625CD90B46BB9FD6D /* LiveSpectrumView.swift */; };
 		83CC47BB860FD1C497196F51 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6634D51E63D705253A03EDDB /* AppState.swift */; };
 		84FEBA6173417C420DB0CAC5 /* SyncState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE46FDA45A5EFE99786B192 /* SyncState.swift */; };
 		86952569998D8C875752420A /* StatusChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6B219CE296CA5B74169974C /* StatusChipView.swift */; };
@@ -95,10 +96,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AICARD00000000000000002 /* AIInsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightCard.swift; sourceTree = "<group>"; };
+		APICONF0000000000000002 /* APIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfig.swift; sourceTree = "<group>"; };
+		GEMINI00000000000000002 /* GeminiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiService.swift; sourceTree = "<group>"; };
 		01CA307DA315668B3DCC5085 /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
 		0299043F84C1568EB2FC10E8 /* TrendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModel.swift; sourceTree = "<group>"; };
 		0A3E33501712C2C1176E9DB5 /* DoseCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseCalculator.swift; sourceTree = "<group>"; };
-		0C7AEB4625CD90B46BB9FD6D /* LiveSpectrumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSpectrumView.swift; sourceTree = "<group>"; };
 		0EE46FDA45A5EFE99786B192 /* SyncState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncState.swift; sourceTree = "<group>"; };
 		1230040F9E0BE8A08B1E86B9 /* HearingAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearingAppApp.swift; sourceTree = "<group>"; };
 		157D7994F17F52E1564FD5CE /* StatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCardView.swift; sourceTree = "<group>"; };
@@ -135,7 +138,7 @@
 		A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureSample.swift; sourceTree = "<group>"; };
 		A0D26536D4D22635131036B8 /* AlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBanner.swift; sourceTree = "<group>"; };
 		A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteMonitor.swift; sourceTree = "<group>"; };
-		A5CC73C70F7E105B6E84F4E4 /* bloop.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = bloop.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5CC73C70F7E105B6E84F4E4 /* bloop..app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bloop..app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADBBD125000CF49572A0B097 /* bloopTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = bloopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADD6FEBB272E683231B67FBD /* HearingApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HearingApp.entitlements; sourceTree = "<group>"; };
 		B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSyncService.swift; sourceTree = "<group>"; };
@@ -154,8 +157,7 @@
 		EBF9A61CFA1E84CABAA04B58 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigestView.swift; sourceTree = "<group>"; };
-		F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSpectrumService.swift; sourceTree = "<group>"; };
-		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAF33A90C96C54EBB8BAC7A8 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -173,7 +175,7 @@
 		1471B7479A006CBF39EB03B8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A5CC73C70F7E105B6E84F4E4 /* bloop.app */,
+				A5CC73C70F7E105B6E84F4E4 /* bloop..app */,
 				ADBBD125000CF49572A0B097 /* bloopTests.xctest */,
 				F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */,
 			);
@@ -204,6 +206,7 @@
 			isa = PBXGroup;
 			children = (
 				EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */,
+				AIGROUP0000000000000001 /* AI */,
 				4E66B746F2CD815C55542B41 /* Audio */,
 				74457839187733861C906554 /* Dose */,
 				D9ABD85DB4E1D4B0227CE96D /* HealthKit */,
@@ -211,6 +214,15 @@
 				6FEBD2E03F1D4072AD94FCA9 /* Personalization */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		AIGROUP0000000000000001 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				APICONF0000000000000002 /* APIConfig.swift */,
+				GEMINI00000000000000002 /* GeminiService.swift */,
+			);
+			path = AI;
 			sourceTree = "<group>";
 		};
 		41864DE6CF217D1D63FB4B74 /* HearingWidget */ = {
@@ -237,7 +249,6 @@
 			isa = PBXGroup;
 			children = (
 				A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */,
-				F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -390,11 +401,11 @@
 		F7797E754B86AAC22DAC91A4 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				AICARD00000000000000002 /* AIInsightCard.swift */,
 				A0D26536D4D22635131036B8 /* AlertBanner.swift */,
 				E5057FBA8B953E59D8FC42C6 /* DoseRingView.swift */,
 				DBBD04FA5A075D9E55380D13 /* GlassDoseRingView.swift */,
 				D5653B1D0AC3FC1865D43BA6 /* LiveRiskIndicator.swift */,
-				0C7AEB4625CD90B46BB9FD6D /* LiveSpectrumView.swift */,
 				2183F5C68CBAC94AE6CC27FE /* QuickActionsCard.swift */,
 				1F0EABB182CD97106B70D384 /* SafeListeningScore.swift */,
 				B8BA14E99A8F91CF4D81FB9A /* SessionSummaryCard.swift */,
@@ -440,7 +451,7 @@
 			packageProductDependencies = (
 			);
 			productName = bloop;
-			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop.app */;
+			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop..app */;
 			productType = "com.apple.product-type.application";
 		};
 		9AF6D3D4AE1D372C01E318F4 /* bloopTests */ = {
@@ -471,11 +482,9 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					149892A44449853DCCE9D266 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					8FBFC0EE96A57F143D6676FA = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					9AF6D3D4AE1D372C01E318F4 = {
@@ -494,7 +503,6 @@
 			);
 			mainGroup = BA0B4FAEECE75BB027819E2C;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -520,13 +528,15 @@
 			files = (
 				C55802E99AE3093C3991DA96 /* AccuracyInfoView.swift in Sources */,
 				4D7E1278D6E165878CD0C261 /* ActionableNotificationBuilder.swift in Sources */,
+				AICARD00000000000000001 /* AIInsightCard.swift in Sources */,
 				BDCFCCCF4692DE61DACC217B /* AlertBanner.swift in Sources */,
+				APICONF0000000000000001 /* APIConfig.swift in Sources */,
+				GEMINI00000000000000001 /* GeminiService.swift in Sources */,
 				DC6E23B9CF14D29E8A38EA5C /* AnimationTokens.swift in Sources */,
 				CA3B3256E107D9ED311709F9 /* AppColors.swift in Sources */,
 				83CC47BB860FD1C497196F51 /* AppState.swift in Sources */,
 				16D8E101E55017F6C68F7B74 /* AppTypography.swift in Sources */,
 				5BC213DB13DE933EC065A153 /* AudioRouteMonitor.swift in Sources */,
-				244D1A3CD2CB5A3EB135CEAD /* AudioSpectrumService.swift in Sources */,
 				AC779DADBF3E15DDB4B88EEE /* BloopLiveActivity.swift in Sources */,
 				F233F9E6C409FE5485693EFC /* ContentView.swift in Sources */,
 				9E9100DA5368AEE4EB9A8B10 /* DailyDose.swift in Sources */,
@@ -544,7 +554,6 @@
 				805BAED06173C64CEA1E04A1 /* HealthKitSyncService.swift in Sources */,
 				5F3C4ADF2B4BF00E3EB0DE70 /* HearingAppApp.swift in Sources */,
 				0E9846BC09C70E3A7D98AA72 /* LiveRiskIndicator.swift in Sources */,
-				83A863C4E772F8B2A1276B30 /* LiveSpectrumView.swift in Sources */,
 				5348957C40C4A9AB441967E8 /* NotificationService.swift in Sources */,
 				45B0AD4BC7C8AD1726B01943 /* OnboardingView.swift in Sources */,
 				E6FA12C1830B909367EAA16F /* PersonalizationService.swift in Sources */,
@@ -662,6 +671,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -753,6 +763,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingApp/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -773,6 +784,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = "HearingApp/Resources/Info-Debug.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -808,6 +820,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (

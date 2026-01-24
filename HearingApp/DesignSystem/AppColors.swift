@@ -100,13 +100,14 @@ enum AppColors {
     }
     
     // MARK: - Status color based on dose percentage
+    /// Aligned with ExposureStatus thresholds: <50 safe, 50-80 moderate, 80-100 high, >100 dangerous
     static func statusColor(for dosePercent: Double) -> Color {
         switch dosePercent {
         case ..<50:
             return safe
-        case 50..<75:
+        case 50..<80:
             return caution
-        case 75..<100:
+        case 80..<100:
             return warning
         default:
             return danger

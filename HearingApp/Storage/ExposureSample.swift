@@ -46,4 +46,26 @@ extension ExposureSample {
         guard let device = deviceName?.lowercased() else { return false }
         return device.contains("airpod") || device.contains("beats") || device.contains("apple")
     }
+
+    /// Convenience initializer for testing (auto-generates UUID)
+    convenience init(
+        startDate: Date,
+        endDate: Date,
+        levelDBASPL: Double,
+        sourceBundleId: String? = nil,
+        sourceName: String? = nil,
+        deviceName: String? = nil,
+        isCalibrated: Bool = false
+    ) {
+        self.init(
+            healthKitUUID: UUID().uuidString,
+            startDate: startDate,
+            endDate: endDate,
+            levelDBASPL: levelDBASPL,
+            sourceBundleId: sourceBundleId,
+            sourceName: sourceName,
+            deviceName: deviceName,
+            isCalibrated: isCalibrated
+        )
+    }
 }

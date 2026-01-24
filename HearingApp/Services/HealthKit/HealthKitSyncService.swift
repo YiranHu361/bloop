@@ -13,10 +13,17 @@ final class HealthKitSyncService: ObservableObject {
     @Published var sampleCount: Int = 0
     
     private var modelContext: ModelContext?
-    private var liveQuery: HKAnchoredObjectQuery?
+    private var liveSampleQuery: HKAnchoredObjectQuery?
+    private var liveEventQuery: HKAnchoredObjectQuery?
     private let healthStore = HKHealthStore()
-    
+    private var currentDoseModel: DoseModel = .niosh
+
     private init() {}
+
+    /// Set the dose model to use for calculations
+    func setDoseModel(_ model: DoseModel) {
+        self.currentDoseModel = model
+    }
     
     func configure(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -76,20 +83,23 @@ final class HealthKitSyncService: ObservableObject {
         )
         
         print("📥 Fetched \(samples.count) samples and \(events.count) events from HealthKit")
-        
-        // Upsert samples (using HealthKit UUID prevents duplicates)
+
+        // OPTIMIZATION: Batch fetch existing UUIDs upfront to avoid N+1 queries
+        var existingSampleUUIDs = Set<String>()
+        do {
+            let allSamplesDescriptor = FetchDescriptor<ExposureSample>()
+            let allSamples = try context.fetch(allSamplesDescriptor)
+            existingSampleUUIDs = Set(allSamples.map { $0.healthKitUUID })
+        } catch {
+            print("Error fetching existing sample UUIDs: \(error)")
+        }
+
+        // Upsert samples with fast in-memory deduplication
         var insertedCount = 0
         for sample in samples {
             let hkUUID = sample.uuid.uuidString
-            
-            // Check if already exists
-            let predicate = #Predicate<ExposureSample> { s in
-                s.healthKitUUID == hkUUID
-            }
-            let descriptor = FetchDescriptor<ExposureSample>(predicate: predicate)
-            let existing = try context.fetch(descriptor)
-            
-            if existing.isEmpty {
+
+            if !existingSampleUUIDs.contains(hkUUID) {
                 let exposureSample = ExposureSample(
                     healthKitUUID: hkUUID,
                     startDate: sample.startDate,
@@ -102,20 +112,25 @@ final class HealthKitSyncService: ObservableObject {
                 )
                 context.insert(exposureSample)
                 insertedCount += 1
+                existingSampleUUIDs.insert(hkUUID)
             }
         }
-        
-        // Upsert events
+
+        // Batch fetch existing event UUIDs
+        var existingEventUUIDs = Set<String>()
+        do {
+            let allEventsDescriptor = FetchDescriptor<ExposureEvent>()
+            let allEvents = try context.fetch(allEventsDescriptor)
+            existingEventUUIDs = Set(allEvents.map { $0.healthKitUUID })
+        } catch {
+            print("Error fetching existing event UUIDs: \(error)")
+        }
+
+        // Upsert events with fast in-memory deduplication
         for event in events {
             let hkUUID = event.uuid.uuidString
-            
-            let predicate = #Predicate<ExposureEvent> { e in
-                e.healthKitUUID == hkUUID
-            }
-            let descriptor = FetchDescriptor<ExposureEvent>(predicate: predicate)
-            let existing = try context.fetch(descriptor)
-            
-            if existing.isEmpty {
+
+            if !existingEventUUIDs.contains(hkUUID) {
                 let metadata = HealthKitService.eventMetadata(from: event)
                 let exposureEvent = ExposureEvent(
                     healthKitUUID: hkUUID,
@@ -127,6 +142,7 @@ final class HealthKitSyncService: ObservableObject {
                     sourceName: event.sourceRevision.source.name
                 )
                 context.insert(exposureEvent)
+                existingEventUUIDs.insert(hkUUID)
             }
         }
         
@@ -163,22 +179,26 @@ final class HealthKitSyncService: ObservableObject {
             anchor: eventAnchor
         )
         
-        // Process new samples with deduplication
+        // OPTIMIZATION: Batch fetch existing UUIDs to avoid N+1 queries
         var affectedDates = Set<Date>()
         let calendar = Calendar.current
         var insertedCount = 0
-        
+
+        // Batch fetch all existing sample UUIDs
+        var existingSampleUUIDs = Set<String>()
+        do {
+            let allSamplesDescriptor = FetchDescriptor<ExposureSample>()
+            let allSamples = try context.fetch(allSamplesDescriptor)
+            existingSampleUUIDs = Set(allSamples.map { $0.healthKitUUID })
+        } catch {
+            print("Error fetching existing sample UUIDs: \(error)")
+        }
+
+        // Process new samples with fast in-memory deduplication
         for sample in newSamples {
             let hkUUID = sample.uuid.uuidString
-            
-            // Check if already exists
-            let predicate = #Predicate<ExposureSample> { s in
-                s.healthKitUUID == hkUUID
-            }
-            let descriptor = FetchDescriptor<ExposureSample>(predicate: predicate)
-            let existing = try context.fetch(descriptor)
-            
-            if existing.isEmpty {
+
+            if !existingSampleUUIDs.contains(hkUUID) {
                 let exposureSample = ExposureSample(
                     healthKitUUID: hkUUID,
                     startDate: sample.startDate,
@@ -192,20 +212,25 @@ final class HealthKitSyncService: ObservableObject {
                 context.insert(exposureSample)
                 affectedDates.insert(calendar.startOfDay(for: sample.startDate))
                 insertedCount += 1
+                existingSampleUUIDs.insert(hkUUID)
             }
         }
-        
-        // Process new events with deduplication
+
+        // Batch fetch all existing event UUIDs
+        var existingEventUUIDs = Set<String>()
+        do {
+            let allEventsDescriptor = FetchDescriptor<ExposureEvent>()
+            let allEvents = try context.fetch(allEventsDescriptor)
+            existingEventUUIDs = Set(allEvents.map { $0.healthKitUUID })
+        } catch {
+            print("Error fetching existing event UUIDs: \(error)")
+        }
+
+        // Process new events with fast in-memory deduplication
         for event in newEvents {
             let hkUUID = event.uuid.uuidString
-            
-            let predicate = #Predicate<ExposureEvent> { e in
-                e.healthKitUUID == hkUUID
-            }
-            let descriptor = FetchDescriptor<ExposureEvent>(predicate: predicate)
-            let existing = try context.fetch(descriptor)
-            
-            if existing.isEmpty {
+
+            if !existingEventUUIDs.contains(hkUUID) {
                 let metadata = HealthKitService.eventMetadata(from: event)
                 let exposureEvent = ExposureEvent(
                     healthKitUUID: hkUUID,
@@ -217,6 +242,7 @@ final class HealthKitSyncService: ObservableObject {
                     sourceName: event.sourceRevision.source.name
                 )
                 context.insert(exposureEvent)
+                existingEventUUIDs.insert(hkUUID)
             }
         }
         
@@ -250,123 +276,244 @@ final class HealthKitSyncService: ObservableObject {
     
     // MARK: - Live Streaming Query (Real-time updates)
     
-    /// Start a live anchored query that streams updates as they arrive
+    /// Start live anchored queries that stream updates as they arrive
     func startLiveUpdates() {
-        guard let exposureType = HKQuantityType.quantityType(forIdentifier: .headphoneAudioExposure) else {
-            return
-        }
-        
-        // Stop existing query if any
+        // Stop existing queries if any
         stopLiveUpdates()
-        
-        // Get current anchor
-        let anchor: HKQueryAnchor?
-        do {
-            anchor = try getSyncAnchor(for: SyncState.exposureSamplesId)
-        } catch {
-            anchor = nil
-        }
-        
-        // Create live anchored query with update handler
-        let query = HKAnchoredObjectQuery(
-            type: exposureType,
-            predicate: nil,
-            anchor: anchor,
-            limit: HKObjectQueryNoLimit
-        ) { [weak self] query, samples, deleted, newAnchor, error in
-            // Initial results handler
-            Task { @MainActor [weak self] in
-                await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
+
+        // Start sample query
+        if let exposureType = HKQuantityType.quantityType(forIdentifier: .headphoneAudioExposure) {
+            let sampleAnchor: HKQueryAnchor?
+            do {
+                sampleAnchor = try getSyncAnchor(for: SyncState.exposureSamplesId)
+            } catch {
+                sampleAnchor = nil
             }
-        }
-        
-        // Set update handler for real-time streaming
-        query.updateHandler = { [weak self] query, samples, deleted, newAnchor, error in
-            Task { @MainActor [weak self] in
-                await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
+
+            let sampleQuery = HKAnchoredObjectQuery(
+                type: exposureType,
+                predicate: nil,
+                anchor: sampleAnchor,
+                limit: HKObjectQueryNoLimit
+            ) { [weak self] query, samples, deleted, newAnchor, error in
+                if let error = error {
+                    print("⚠️ Live sample query error: \(error)")
+                    return
+                }
+                Task { @MainActor [weak self] in
+                    await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
+                }
             }
+
+            sampleQuery.updateHandler = { [weak self] query, samples, deleted, newAnchor, error in
+                if let error = error {
+                    print("⚠️ Live sample update error: \(error)")
+                    return
+                }
+                Task { @MainActor [weak self] in
+                    await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
+                }
+            }
+
+            liveSampleQuery = sampleQuery
+            healthStore.execute(sampleQuery)
         }
-        
-        liveQuery = query
-        healthStore.execute(query)
-        print("🎧 Started live HealthKit streaming")
+
+        // Start event query
+        if let eventType = HKCategoryType.categoryType(forIdentifier: .headphoneAudioExposureEvent) {
+            let eventAnchor: HKQueryAnchor?
+            do {
+                eventAnchor = try getSyncAnchor(for: SyncState.exposureEventsId)
+            } catch {
+                eventAnchor = nil
+            }
+
+            let eventQuery = HKAnchoredObjectQuery(
+                type: eventType,
+                predicate: nil,
+                anchor: eventAnchor,
+                limit: HKObjectQueryNoLimit
+            ) { [weak self] query, events, deleted, newAnchor, error in
+                if let error = error {
+                    print("⚠️ Live event query error: \(error)")
+                    return
+                }
+                Task { @MainActor [weak self] in
+                    await self?.handleLiveEventUpdate(events: events, newAnchor: newAnchor)
+                }
+            }
+
+            eventQuery.updateHandler = { [weak self] query, events, deleted, newAnchor, error in
+                if let error = error {
+                    print("⚠️ Live event update error: \(error)")
+                    return
+                }
+                Task { @MainActor [weak self] in
+                    await self?.handleLiveEventUpdate(events: events, newAnchor: newAnchor)
+                }
+            }
+
+            liveEventQuery = eventQuery
+            healthStore.execute(eventQuery)
+        }
+
+        print("🎧 Started live HealthKit streaming (samples + events)")
     }
-    
+
     /// Stop live streaming
     func stopLiveUpdates() {
-        if let query = liveQuery {
+        if let query = liveSampleQuery {
             healthStore.stop(query)
-            liveQuery = nil
-            print("⏹️ Stopped live HealthKit streaming")
+            liveSampleQuery = nil
+        }
+        if let query = liveEventQuery {
+            healthStore.stop(query)
+            liveEventQuery = nil
+        }
+    }
+
+    private func handleLiveEventUpdate(events: [HKSample]?, newAnchor: HKQueryAnchor?) async {
+        guard let context = modelContext else { return }
+
+        // Save anchor
+        if let newAnchor = newAnchor {
+            do {
+                try saveSyncAnchor(newAnchor, for: SyncState.exposureEventsId)
+            } catch {
+                print("Event anchor save error: \(error)")
+            }
+        }
+
+        guard let categoryEvents = events as? [HKCategorySample],
+              !categoryEvents.isEmpty else {
+            return
+        }
+
+        var insertedCount = 0
+
+        // OPTIMIZATION: Batch fetch existing UUIDs
+        var existingUUIDs = Set<String>()
+        do {
+            let allEventsDescriptor = FetchDescriptor<ExposureEvent>()
+            let allEvents = try context.fetch(allEventsDescriptor)
+            existingUUIDs = Set(allEvents.map { $0.healthKitUUID })
+        } catch {
+            print("Error fetching existing events: \(error)")
+        }
+
+        for event in categoryEvents {
+            let hkUUID = event.uuid.uuidString
+
+            // Fast in-memory check
+            if !existingUUIDs.contains(hkUUID) {
+                let metadata = HealthKitService.eventMetadata(from: event)
+                let exposureEvent = ExposureEvent(
+                    healthKitUUID: hkUUID,
+                    startDate: event.startDate,
+                    endDate: event.endDate,
+                    eventLevelDBASPL: metadata.level,
+                    eventDurationSeconds: metadata.duration,
+                    sourceBundleId: event.sourceRevision.source.bundleIdentifier,
+                    sourceName: event.sourceRevision.source.name
+                )
+                context.insert(exposureEvent)
+                insertedCount += 1
+                existingUUIDs.insert(hkUUID)
+            }
+        }
+
+        do {
+            try context.save()
+            NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
+
+            if insertedCount > 0 {
+                print("⚡️ Live event update: \(insertedCount) new events")
+            }
+        } catch {
+            print("Live event save error: \(error)")
         }
     }
     
     private func handleLiveUpdate(samples: [HKSample]?, newAnchor: HKQueryAnchor?) async {
-        guard let context = modelContext,
-              let quantitySamples = samples as? [HKQuantitySample],
+        guard let context = modelContext else { return }
+
+        // Always save anchor even if no new samples (to maintain sync state)
+        if let newAnchor = newAnchor {
+            do {
+                try saveSyncAnchor(newAnchor, for: SyncState.exposureSamplesId)
+            } catch {
+                print("Anchor save error: \(error)")
+            }
+        }
+
+        // Always notify UI even if no new samples (keeps "last updated" fresh)
+        guard let quantitySamples = samples as? [HKQuantitySample],
               !quantitySamples.isEmpty else {
+            // Post notification anyway so UI updates timestamp
+            NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
             return
         }
-        
+
+        print("🎧 Received \(quantitySamples.count) samples from HealthKit")
+
         let calendar = Calendar.current
         var affectedDates = Set<Date>()
         var insertedCount = 0
-        
+
+        // OPTIMIZATION: Batch fetch existing UUIDs to avoid N+1 queries
+        let incomingUUIDs = Set(quantitySamples.map { $0.uuid.uuidString })
+        var existingUUIDs = Set<String>()
+
+        do {
+            // Fetch all samples and check UUIDs in memory (faster than N individual queries)
+            let allSamplesDescriptor = FetchDescriptor<ExposureSample>()
+            let allSamples = try context.fetch(allSamplesDescriptor)
+            existingUUIDs = Set(allSamples.map { $0.healthKitUUID })
+        } catch {
+            print("Error fetching existing samples: \(error)")
+        }
+
         for sample in quantitySamples {
             let hkUUID = sample.uuid.uuidString
-            
-            // Check if already exists
-            let predicate = #Predicate<ExposureSample> { s in
-                s.healthKitUUID == hkUUID
-            }
-            let descriptor = FetchDescriptor<ExposureSample>(predicate: predicate)
-            
-            do {
-                let existing = try context.fetch(descriptor)
-                
-                if existing.isEmpty {
-                    let exposureSample = ExposureSample(
-                        healthKitUUID: hkUUID,
-                        startDate: sample.startDate,
-                        endDate: sample.endDate,
-                        levelDBASPL: HealthKitService.decibels(from: sample),
-                        sourceBundleId: sample.sourceRevision.source.bundleIdentifier,
-                        sourceName: sample.sourceRevision.source.name,
-                        deviceName: sample.device?.name,
-                        isCalibrated: HealthKitService.isCalibrated(sample: sample)
-                    )
-                    context.insert(exposureSample)
-                    affectedDates.insert(calendar.startOfDay(for: sample.startDate))
-                    insertedCount += 1
-                }
-            } catch {
-                print("Live update error: \(error)")
+
+            // Fast in-memory check instead of database query
+            if !existingUUIDs.contains(hkUUID) {
+                let exposureSample = ExposureSample(
+                    healthKitUUID: hkUUID,
+                    startDate: sample.startDate,
+                    endDate: sample.endDate,
+                    levelDBASPL: HealthKitService.decibels(from: sample),
+                    sourceBundleId: sample.sourceRevision.source.bundleIdentifier,
+                    sourceName: sample.sourceRevision.source.name,
+                    deviceName: sample.device?.name,
+                    isCalibrated: HealthKitService.isCalibrated(sample: sample)
+                )
+                context.insert(exposureSample)
+                affectedDates.insert(calendar.startOfDay(for: sample.startDate))
+                insertedCount += 1
+                existingUUIDs.insert(hkUUID)  // Track newly inserted
             }
         }
-        
-        if insertedCount > 0 {
-            do {
-                // Save anchor
-                if let newAnchor = newAnchor {
-                    try saveSyncAnchor(newAnchor, for: SyncState.exposureSamplesId)
-                }
-                
-                try context.save()
-                
-                // Recalculate affected daily doses
-                for date in affectedDates {
-                    try await recalculateDailyDose(for: date)
-                }
-                
-                lastSyncDate = Date()
-                
-                // Post notification for immediate UI update
-                NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
-                
-                print("⚡️ Live update: \(insertedCount) new samples")
-            } catch {
-                print("Live update save error: \(error)")
+
+        do {
+            try context.save()
+
+            // Recalculate affected daily doses
+            for date in affectedDates {
+                try await recalculateDailyDose(for: date)
             }
+
+            lastSyncDate = Date()
+
+            // Always post notification when we receive samples
+            // This ensures UI stays in sync with real-time updates
+            NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
+
+            if insertedCount > 0 {
+                print("⚡️ Live update: \(insertedCount) new samples")
+            }
+        } catch {
+            print("Live update save error: \(error)")
         }
     }
     
@@ -402,7 +549,7 @@ final class HealthKitSyncService: ObservableObject {
         let samples = try context.fetch(sampleDescriptor)
         
         // Calculate dose using DoseCalculator
-        let calculator = DoseCalculator(model: .niosh)
+        let calculator = DoseCalculator(model: currentDoseModel)
         let result = calculator.calculateDailyDose(from: samples)
         
         // Find or create daily dose record
@@ -514,12 +661,8 @@ final class HealthKitSyncService: ObservableObject {
             let doses = try context.fetch(descriptor)
 
             if let todayDose = doses.first {
-                // Send notifications using the new unified API
-                // This handles threshold alerts, volume alerts, and Live Activity updates
-                await NotificationService.shared.checkAndNotify(
-                    dosePercent: todayDose.dosePercent,
-                    currentDB: todayDose.averageLevelDBASPL.map { Int($0) }
-                )
+                // Send threshold notifications
+                await NotificationService.shared.checkAndNotify(for: todayDose.dosePercent)
 
                 // Update widget data
                 updateWidgetData(dose: todayDose)

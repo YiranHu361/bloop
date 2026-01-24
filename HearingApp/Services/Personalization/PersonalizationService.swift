@@ -14,11 +14,9 @@ final class PersonalizationService: ObservableObject {
 
     private init() {}
 
-    func configure(modelContext: ModelContext) {
+    func configure(modelContext: ModelContext) async {
         self.modelContext = modelContext
-        Task {
-            await loadPreferences()
-        }
+        await loadPreferences()
     }
 
     // MARK: - Preferences Management
