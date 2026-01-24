@@ -3,7 +3,6 @@ import SwiftUI
 /// Quick actions card with monitoring controls
 struct QuickActionsCard: View {
     @Binding var isMonitoringPaused: Bool
-    @Binding var isPrivacyMode: Bool
     var lastUpdated: Date?
     
     @Environment(\.colorScheme) private var colorScheme
@@ -16,57 +15,53 @@ struct QuickActionsCard: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
-            // Header
-            HStack {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(AppColors.primaryFallback)
-                
-                Text("Quick Actions")
-                    .font(AppTypography.headline)
-                    .foregroundColor(AppColors.label)
-                
-                Spacer()
-                
-                // Auto-sync indicator
+        HStack(spacing: 16) {
+            // Pause/Resume Monitoring Button
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    isMonitoringPaused.toggle()
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(isMonitoringPaused ? AppColors.secondaryLabel.opacity(0.12) : AppColors.safe.opacity(0.15))
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: isMonitoringPaused ? "play.circle.fill" : "pause.circle.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(isMonitoringPaused ? AppColors.secondaryLabel : AppColors.safe)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(isMonitoringPaused ? "Resume" : "Pause")
+                            .font(AppTypography.headline)
+                            .foregroundColor(AppColors.label)
+                        
+                        Text("Monitoring")
+                            .font(AppTypography.caption1)
+                            .foregroundColor(AppColors.secondaryLabel)
+                    }
+                }
+            }
+            .buttonStyle(ScaleButtonStyle())
+            
+            Spacer()
+            
+            // Auto-sync indicator
+            VStack(alignment: .trailing, spacing: 4) {
                 HStack(spacing: 4) {
                     Circle()
                         .fill(AppColors.safe)
                         .frame(width: 6, height: 6)
-                    Text(lastUpdatedText)
-                        .font(AppTypography.caption2)
-                        .foregroundColor(AppColors.tertiaryLabel)
-                }
-            }
-            
-            // Action buttons (2 buttons now, more space)
-            HStack(spacing: 16) {
-                // Pause Monitoring
-                QuickActionButton(
-                    icon: isMonitoringPaused ? "play.circle.fill" : "pause.circle.fill",
-                    title: isMonitoringPaused ? "Resume" : "Pause",
-                    subtitle: "Monitoring",
-                    isActive: !isMonitoringPaused,
-                    color: isMonitoringPaused ? AppColors.secondaryLabel : AppColors.safe
-                ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        isMonitoringPaused.toggle()
-                    }
+                    Text("Live")
+                        .font(AppTypography.caption1Bold)
+                        .foregroundColor(AppColors.safe)
                 }
                 
-                // Privacy Mode
-                QuickActionButton(
-                    icon: isPrivacyMode ? "eye.slash.fill" : "eye.fill",
-                    title: isPrivacyMode ? "Privacy" : "Full",
-                    subtitle: "Mode",
-                    isActive: isPrivacyMode,
-                    color: isPrivacyMode ? AppColors.accent : AppColors.secondaryLabel
-                ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        isPrivacyMode.toggle()
-                    }
-                }
+                Text(lastUpdatedText)
+                    .font(AppTypography.caption2)
+                    .foregroundColor(AppColors.tertiaryLabel)
             }
         }
         .padding(16)
@@ -163,7 +158,11 @@ struct ScaleButtonStyle: ButtonStyle {
     VStack {
         QuickActionsCard(
             isMonitoringPaused: .constant(false),
-            isPrivacyMode: .constant(false),
+            lastUpdated: Date()
+        )
+        
+        QuickActionsCard(
+            isMonitoringPaused: .constant(true),
             lastUpdated: Date()
         )
     }

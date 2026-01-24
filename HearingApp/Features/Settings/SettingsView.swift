@@ -18,9 +18,9 @@ struct SettingsView: View {
                 Section {
                     MonitoringModeSelector(selectedMode: $viewModel.monitoringMode)
                 } header: {
-                    sectionHeader(icon: "waveform.path.ecg", title: "Monitoring Mode")
+                    sectionHeader(icon: "slider.horizontal.3", title: "Display Mode")
                 } footer: {
-                    Text("Choose how much data is collected. Privacy Mode only tracks basic volume levels.")
+                    Text("Both modes provide the same hearing protection. Privacy Mode just shows less detail on screen.")
                         .font(AppTypography.caption1)
                 }
                 
@@ -204,34 +204,52 @@ struct MonitoringModeSelector: View {
                     ZStack {
                         Circle()
                             .fill(mode.color.opacity(0.12))
-                            .frame(width: 40, height: 40)
+                            .frame(width: 44, height: 44)
                         
                         Image(systemName: mode.icon)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(mode.color)
                     }
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(mode.displayName)
-                            .font(AppTypography.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(AppColors.label)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Text(mode.displayName)
+                                .font(AppTypography.headline)
+                                .foregroundColor(AppColors.label)
+                            
+                            if let badge = mode.badge {
+                                Text(badge)
+                                    .font(AppTypography.caption2)
+                                    .foregroundColor(AppColors.primaryFallback)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(
+                                        Capsule()
+                                            .fill(AppColors.primaryFallback.opacity(0.12))
+                                    )
+                            }
+                        }
                         
-                        Text(mode.description)
+                        Text(mode.detailedDescription)
                             .font(AppTypography.caption1)
                             .foregroundColor(AppColors.secondaryLabel)
                             .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     
                     Spacer()
                     
                     if selectedMode == mode {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 22))
+                            .font(.system(size: 24))
                             .foregroundColor(AppColors.primaryFallback)
+                    } else {
+                        Circle()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                            .frame(width: 24, height: 24)
                     }
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 8)
             }
             .buttonStyle(.plain)
         }
@@ -239,39 +257,48 @@ struct MonitoringModeSelector: View {
 }
 
 enum MonitoringMode: String, CaseIterable {
-    case full = "full"
-    case volumeOnly = "volume"
-    case minimal = "minimal"
+    case standard = "standard"
+    case privacy = "privacy"
     
     var displayName: String {
         switch self {
-        case .full: return "Full Analysis"
-        case .volumeOnly: return "Volume Only"
-        case .minimal: return "Minimal Mode"
+        case .standard: return "Standard"
+        case .privacy: return "Privacy Mode"
         }
     }
     
     var description: String {
         switch self {
-        case .full: return "Tracks dB levels and exposure patterns"
-        case .volumeOnly: return "Only monitors volume levels"
-        case .minimal: return "Only session length, maximum privacy"
+        case .standard: return "Full hearing protection with detailed insights"
+        case .privacy: return "Same protection, minimal data display"
+        }
+    }
+    
+    var detailedDescription: String {
+        switch self {
+        case .standard: return "See your listening patterns, volume levels, and personalized recommendations."
+        case .privacy: return "App still protects your hearing but shows less detail. Good if you prefer a simpler view."
         }
     }
     
     var icon: String {
         switch self {
-        case .full: return "waveform.path.ecg"
-        case .volumeOnly: return "speaker.wave.2"
-        case .minimal: return "lock"
+        case .standard: return "waveform.path.ecg"
+        case .privacy: return "lock.shield"
         }
     }
     
     var color: Color {
         switch self {
-        case .full: return AppColors.primaryFallback
-        case .volumeOnly: return AppColors.caution
-        case .minimal: return AppColors.safe
+        case .standard: return AppColors.primaryFallback
+        case .privacy: return AppColors.safe
+        }
+    }
+    
+    var badge: String? {
+        switch self {
+        case .standard: return "Recommended"
+        case .privacy: return nil
         }
     }
 }
@@ -329,9 +356,15 @@ struct PrivacyFooter: View {
             }
             
             HStack(spacing: 4) {
-                Image(systemName: "mic.slash.fill")
+                Image(systemName: "waveform")
                     .foregroundColor(AppColors.safe)
-                Text("No microphone access")
+                Text("Mic used for spectrum (on-device only)")
+            }
+            
+            HStack(spacing: 4) {
+                Image(systemName: "phone.down.fill")
+                    .foregroundColor(AppColors.safe)
+                Text("Phone calls cannot be accessed")
             }
             
             HStack(spacing: 4) {
@@ -365,27 +398,27 @@ struct PrivacyPolicySheet: View {
                     }
                     
                     privacyItem(
-                        icon: "mic.slash.fill",
-                        title: "No Audio Recording",
-                        description: "We never access your microphone or record what you're listening to."
+                        icon: "waveform",
+                        title: "Live Spectrum (Microphone)",
+                        description: "The spectrum visualization uses your microphone. Audio is processed on-device only and never recorded or stored."
                     )
                     
                     privacyItem(
-                        icon: "iphone.slash",
-                        title: "On-Device Processing",
-                        description: "All calculations happen locally on your device. Nothing leaves your phone."
-                    )
-                    
-                    privacyItem(
-                        icon: "antenna.radiowaves.left.and.right.slash",
-                        title: "No Network Requests",
-                        description: "The app works completely offline. We don't collect any analytics or tracking data."
+                        icon: "phone.down.fill",
+                        title: "Phone Calls Stay Private",
+                        description: "iOS does not allow apps to access phone call audio. Your calls are completely private."
                     )
                     
                     privacyItem(
                         icon: "heart.fill",
-                        title: "HealthKit Integration",
-                        description: "We only read headphone audio levels from HealthKit with your permission. This data stays on your device."
+                        title: "HealthKit Volume Data",
+                        description: "We read headphone volume levels from HealthKit. This is just a number, not what you're listening to."
+                    )
+                    
+                    privacyItem(
+                        icon: "iphone",
+                        title: "On-Device Processing",
+                        description: "All data stays on your phone. Nothing is sent to servers or shared with anyone."
                     )
                     
                     Spacer()

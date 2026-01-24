@@ -3,16 +3,15 @@ import Charts
 
 /// Live exposure visualization showing timeline chart and recent dB readings.
 /// HealthKit provides loudness levels (dB), not frequency spectrum data.
+/// Note: Zones mode moved to PrimaryAudioCard for a cleaner dashboard layout.
 struct ExposureProfileView: View {
     enum Mode: String, CaseIterable, Identifiable {
         case timeline = "Timeline"
-        case zones = "Zones"
         case log = "Log"
 
         var id: String { rawValue }
     }
 
-    let bands: [ExposureBand]
     let timeline: [ExposureTimelinePoint]
     let currentLevelDB: Double?
     let descriptorText: String?
@@ -45,7 +44,7 @@ struct ExposureProfileView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(maxWidth: 200)
+                .frame(maxWidth: 160)
             }
 
             // Current level indicator (always visible)
@@ -57,8 +56,6 @@ struct ExposureProfileView: View {
             switch mode {
             case .timeline:
                 timelineChart
-            case .zones:
-                zonesView
             case .log:
                 recentLogView
             }
@@ -216,63 +213,6 @@ struct ExposureProfileView: View {
                     .font(AppTypography.caption2)
                 }
             }
-        }
-    }
-
-    // MARK: - Zones View (improved labels)
-
-    private var zonesView: some View {
-        VStack(spacing: 12) {
-            GeometryReader { geo in
-                let maxHeight = geo.size.height - 24
-                let maxValue = max(1, bands.map(\.seconds).max() ?? 1)
-
-                HStack(alignment: .bottom, spacing: 6) {
-                    ForEach(bands) { band in
-                        VStack(spacing: 4) {
-                            // Bar
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(band.color)
-                                .frame(
-                                    width: 28,
-                                    height: max(4, maxHeight * CGFloat(band.seconds / maxValue))
-                                )
-                                .animation(.easeInOut(duration: 0.35), value: band.seconds)
-                            
-                            // dB range label (clearer than Q/M1/etc)
-                            Text(band.label)
-                                .font(.system(size: 8, weight: .medium))
-                                .foregroundColor(AppColors.tertiaryLabel)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .accessibilityLabel("\(band.label): \(band.formattedTime)")
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            }
-            .frame(height: 130)
-
-            // Legend
-            HStack {
-                HStack(spacing: 4) {
-                    Circle().fill(AppColors.safe).frame(width: 8, height: 8)
-                    Text("Safe")
-                }
-                Spacer()
-                HStack(spacing: 4) {
-                    Circle().fill(AppColors.caution).frame(width: 8, height: 8)
-                    Text("Caution")
-                }
-                Spacer()
-                HStack(spacing: 4) {
-                    Circle().fill(AppColors.danger).frame(width: 8, height: 8)
-                    Text("Risk")
-                }
-            }
-            .font(AppTypography.caption2)
-            .foregroundColor(AppColors.secondaryLabel)
         }
     }
 
@@ -451,16 +391,6 @@ struct ExposureTimelinePoint: Identifiable {
     ScrollView {
         VStack(spacing: 20) {
             ExposureProfileView(
-                bands: [
-                    .init(id: "1", label: "<60", shortLabel: "<60", seconds: 900, color: AppColors.safe),
-                    .init(id: "2", label: "60-70", shortLabel: "60-70", seconds: 1200, color: AppColors.safe.opacity(0.85)),
-                    .init(id: "3", label: "70-80", shortLabel: "70-80", seconds: 1500, color: AppColors.safe.opacity(0.7)),
-                    .init(id: "4", label: "80-85", shortLabel: "80-85", seconds: 600, color: AppColors.caution.opacity(0.85)),
-                    .init(id: "5", label: "85-90", shortLabel: "85-90", seconds: 300, color: AppColors.caution),
-                    .init(id: "6", label: "90-95", shortLabel: "90-95", seconds: 120, color: AppColors.danger.opacity(0.9)),
-                    .init(id: "7", label: "95-100", shortLabel: "95-100", seconds: 60, color: AppColors.danger),
-                    .init(id: "8", label: "100+", shortLabel: "100+", seconds: 20, color: AppColors.danger.opacity(0.75)),
-                ],
                 timeline: [
                     .init(date: .now.addingTimeInterval(-3600), levelDB: 62),
                     .init(date: .now.addingTimeInterval(-3000), levelDB: 68),

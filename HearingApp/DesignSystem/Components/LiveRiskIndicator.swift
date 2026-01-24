@@ -149,33 +149,27 @@ struct LiveRiskIndicator: View {
     
     private var centerContent: some View {
         VStack(spacing: 8) {
-            // Main percentage
-            Text("\(Int(dosePercent))%")
-                .font(AppTypography.dosePercentLarge)
+            // Status label (main focus)
+            Text(status.displayName)
+                .font(AppTypography.displaySmall)
                 .fontWeight(.bold)
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [AppColors.label, AppColors.label.opacity(0.85)],
+                        colors: [statusColor, statusColor.opacity(0.85)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-                .contentTransition(.numericText())
             
-            // Status label
-            Text(status.displayName)
-                .font(AppTypography.headline)
-                .foregroundColor(statusColor)
-            
-            // Current dB if available
+            // Current dB level (primary metric)
             if let level = currentLevelDB {
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Image(systemName: "waveform")
-                        .font(.caption)
+                        .font(.system(size: 14, weight: .medium))
                     Text("\(Int(level)) dB")
-                        .font(AppTypography.caption1Bold)
+                        .font(AppTypography.title3)
                 }
-                .foregroundColor(AppColors.secondaryLabel)
+                .foregroundColor(AppColors.label)
                 .padding(.top, 4)
             }
             
@@ -189,7 +183,7 @@ struct LiveRiskIndicator: View {
                         .font(AppTypography.caption2)
                 }
                 .foregroundColor(AppColors.tertiaryLabel)
-                .padding(.top, 2)
+                .padding(.top, 4)
             }
         }
     }

@@ -1,11 +1,10 @@
 import SwiftUI
 
-/// Session summary card showing key metrics: dB level, listening time, dose %
+/// Session summary card showing key metrics: dB level, listening time
 struct SessionSummaryCard: View {
     let averageDB: Double?
     let peakDB: Double?
     let listeningTime: TimeInterval
-    let dosePercent: Double
     
     @Environment(\.colorScheme) private var colorScheme
     
@@ -58,16 +57,6 @@ struct SessionSummaryCard: View {
                     value: formatDuration(listeningTime),
                     label: "Duration",
                     color: AppColors.primaryFallback
-                )
-                
-                verticalDivider
-                
-                // Dose
-                statItem(
-                    icon: "gauge.with.dots.needle.67percent",
-                    value: "\(Int(dosePercent))%",
-                    label: "Dose",
-                    color: AppColors.statusColor(for: dosePercent)
                 )
             }
             .padding(.vertical, 16)
@@ -182,15 +171,13 @@ struct SessionSummaryCard: View {
         SessionSummaryCard(
             averageDB: 72,
             peakDB: 78,
-            listeningTime: 2.5 * 3600,
-            dosePercent: 45
+            listeningTime: 2.5 * 3600
         )
         
         SessionSummaryCard(
             averageDB: 86,
             peakDB: 95,
-            listeningTime: 4 * 3600,
-            dosePercent: 85
+            listeningTime: 4 * 3600
         )
     }
     .padding()

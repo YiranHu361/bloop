@@ -29,6 +29,25 @@ final class TrendsViewModel: ObservableObject {
         return levelsWithData.reduce(0, +) / Double(levelsWithData.count)
     }
     
+    var formattedAverageLevel: String {
+        guard let avg = averageLevel else { return "—" }
+        return "\(Int(avg)) dB"
+    }
+    
+    var peakLevel: Double? {
+        dailyDoses.compactMap { $0.peakLevelDBASPL }.max()
+    }
+    
+    var formattedPeakLevel: String {
+        guard let peak = peakLevel else { return "—" }
+        return "\(Int(peak)) dB"
+    }
+    
+    /// Days with peak level >= 90 dB (loud exposure days)
+    var loudDays: Int {
+        dailyDoses.filter { ($0.peakLevelDBASPL ?? 0) >= 90 }.count
+    }
+    
     var totalExposureSeconds: Double {
         dailyDoses.reduce(0.0) { $0 + $1.totalExposureSeconds }
     }

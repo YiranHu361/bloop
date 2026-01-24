@@ -6,7 +6,7 @@ import SwiftData
 @MainActor
 final class SettingsViewModel: ObservableObject {
     // Monitoring
-    @Published var monitoringMode: MonitoringMode = .full
+    @Published var monitoringMode: MonitoringMode = .standard
     
     // Notifications
     @Published var notify50Percent: Bool = true

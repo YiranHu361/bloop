@@ -35,15 +35,91 @@ struct PrivacyDetailView: View {
                 dataAccessRow(
                     icon: "heart.fill",
                     iconColor: .red,
-                    title: "HealthKit Audio Data",
-                    description: "Headphone audio exposure levels only",
+                    title: "HealthKit Audio Levels",
+                    description: "Volume levels from your headphones (not audio content)",
                     accessType: "Read Only"
+                )
+                
+                dataAccessRow(
+                    icon: "mic.fill",
+                    iconColor: AppColors.primaryFallback,
+                    title: "Microphone (for Spectrum)",
+                    description: "Used for live spectrum visualization only",
+                    accessType: "On-Device"
                 )
             }
             
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.primaryFallback.opacity(0.12))
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: "waveform")
+                                .font(.system(size: 20))
+                                .foregroundColor(AppColors.primaryFallback)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("About the Live Spectrum")
+                                .font(AppTypography.headline)
+                                .foregroundColor(AppColors.label)
+                            
+                            Text("The spectrum visualization uses your microphone to show sound frequencies in real-time.")
+                                .font(AppTypography.caption1)
+                                .foregroundColor(AppColors.secondaryLabel)
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        privacyBullet(text: "Audio is processed on-device only")
+                        privacyBullet(text: "Nothing is ever recorded or stored")
+                        privacyBullet(text: "You can disable mic access anytime in Settings")
+                        privacyBullet(text: "HealthKit tracking works without microphone")
+                    }
+                }
+                .padding(.vertical, 8)
+            } header: {
+                Text("Microphone Privacy")
+            }
+            
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.safe.opacity(0.12))
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: "phone.down.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(AppColors.safe)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Phone Calls Are Private")
+                                .font(AppTypography.headline)
+                                .foregroundColor(AppColors.label)
+                            
+                            Text("iOS does not allow apps to access phone call audio. Your calls are completely private.")
+                                .font(AppTypography.caption1)
+                                .foregroundColor(AppColors.secondaryLabel)
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+            } header: {
+                Text("Important")
+            }
+            
             Section("What We DON'T Access") {
-                noAccessRow(icon: "mic.slash.fill", title: "Microphone", reason: "We never record ambient sound")
+                noAccessRow(icon: "phone.down.fill", title: "Phone Calls", reason: "iOS prevents apps from accessing call audio")
                 noAccessRow(icon: "music.note", title: "Audio Content", reason: "We don't know what you're listening to")
+                noAccessRow(icon: "record.circle", title: "Audio Recording", reason: "We never record or store any audio")
                 noAccessRow(icon: "location.slash.fill", title: "Location", reason: "Not needed for hearing protection")
                 noAccessRow(icon: "person.crop.circle.badge.xmark", title: "Contacts", reason: "This is a personal health app")
                 noAccessRow(icon: "camera.slash.fill", title: "Camera", reason: "Not needed for this app")
@@ -228,6 +304,19 @@ struct PrivacyDetailView: View {
             }
         }
         .padding(.vertical, 2)
+    }
+    
+    private func privacyBullet(text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(AppColors.safe)
+                .padding(.top, 2)
+            
+            Text(text)
+                .font(AppTypography.subheadline)
+                .foregroundColor(AppColors.label)
+        }
     }
 }
 

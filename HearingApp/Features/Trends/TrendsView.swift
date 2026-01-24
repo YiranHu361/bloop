@@ -30,6 +30,7 @@ struct TrendsView: View {
                     HighlightsSection(
                         highestDay: viewModel.highestExposureDay,
                         averageDB: viewModel.averageLevel,
+                        loudDays: viewModel.loudDays,
                         trend: viewModel.listeningTrend
                     )
                     .padding(.horizontal)
@@ -37,8 +38,8 @@ struct TrendsView: View {
                     
                     // Summary Stats
                     SummaryStatsGrid(
-                        averageDose: viewModel.averageDose,
-                        daysOverLimit: viewModel.daysOverLimit,
+                        averageLevel: viewModel.formattedAverageLevel,
+                        peakLevel: viewModel.formattedPeakLevel,
                         totalTime: viewModel.formattedTotalTime,
                         streak: viewModel.currentStreak
                     )
@@ -142,7 +143,7 @@ struct WeeklyBarChart: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppColors.primaryFallback)
                 
-                Text("Weekly Overview")
+                Text("Sound Exposure")
                     .font(AppTypography.headline)
                     .foregroundColor(AppColors.label)
                 
@@ -154,7 +155,7 @@ struct WeeklyBarChart: View {
                 ForEach(Array(chartData.enumerated()), id: \.offset) { index, item in
                     BarMark(
                         x: .value("Day", item.day),
-                        y: .value("Dose", item.percent)
+                        y: .value("Exposure", item.percent)
                     )
                     .foregroundStyle(barColor(for: item.percent))
                     .cornerRadius(6)
@@ -172,7 +173,7 @@ struct WeeklyBarChart: View {
                     .foregroundStyle(AppColors.danger.opacity(0.5))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                     .annotation(position: .trailing, alignment: .leading) {
-                        Text("100%")
+                        Text("Limit")
                             .font(AppTypography.caption2)
                             .foregroundColor(AppColors.danger)
                     }
@@ -276,6 +277,7 @@ struct WeeklyBarChart: View {
 struct HighlightsSection: View {
     let highestDay: (date: Date, percent: Double)?
     let averageDB: Double?
+    let loudDays: Int
     let trend: String?
     
     @Environment(\.colorScheme) private var colorScheme
@@ -309,9 +311,17 @@ struct HighlightsSection: View {
                         icon: "waveform",
                         iconColor: AppColors.primaryFallback,
                         title: "Average Level",
-                        value: "\(Int(avg)) dB this week"
+                        value: "\(Int(avg)) dB this period"
                     )
                 }
+                
+                // Loud days insight
+                insightRow(
+                    icon: "speaker.wave.3.fill",
+                    iconColor: loudDays > 0 ? AppColors.danger : AppColors.safe,
+                    title: "Loud Days (≥90 dB)",
+                    value: loudDays > 0 ? "\(loudDays) day\(loudDays == 1 ? "" : "s") with loud peaks" : "No loud peaks this period"
+                )
                 
                 if let trend = trend {
                     insightRow(
@@ -392,31 +402,33 @@ struct HighlightsSection: View {
 // MARK: - Summary Stats Grid
 
 struct SummaryStatsGrid: View {
-    let averageDose: Double
-    let daysOverLimit: Int
+    let averageLevel: String
+    let peakLevel: String
     let totalTime: String
     let streak: Int
     
     var body: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             StatCardView(
-                title: "Avg. Dose",
-                value: "\(Int(averageDose))%",
-                icon: "chart.line.uptrend.xyaxis",
-                color: AppColors.statusColor(for: averageDose)
+                title: "Avg Level",
+                value: averageLevel,
+                subtitle: "This period",
+                icon: "waveform",
+                color: AppColors.primaryFallback
             )
             
             StatCardView(
-                title: "Days Over",
-                value: "\(daysOverLimit)",
-                subtitle: "Above 100%",
-                icon: "exclamationmark.triangle",
-                color: daysOverLimit > 0 ? AppColors.danger : AppColors.safe
+                title: "Peak Level",
+                value: peakLevel,
+                subtitle: "Loudest moment",
+                icon: "speaker.wave.3.fill",
+                color: AppColors.caution
             )
             
             StatCardView(
                 title: "Listen Time",
                 value: totalTime,
+                subtitle: "Total duration",
                 icon: "clock",
                 color: AppColors.primaryFallback
             )
@@ -424,6 +436,7 @@ struct SummaryStatsGrid: View {
             StatCardView(
                 title: "Safe Streak",
                 value: "\(streak) days",
+                subtitle: "Below limit",
                 icon: "flame.fill",
                 color: AppColors.safe
             )
@@ -464,7 +477,7 @@ struct SelectedDayCard: View {
             Divider()
             
             HStack(spacing: 24) {
-                statItem(label: "Dose", value: "\(Int(dose.dosePercent))%", color: AppColors.statusColor(for: dose.dosePercent))
+                statItem(label: "Exposure", value: "\(Int(dose.dosePercent))%", color: AppColors.statusColor(for: dose.dosePercent))
                 
                 if let avg = dose.averageLevelDBASPL {
                     statItem(label: "Avg dB", value: "\(Int(avg))", color: AppColors.primaryFallback)

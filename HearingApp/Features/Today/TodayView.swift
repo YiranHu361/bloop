@@ -7,43 +7,30 @@ struct TodayView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = TodayViewModel()
+    @ObservedObject private var spectrumService = AudioSpectrumService.shared
     
     @State private var isMonitoringPaused = false
-    @State private var isPrivacyMode = false
-    @State private var showAlert = true
     @State private var isRefreshing = false
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Alert banner (if dose is high)
-                    if showAlert, let dose = viewModel.todayDose, dose.dosePercent >= 75 {
-                        DoseWarningBanner(dosePercent: dose.dosePercent) {
-                            withAnimation {
-                                showAlert = false
-                            }
-                        }
-                        .padding(.horizontal)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                    }
-                    
-                    // Live Risk Indicator
-                    LiveRiskIndicator(
-                        dosePercent: viewModel.todayDose?.dosePercent ?? 0,
+                    // Primary Audio Card (Spectrum / Zones toggle)
+                    PrimaryAudioCard(
+                        spectrumService: spectrumService,
+                        bands: viewModel.exposureBands,
                         currentLevelDB: viewModel.currentLevelDB,
                         isMonitoring: !isMonitoringPaused
                     )
-                    .frame(width: 280, height: 280)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal)
                     .cardEntrance(delay: 0.1)
                     
                     // Session Summary Card
                     SessionSummaryCard(
                         averageDB: viewModel.todayDose?.averageLevelDBASPL,
                         peakDB: viewModel.todayDose?.peakLevelDBASPL,
-                        listeningTime: viewModel.todayDose?.totalExposureSeconds ?? 0,
-                        dosePercent: viewModel.todayDose?.dosePercent ?? 0
+                        listeningTime: viewModel.todayDose?.totalExposureSeconds ?? 0
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.2)
@@ -51,7 +38,6 @@ struct TodayView: View {
                     // Quick Actions
                     QuickActionsCard(
                         isMonitoringPaused: $isMonitoringPaused,
-                        isPrivacyMode: $isPrivacyMode,
                         lastUpdated: viewModel.lastUpdated
                     )
                     .padding(.horizontal)
@@ -66,9 +52,8 @@ struct TodayView: View {
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.4)
                     
-                    // Live Exposure Profile (always show - will display empty state if no data)
+                    // Exposure Details (Timeline / Log)
                     ExposureProfileView(
-                        bands: viewModel.exposureBands,
                         timeline: viewModel.exposureTimeline,
                         currentLevelDB: viewModel.currentLevelDB,
                         descriptorText: viewModel.exposureSummary,
@@ -113,15 +98,20 @@ struct TodayView: View {
         .onDisappear {
             viewModel.stopPeriodicRefresh()
         }
-        .onChange(of: scenePhase) { oldPhase, newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 // Refresh when returning to foreground
                 Task {
                     await viewModel.silentRefresh()
+                    // Restart spectrum if monitoring and authorized
+                    if !isMonitoringPaused && spectrumService.permissionStatus == .authorized {
+                        await spectrumService.start()
+                    }
                 }
                 viewModel.startPeriodicRefresh()
             } else if newPhase == .background {
                 viewModel.stopPeriodicRefresh()
+                spectrumService.stop()
             }
         }
     }
