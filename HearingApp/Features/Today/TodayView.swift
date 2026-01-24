@@ -7,12 +7,11 @@ struct TodayView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = TodayViewModel()
-    @ObservedObject private var spectrumService = AudioSpectrumService.shared
     @ObservedObject private var routeMonitor = AudioRouteMonitor.shared
-    
+
     @State private var isMonitoringPaused = false
     @State private var isRefreshing = false
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -23,18 +22,24 @@ struct TodayView: View {
                             .padding(.horizontal)
                             .cardEntrance(delay: 0.05)
                     }
-                    
-                    // Primary Audio Card (Zones / Timeline toggle, Spectrum in Debug only)
+
+                    // Primary Audio Card (Exposure Zones)
                     PrimaryAudioCard(
-                        spectrumService: spectrumService,
                         bands: viewModel.exposureBands,
-                        timeline: viewModel.exposureTimeline,
-                        currentLevelDB: viewModel.currentLevelDB,
-                        isMonitoring: !isMonitoringPaused
+                        currentLevelDB: viewModel.currentLevelDB
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.1)
-                    
+
+                    // AI Insight Card (Hearing Budget)
+                    AIInsightCard(
+                        dosePercent: viewModel.todayDose?.dosePercent ?? 0,
+                        insight: viewModel.aiInsight,
+                        lastUpdated: viewModel.lastUpdated
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.2)
+
                     // Session Summary Card
                     SessionSummaryCard(
                         averageDB: viewModel.todayDose?.averageLevelDBASPL,
@@ -42,16 +47,16 @@ struct TodayView: View {
                         listeningTime: viewModel.todayDose?.totalExposureSeconds ?? 0
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.2)
-                    
+                    .cardEntrance(delay: 0.25)
+
                     // Quick Actions
                     QuickActionsCard(
                         isMonitoringPaused: $isMonitoringPaused,
                         lastUpdated: viewModel.lastUpdated
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.3)
-                    
+                    .cardEntrance(delay: 0.35)
+
                     // Safe Listening Score
                     SafeListeningScoreCard(
                         score: viewModel.safeListeningScore,
@@ -59,8 +64,8 @@ struct TodayView: View {
                         trend: viewModel.scoreTrend
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.4)
-                    
+                    .cardEntrance(delay: 0.45)
+
                     // Exposure Details (Timeline / Log)
                     ExposureProfileView(
                         timeline: viewModel.exposureTimeline,
@@ -69,15 +74,15 @@ struct TodayView: View {
                         lastUpdated: viewModel.lastUpdated
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.5)
-                    
+                    .cardEntrance(delay: 0.55)
+
                     // Recent Events
                     if !viewModel.recentEvents.isEmpty {
                         RecentEventsSection(events: viewModel.recentEvents)
                             .padding(.horizontal)
-                            .cardEntrance(delay: 0.6)
+                            .cardEntrance(delay: 0.65)
                     }
-                    
+
                     // Bottom spacing
                     Spacer(minLength: 40)
                 }
@@ -99,28 +104,30 @@ struct TodayView: View {
         }
         .onAppear {
             viewModel.setup(modelContext: modelContext)
+            // Start live streaming immediately
+            HealthKitSyncService.shared.startLiveUpdates()
             Task {
+                // Force a sync to get latest data
+                try? await HealthKitSyncService.shared.performIncrementalSync()
                 await viewModel.loadData()
+                viewModel.startPeriodicRefresh()
             }
-            viewModel.startPeriodicRefresh()
         }
         .onDisappear {
             viewModel.stopPeriodicRefresh()
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
-                // Refresh when returning to foreground
+                // Restart live HealthKit streaming (may have been killed by iOS)
+                HealthKitSyncService.shared.startLiveUpdates()
+                // Force sync and refresh when returning to foreground
                 Task {
+                    try? await HealthKitSyncService.shared.performIncrementalSync()
                     await viewModel.silentRefresh()
-                    // Restart spectrum if monitoring and authorized
-                    if !isMonitoringPaused && spectrumService.permissionStatus == .authorized {
-                        await spectrumService.start()
-                    }
                 }
                 viewModel.startPeriodicRefresh()
             } else if newPhase == .background {
                 viewModel.stopPeriodicRefresh()
-                spectrumService.stop()
             }
         }
     }
@@ -130,22 +137,22 @@ struct TodayView: View {
 
 struct RecentEventsSection: View {
     let events: [ExposureEvent]
-    
+
     @Environment(\.colorScheme) private var colorScheme
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "waveform.badge.exclamationmark")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppColors.caution)
-                
+
                 Text("Recent Loud Exposures")
                     .font(AppTypography.headline)
                     .foregroundColor(AppColors.label)
-                
+
                 Spacer()
-                
+
                 Text("\(events.count)")
                     .font(AppTypography.caption1Bold)
                     .foregroundColor(AppColors.secondaryLabel)
@@ -156,11 +163,11 @@ struct RecentEventsSection: View {
                             .fill(Color.gray.opacity(0.15))
                     )
             }
-            
+
             ForEach(events.prefix(3), id: \.healthKitUUID) { event in
                 RecentEventRow(event: event)
             }
-            
+
             if events.count > 3 {
                 Button(action: {}) {
                     Text("View all \(events.count) events")
@@ -180,7 +187,7 @@ struct RecentEventsSection: View {
         )
         .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
     }
-    
+
     private var cardBackground: some View {
         ZStack {
             if colorScheme == .dark {
@@ -191,7 +198,7 @@ struct RecentEventsSection: View {
         }
         .background(.ultraThinMaterial)
     }
-    
+
     private var borderGradient: LinearGradient {
         LinearGradient(
             colors: [
@@ -206,13 +213,13 @@ struct RecentEventsSection: View {
 
 struct RecentEventRow: View {
     let event: ExposureEvent
-    
+
     private var timeAgo: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: event.startDate, relativeTo: Date())
     }
-    
+
     private var levelColor: Color {
         guard let level = event.eventLevelDBASPL else { return AppColors.secondaryLabel }
         switch level {
@@ -221,7 +228,7 @@ struct RecentEventRow: View {
         default: return AppColors.danger
         }
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Level indicator
@@ -229,14 +236,14 @@ struct RecentEventRow: View {
                 Circle()
                     .fill(levelColor.opacity(0.15))
                     .frame(width: 40, height: 40)
-                
+
                 if let level = event.eventLevelDBASPL {
                     Text("\(Int(level))")
                         .font(AppTypography.caption1Bold)
                         .foregroundColor(levelColor)
                 }
             }
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     if let level = event.eventLevelDBASPL {
@@ -245,14 +252,14 @@ struct RecentEventRow: View {
                             .fontWeight(.medium)
                             .foregroundColor(AppColors.label)
                     }
-                    
+
                     Spacer()
-                    
+
                     Text(timeAgo)
                         .font(AppTypography.caption1)
                         .foregroundColor(AppColors.tertiaryLabel)
                 }
-                
+
                 if let duration = event.eventDurationSeconds {
                     Text("Duration: \(formatDuration(duration))")
                         .font(AppTypography.caption1)
@@ -262,7 +269,7 @@ struct RecentEventRow: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     private func formatDuration(_ seconds: Double) -> String {
         let minutes = Int(seconds) / 60
         if minutes >= 60 {

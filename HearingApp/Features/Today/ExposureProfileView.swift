@@ -203,7 +203,9 @@ struct ExposureProfileView: View {
                             .background(Color.clear)
                     }
                     .frame(height: 140)
-                    
+                    .animation(.easeInOut(duration: 0.3), value: timeline.count)
+                    .id(timeline.count)  // Force redraw when data changes
+
                     // Risk threshold legend
                     HStack(spacing: 16) {
                         legendItem(color: AppColors.safe, label: "Safe (<70)")

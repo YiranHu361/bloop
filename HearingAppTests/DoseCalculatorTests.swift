@@ -266,7 +266,232 @@ final class DoseCalculatorTests: XCTestCase {
             timeAbove85dB: 14400,
             timeAbove90dB: 7200
         )
-        
+
         XCTAssertEqual(result.status, .danger)
+    }
+
+    // MARK: - ETA & Burn Rate Tests
+
+    func testBurnRateAnalysis_ActiveListening() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        // Create samples for last 30 minutes at 85 dB (should burn 6.25% per 30 min = 12.5% per hour)
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now.addingTimeInterval(-15 * 60),
+                levelDBASPL: 85.0
+            ),
+            ExposureSample(
+                startDate: now.addingTimeInterval(-15 * 60),
+                endDate: now,
+                levelDBASPL: 85.0
+            )
+        ]
+
+        let analysis = calculator.analyzeBurnRate(
+            currentDosePercent: 25,
+            recentSamples: samples,
+            windowMinutes: 30
+        )
+
+        XCTAssertTrue(analysis.isActivelyListening)
+        // Burn rate should be approximately 12.5% per hour at 85 dB
+        XCTAssertEqual(analysis.burnRatePerHour, 12.5, accuracy: 0.5)
+        // ETA should be approximately 6 hours (75% remaining / 12.5% per hour)
+        XCTAssertNotNil(analysis.estimatedTimeToLimit)
+        if let eta = analysis.estimatedTimeToLimit {
+            let etaHours = eta / 3600.0
+            XCTAssertEqual(etaHours, 6.0, accuracy: 0.5)
+        }
+    }
+
+    func testBurnRateAnalysis_NoSamples() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let analysis = calculator.analyzeBurnRate(
+            currentDosePercent: 50,
+            recentSamples: [],
+            windowMinutes: 30
+        )
+
+        XCTAssertFalse(analysis.isActivelyListening)
+        XCTAssertNil(analysis.estimatedTimeToLimit)
+        XCTAssertEqual(analysis.burnRatePerHour, 0)
+    }
+
+    func testBurnRateAnalysis_AlreadyOverLimit() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now,
+                levelDBASPL: 90.0
+            )
+        ]
+
+        let analysis = calculator.analyzeBurnRate(
+            currentDosePercent: 110,
+            recentSamples: samples,
+            windowMinutes: 30
+        )
+
+        // When over limit, ETA should be 0
+        XCTAssertEqual(analysis.estimatedTimeToLimit, 0)
+    }
+
+    func testEstimateTimeToLimit_Simple() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        // 30 minutes at 88 dB = 12.5% dose (4 hours allowable, 0.5 hours = 12.5%)
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now,
+                levelDBASPL: 88.0
+            )
+        ]
+
+        let eta = calculator.estimateTimeToLimit(
+            currentDosePercent: 50,
+            recentSamples: samples,
+            windowMinutes: 30
+        )
+
+        XCTAssertNotNil(eta)
+        // At 25% per hour burn rate, 50% remaining = 2 hours = 7200 seconds
+        if let eta = eta {
+            XCTAssertEqual(eta, 2 * 3600, accuracy: 600) // Allow 10 minute tolerance
+        }
+    }
+
+    func testEstimateTimeToLimit_LowDoseSamples() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        // Very low level listening should return nil (not actively listening at risky levels)
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now,
+                levelDBASPL: 60.0 // Very low level
+            )
+        ]
+
+        let eta = calculator.estimateTimeToLimit(
+            currentDosePercent: 20,
+            recentSamples: samples,
+            windowMinutes: 30
+        )
+
+        // Low dose contribution should result in nil (not actively listening at risky levels)
+        // or a very large ETA
+        if let eta = eta {
+            // If there is an ETA, it should be very large (many hours)
+            XCTAssertGreaterThan(eta, 20 * 3600) // More than 20 hours
+        }
+    }
+
+    // MARK: - AI Insight Generation Tests
+
+    func testGenerateInsight_SafeState() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now,
+                levelDBASPL: 80.0 // Moderate level
+            )
+        ]
+
+        let insight = calculator.generateInsight(
+            currentDosePercent: 20,
+            recentSamples: samples
+        )
+
+        XCTAssertEqual(insight.type, .safe)
+        XCTAssertTrue(insight.isActivelyListening)
+        XCTAssertFalse(insight.message.isEmpty)
+    }
+
+    func testGenerateInsight_WarningState() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now,
+                levelDBASPL: 88.0
+            )
+        ]
+
+        let insight = calculator.generateInsight(
+            currentDosePercent: 75,
+            recentSamples: samples
+        )
+
+        // Should be warning because dose is high and ETA is limited
+        XCTAssertTrue(insight.type == .warning || insight.type == .danger)
+        XCTAssertTrue(insight.isActivelyListening)
+    }
+
+    func testGenerateInsight_DangerState() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now,
+                levelDBASPL: 95.0 // Very loud
+            )
+        ]
+
+        let insight = calculator.generateInsight(
+            currentDosePercent: 95,
+            recentSamples: samples
+        )
+
+        XCTAssertEqual(insight.type, .danger)
+    }
+
+    func testGenerateInsight_OverLimit() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let now = Date()
+        let samples = [
+            ExposureSample(
+                startDate: now.addingTimeInterval(-30 * 60),
+                endDate: now,
+                levelDBASPL: 90.0
+            )
+        ]
+
+        let insight = calculator.generateInsight(
+            currentDosePercent: 110,
+            recentSamples: samples
+        )
+
+        XCTAssertEqual(insight.type, .danger)
+        XCTAssertTrue(insight.message.contains("over") || insight.message.contains("exceeded") || insight.message.contains("limit"))
+    }
+
+    func testGenerateInsight_Inactive() {
+        let calculator = DoseCalculator(model: .niosh)
+
+        let insight = calculator.generateInsight(
+            currentDosePercent: 30,
+            recentSamples: []
+        )
+
+        XCTAssertEqual(insight.type, .inactive)
+        XCTAssertFalse(insight.isActivelyListening)
     }
 }

@@ -66,7 +66,7 @@ extension ExposureStatus {
         switch self {
         case .safe: return AppColors.safe
         case .moderate: return AppColors.caution
-        case .high: return AppColors.caution
+        case .high: return AppColors.warning
         case .dangerous: return AppColors.danger
         }
     }

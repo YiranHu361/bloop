@@ -70,10 +70,55 @@ final class HealthKitService: ObservableObject {
     
     func checkAuthorizationStatus() -> HealthKitAuthorizationStatus {
         guard isHealthKitAvailable else { return .unavailable }
-        
-        // Note: We can only check if we've requested, not if user granted
-        // HealthKit doesn't tell us definitively about read permissions
-        return authorizationStatus
+
+        // Check if we have the type available and have requested before
+        guard let exposureType = headphoneAudioExposureType else {
+            return .unavailable
+        }
+
+        // For read permissions, we can't definitively know if granted,
+        // but we can check if we've been explicitly denied write access
+        // or if the type is available for querying
+        let status = healthStore.authorizationStatus(for: exposureType)
+        switch status {
+        case .sharingAuthorized:
+            return .authorized
+        case .sharingDenied:
+            // Note: This only reflects write permission status
+            // For read-only, we should try to query
+            return .denied
+        case .notDetermined:
+            return .notDetermined
+        @unknown default:
+            return .notDetermined
+        }
+    }
+
+    /// Check if we can read HealthKit data by attempting a test query
+    func canReadHealthKitData() async -> Bool {
+        guard isHealthKitAvailable,
+              let exposureType = headphoneAudioExposureType else {
+            return false
+        }
+
+        // Try a simple query to see if we have read access
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: exposureType,
+                predicate: nil,
+                limit: 1,
+                sortDescriptors: nil
+            ) { _, samples, error in
+                // If we get samples or nil error, we have access
+                // If error is authorization error, we don't
+                if let error = error as? HKError, error.code == .errorAuthorizationDenied {
+                    continuation.resume(returning: false)
+                } else {
+                    continuation.resume(returning: true)
+                }
+            }
+            healthStore.execute(query)
+        }
     }
     
     // MARK: - Data Fetching
@@ -227,9 +272,11 @@ final class HealthKitService: ObservableObject {
         ) { success, error in
             if let error = error {
                 print("Failed to enable background delivery: \(error)")
+            } else if !success {
+                print("Background delivery not enabled for samples (unknown reason)")
             }
         }
-        
+
         if let eventType = headphoneAudioExposureEventType {
             healthStore.enableBackgroundDelivery(
                 for: eventType,
@@ -237,6 +284,8 @@ final class HealthKitService: ObservableObject {
             ) { success, error in
                 if let error = error {
                     print("Failed to enable background delivery for events: \(error)")
+                } else if !success {
+                    print("Background delivery not enabled for events (unknown reason)")
                 }
             }
         }
@@ -245,17 +294,31 @@ final class HealthKitService: ObservableObject {
     // MARK: - Observer Queries
     
     func startObserving(onUpdate: @escaping () -> Void) {
-        guard let exposureType = headphoneAudioExposureType else { return }
-        
-        let query = HKObserverQuery(sampleType: exposureType, predicate: nil) { _, completionHandler, error in
-            if error == nil {
-                onUpdate()
+        // Observe exposure samples
+        if let exposureType = headphoneAudioExposureType {
+            let sampleQuery = HKObserverQuery(sampleType: exposureType, predicate: nil) { _, completionHandler, error in
+                if error == nil {
+                    onUpdate()
+                }
+                completionHandler()
             }
-            completionHandler()
+            observerQueries.append(sampleQuery)
+            healthStore.execute(sampleQuery)
+            print("👂 Started observing headphone audio exposure samples")
         }
-        
-        observerQueries.append(query)
-        healthStore.execute(query)
+
+        // Observe exposure events
+        if let eventType = headphoneAudioExposureEventType {
+            let eventQuery = HKObserverQuery(sampleType: eventType, predicate: nil) { _, completionHandler, error in
+                if error == nil {
+                    onUpdate()
+                }
+                completionHandler()
+            }
+            observerQueries.append(eventQuery)
+            healthStore.execute(eventQuery)
+            print("👂 Started observing headphone audio exposure events")
+        }
     }
     
     func stopObserving() {
