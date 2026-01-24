@@ -1,20 +1,13 @@
 import WidgetKit
 import SwiftUI
+import ActivityKit
 
 @main
 struct BloopWidgetBundle: WidgetBundle {
     var body: some Widget {
         BloopWidget()
-
-        #if os(iOS)
-        if #available(iOSApplicationExtension 16.0, *) {
-            BloopWidgetLockScreen()
-        }
-        
-        if #available(iOSApplicationExtension 16.1, *) {
-            BloopLiveActivityWidget()
-        }
-        #endif
+        BloopWidgetLockScreen()
+        BloopLiveActivityWidget()
     }
 }
 
