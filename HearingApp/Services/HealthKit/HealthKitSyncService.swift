@@ -563,7 +563,7 @@ final class HealthKitSyncService: ObservableObject {
         defaults.set(Date(), forKey: "widget_lastUpdate")
 
         // Trigger widget refresh
-        WidgetCenter.shared.reloadTimelines(ofKind: "HearingWidget")
-        WidgetCenter.shared.reloadTimelines(ofKind: "HearingWidgetLockScreen")
+        WidgetCenter.shared.reloadTimelines(ofKind: "BloopWidget")
+        WidgetCenter.shared.reloadTimelines(ofKind: "BloopWidgetLockScreen")
     }
 }

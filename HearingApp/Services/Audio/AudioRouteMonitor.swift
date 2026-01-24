@@ -44,7 +44,7 @@ final class AudioRouteMonitor: ObservableObject {
     
     // MARK: - Private
     
-    private var routeChangeObserver: NSObjectProtocol?
+    nonisolated(unsafe) private var routeChangeObserver: NSObjectProtocol?
     
     // MARK: - Init
     
@@ -54,7 +54,10 @@ final class AudioRouteMonitor: ObservableObject {
     }
     
     deinit {
-        stopMonitoring()
+        // Clean up observer directly since deinit runs in nonisolated context
+        if let observer = routeChangeObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     // MARK: - Public API

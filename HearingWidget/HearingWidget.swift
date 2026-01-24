@@ -2,13 +2,13 @@ import WidgetKit
 import SwiftUI
 
 @main
-struct HearingWidgetBundle: WidgetBundle {
+struct BloopWidgetBundle: WidgetBundle {
     var body: some Widget {
-        HearingWidget()
+        BloopWidget()
 
         #if os(iOS)
         if #available(iOSApplicationExtension 16.0, *) {
-            HearingWidgetLockScreen()
+            BloopWidgetLockScreen()
         }
         #endif
     }
@@ -16,16 +16,16 @@ struct HearingWidgetBundle: WidgetBundle {
 
 // MARK: - Main Widget
 
-struct HearingWidget: Widget {
-    let kind: String = "HearingWidget"
+struct BloopWidget: Widget {
+    let kind: String = "BloopWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: DoseTimelineProvider()) { entry in
             DoseRingWidgetView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Daily Dose")
-        .description("Track your daily sound exposure at a glance.")
+        .configurationDisplayName("Sound Exposure")
+        .description("Track your child's daily sound exposure at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -33,15 +33,15 @@ struct HearingWidget: Widget {
 // MARK: - Lock Screen Widget
 
 @available(iOSApplicationExtension 16.0, *)
-struct HearingWidgetLockScreen: Widget {
-    let kind: String = "HearingWidgetLockScreen"
+struct BloopWidgetLockScreen: Widget {
+    let kind: String = "BloopWidgetLockScreen"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: DoseTimelineProvider()) { entry in
             LockScreenWidgetView(entry: entry)
         }
-        .configurationDisplayName("Dose Gauge")
-        .description("Quick view of your daily dose on the lock screen.")
+        .configurationDisplayName("Exposure Gauge")
+        .description("Quick view of daily sound exposure on the lock screen.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular])
     }
 }
@@ -49,7 +49,7 @@ struct HearingWidgetLockScreen: Widget {
 // MARK: - Preview
 
 #Preview("Small Widget", as: .systemSmall) {
-    HearingWidget()
+    BloopWidget()
 } timeline: {
     DoseEntry(date: .now, dosePercent: 45, remainingTime: 4 * 3600, status: .safe)
     DoseEntry(date: .now, dosePercent: 75, remainingTime: 1.5 * 3600, status: .moderate)
@@ -57,7 +57,7 @@ struct HearingWidgetLockScreen: Widget {
 }
 
 #Preview("Medium Widget", as: .systemMedium) {
-    HearingWidget()
+    BloopWidget()
 } timeline: {
     DoseEntry(date: .now, dosePercent: 65, remainingTime: 2.5 * 3600, status: .moderate)
 }

@@ -43,6 +43,7 @@
 		94F8DCBAE5B2F121D19A60F3 /* QuickActionsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2183F5C68CBAC94AE6CC27FE /* QuickActionsCard.swift */; };
 		9E9100DA5368AEE4EB9A8B10 /* DailyDose.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BFC7B9769C02EB8AEDC984 /* DailyDose.swift */; };
 		ABD7A307023C41C653F50D90 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0299043F84C1568EB2FC10E8 /* TrendsViewModel.swift */; };
+		AC779DADBF3E15DDB4B88EEE /* BloopLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B98F9F250B7A851BEB68107 /* BloopLiveActivity.swift */; };
 		BDCFCCCF4692DE61DACC217B /* AlertBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D26536D4D22635131036B8 /* AlertBanner.swift */; };
 		BE38B868D94EE2D9AB0CED6B /* DoseRingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453EE8485C3A46640EF2778C /* DoseRingWidgetView.swift */; };
 		C55802E99AE3093C3991DA96 /* AccuracyInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD26AE300C296B58CB77D76 /* AccuracyInfoView.swift */; };
@@ -125,6 +126,7 @@
 		79CB0478B4D35E5152C4CFCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7CAB479559E8A89421F856A3 /* PrimaryAudioCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryAudioCard.swift; sourceTree = "<group>"; };
 		81AC72031B784E43E33AB82A /* ExposureProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureProfileView.swift; sourceTree = "<group>"; };
+		8B98F9F250B7A851BEB68107 /* BloopLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloopLiveActivity.swift; sourceTree = "<group>"; };
 		8D955A63C20F82B0E864D3A9 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		92FB80637608F47844C3EEBA /* HearingWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearingWidget.swift; sourceTree = "<group>"; };
 		9A979F3256BB07E09245D6C8 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 			isa = PBXGroup;
 			children = (
 				4EE231F1E5D7B68E21049A16 /* ActionableNotificationBuilder.swift */,
+				8B98F9F250B7A851BEB68107 /* BloopLiveActivity.swift */,
 				45C4537E3789A6225C9A2CC2 /* NotificationService.swift */,
 				E272FB23A79A81B68C8D0618 /* WeeklyDigestScheduler.swift */,
 			);
@@ -524,6 +527,7 @@
 				16D8E101E55017F6C68F7B74 /* AppTypography.swift in Sources */,
 				5BC213DB13DE933EC065A153 /* AudioRouteMonitor.swift in Sources */,
 				244D1A3CD2CB5A3EB135CEAD /* AudioSpectrumService.swift in Sources */,
+				AC779DADBF3E15DDB4B88EEE /* BloopLiveActivity.swift in Sources */,
 				F233F9E6C409FE5485693EFC /* ContentView.swift in Sources */,
 				9E9100DA5368AEE4EB9A8B10 /* DailyDose.swift in Sources */,
 				F162CAC288AFF4A23B3BDB2A /* DoseCalculator.swift in Sources */,
