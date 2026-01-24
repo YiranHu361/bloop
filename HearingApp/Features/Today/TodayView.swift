@@ -15,19 +15,19 @@ struct TodayView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Primary Audio Card (Exposure Zones)
-                    PrimaryAudioCard(
-                        bands: viewModel.exposureBands,
-                        currentLevelDB: viewModel.currentLevelDB
-                    )
-                    .padding(.horizontal)
-                    .cardEntrance(delay: 0.1)
-
-                    // AI Insight Card (Hearing Budget)
+                    // AI Insight Card (Hearing Budget) - Primary focus
                     AIInsightCard(
                         dosePercent: viewModel.todayDose?.dosePercent ?? 0,
                         insight: viewModel.aiInsight,
                         lastUpdated: viewModel.lastUpdated
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.1)
+
+                    // Primary Audio Card (Exposure Zones)
+                    PrimaryAudioCard(
+                        bands: viewModel.exposureBands,
+                        currentLevelDB: viewModel.currentLevelDB
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.2)
