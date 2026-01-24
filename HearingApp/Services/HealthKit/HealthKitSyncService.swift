@@ -514,27 +514,12 @@ final class HealthKitSyncService: ObservableObject {
             let doses = try context.fetch(descriptor)
 
             if let todayDose = doses.first {
-                // Send standard threshold notifications
-                await NotificationService.shared.checkAndNotify(for: todayDose.dosePercent)
-
-                // Send actionable notifications with remaining time info
-                await NotificationService.shared.sendActionableNotification(
+                // Send notifications using the new unified API
+                // This handles threshold alerts, volume alerts, and Live Activity updates
+                await NotificationService.shared.checkAndNotify(
                     dosePercent: todayDose.dosePercent,
-                    currentLevel: todayDose.averageLevelDBASPL,
-                    doseModel: .niosh
+                    currentDB: todayDose.averageLevelDBASPL.map { Int($0) }
                 )
-
-                // If dose is high and we have level data, send volume suggestion
-                if todayDose.dosePercent >= 70,
-                   let currentLevel = todayDose.averageLevelDBASPL,
-                   currentLevel >= 80 {
-                    await NotificationService.shared.sendVolumeSuggestion(
-                        currentLevel: currentLevel,
-                        currentDosePercent: todayDose.dosePercent,
-                        targetAdditionalTime: 60 * 60,
-                        doseModel: .niosh
-                    )
-                }
 
                 // Update widget data
                 updateWidgetData(dose: todayDose)
