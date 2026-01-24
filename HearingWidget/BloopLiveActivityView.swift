@@ -65,7 +65,6 @@ struct BloopExposureAttributes: ActivityAttributes {
 
 // MARK: - Live Activity Widget
 
-@available(iOSApplicationExtension 16.1, *)
 struct BloopLiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: BloopExposureAttributes.self) { context in
@@ -406,15 +405,6 @@ struct ExpandedBottomView: View {
     }
 }
 
-// MARK: - Preview
-
-#if DEBUG
-@available(iOSApplicationExtension 16.1, *)
-struct BloopLiveActivityView_Previews: PreviewProvider {
-    static var previews: some View {
-        // Preview is limited for Live Activities
-        // Use actual device/simulator to test
-        Text("Live Activity Preview")
-    }
-}
-#endif
+// MARK: - Note on Previews
+// Live Activities cannot be previewed in Xcode Previews.
+// Test Live Activities on a physical device or simulator by running the app.

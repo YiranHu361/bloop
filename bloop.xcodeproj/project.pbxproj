@@ -3,11 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		0175519A0712F63228ADC2AF /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4778164EF93E0BC942699A83 /* UserSettings.swift */; };
+		01915FD49A2D68B9A215D1E6 /* BloopLiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB03C61E0A2B4FD3BF46496 /* BloopLiveActivityView.swift */; };
 		0573BAB6E84CF46C5D87EF25 /* ExposureSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */; };
 		0E9846BC09C70E3A7D98AA72 /* LiveRiskIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5653B1D0AC3FC1865D43BA6 /* LiveRiskIndicator.swift */; };
 		0FF3C7125B347F0CABBB86F5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3727F53B5D59E9796BDB8A6B /* GlassCard.swift */; };
@@ -44,6 +45,7 @@
 		9E9100DA5368AEE4EB9A8B10 /* DailyDose.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BFC7B9769C02EB8AEDC984 /* DailyDose.swift */; };
 		ABD7A307023C41C653F50D90 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0299043F84C1568EB2FC10E8 /* TrendsViewModel.swift */; };
 		AC779DADBF3E15DDB4B88EEE /* BloopLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B98F9F250B7A851BEB68107 /* BloopLiveActivity.swift */; };
+		B0E6DA0A440AFDC1091AD7DB /* LiveSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8094772391AC678C082BE73D /* LiveSessionCoordinator.swift */; };
 		BDCFCCCF4692DE61DACC217B /* AlertBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D26536D4D22635131036B8 /* AlertBanner.swift */; };
 		BE38B868D94EE2D9AB0CED6B /* DoseRingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453EE8485C3A46640EF2778C /* DoseRingWidgetView.swift */; };
 		C55802E99AE3093C3991DA96 /* AccuracyInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD26AE300C296B58CB77D76 /* AccuracyInfoView.swift */; };
@@ -125,6 +127,7 @@
 		7503A545E586E5BD97D58280 /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		79CB0478B4D35E5152C4CFCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7CAB479559E8A89421F856A3 /* PrimaryAudioCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryAudioCard.swift; sourceTree = "<group>"; };
+		8094772391AC678C082BE73D /* LiveSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSessionCoordinator.swift; sourceTree = "<group>"; };
 		81AC72031B784E43E33AB82A /* ExposureProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureProfileView.swift; sourceTree = "<group>"; };
 		8B98F9F250B7A851BEB68107 /* BloopLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloopLiveActivity.swift; sourceTree = "<group>"; };
 		8D955A63C20F82B0E864D3A9 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -135,7 +138,7 @@
 		A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureSample.swift; sourceTree = "<group>"; };
 		A0D26536D4D22635131036B8 /* AlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBanner.swift; sourceTree = "<group>"; };
 		A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteMonitor.swift; sourceTree = "<group>"; };
-		A5CC73C70F7E105B6E84F4E4 /* bloop..app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bloop..app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5CC73C70F7E105B6E84F4E4 /* bloop.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = bloop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADBBD125000CF49572A0B097 /* bloopTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = bloopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADD6FEBB272E683231B67FBD /* HearingApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HearingApp.entitlements; sourceTree = "<group>"; };
 		B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSyncService.swift; sourceTree = "<group>"; };
@@ -155,7 +158,8 @@
 		EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigestView.swift; sourceTree = "<group>"; };
 		F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSpectrumService.swift; sourceTree = "<group>"; };
-		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAB03C61E0A2B4FD3BF46496 /* BloopLiveActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloopLiveActivityView.swift; sourceTree = "<group>"; };
 		FAF33A90C96C54EBB8BAC7A8 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -173,7 +177,7 @@
 		1471B7479A006CBF39EB03B8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A5CC73C70F7E105B6E84F4E4 /* bloop..app */,
+				A5CC73C70F7E105B6E84F4E4 /* bloop.app */,
 				ADBBD125000CF49572A0B097 /* bloopTests.xctest */,
 				F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */,
 			);
@@ -216,6 +220,7 @@
 		41864DE6CF217D1D63FB4B74 /* HearingWidget */ = {
 			isa = PBXGroup;
 			children = (
+				FAB03C61E0A2B4FD3BF46496 /* BloopLiveActivityView.swift */,
 				453EE8485C3A46640EF2778C /* DoseRingWidgetView.swift */,
 				C596A1195872DC10B8BDA32B /* HearingWidget.entitlements */,
 				92FB80637608F47844C3EEBA /* HearingWidget.swift */,
@@ -274,6 +279,7 @@
 			children = (
 				4EE231F1E5D7B68E21049A16 /* ActionableNotificationBuilder.swift */,
 				8B98F9F250B7A851BEB68107 /* BloopLiveActivity.swift */,
+				8094772391AC678C082BE73D /* LiveSessionCoordinator.swift */,
 				45C4537E3789A6225C9A2CC2 /* NotificationService.swift */,
 				E272FB23A79A81B68C8D0618 /* WeeklyDigestScheduler.swift */,
 			);
@@ -440,7 +446,7 @@
 			packageProductDependencies = (
 			);
 			productName = bloop;
-			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop..app */;
+			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop.app */;
 			productType = "com.apple.product-type.application";
 		};
 		9AF6D3D4AE1D372C01E318F4 /* bloopTests */ = {
@@ -471,9 +477,11 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					149892A44449853DCCE9D266 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					8FBFC0EE96A57F143D6676FA = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					9AF6D3D4AE1D372C01E318F4 = {
@@ -492,6 +500,7 @@
 			);
 			mainGroup = BA0B4FAEECE75BB027819E2C;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -541,6 +550,7 @@
 				805BAED06173C64CEA1E04A1 /* HealthKitSyncService.swift in Sources */,
 				5F3C4ADF2B4BF00E3EB0DE70 /* HearingAppApp.swift in Sources */,
 				0E9846BC09C70E3A7D98AA72 /* LiveRiskIndicator.swift in Sources */,
+				B0E6DA0A440AFDC1091AD7DB /* LiveSessionCoordinator.swift in Sources */,
 				83A863C4E772F8B2A1276B30 /* LiveSpectrumView.swift in Sources */,
 				5348957C40C4A9AB441967E8 /* NotificationService.swift in Sources */,
 				45B0AD4BC7C8AD1726B01943 /* OnboardingView.swift in Sources */,
@@ -571,6 +581,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01915FD49A2D68B9A215D1E6 /* BloopLiveActivityView.swift in Sources */,
 				BE38B868D94EE2D9AB0CED6B /* DoseRingWidgetView.swift in Sources */,
 				E780F46D5D066FF2EF73A81D /* HearingWidget.swift in Sources */,
 				7CCD46431F168235B2F9F0C4 /* WidgetTimelineProvider.swift in Sources */,
@@ -659,7 +670,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -751,7 +761,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingApp/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -772,7 +781,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = "HearingApp/Resources/Info-Debug.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -808,7 +816,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
