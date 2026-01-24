@@ -147,7 +147,7 @@ final class WeeklyDigestScheduler: ObservableObject {
 
     /// Schedule Monday morning notification for weekly digest
     func scheduleWeeklyDigestNotification() async {
-        guard await NotificationService.shared.isAuthorized else { return }
+        guard NotificationService.shared.isAuthorized else { return }
 
         let center = UNUserNotificationCenter.current()
 

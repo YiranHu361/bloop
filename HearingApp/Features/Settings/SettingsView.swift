@@ -577,7 +577,7 @@ struct SettingsView: View {
                     await BloopLiveActivity.shared.startExposureTracking(
                         currentPercent: 75,
                         currentDB: 82,
-                        status: .caution
+                        status: .moderate
                     )
                 }
             }
