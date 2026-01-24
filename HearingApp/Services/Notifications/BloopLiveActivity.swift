@@ -192,7 +192,7 @@ extension ExposureStatus {
             return ["Your ears are happy!", "Great listening!", "Safe and sound!"].randomElement()!
         case .moderate:
             return ["Getting a bit loud", "Maybe turn it down?", "Ears say: careful!"].randomElement()!
-        case .elevated:
+        case .high:
             return ["Too loud!", "Time to turn it down", "Your ears need help!"].randomElement()!
         case .dangerous:
             return ["Way too loud!", "Take a break now!", "Ears need rest!"].randomElement()!
