@@ -420,7 +420,7 @@ final class NotificationService: ObservableObject {
             if percent >= 100 {
                 status = .dangerous
             } else if percent >= 80 {
-                status = .elevated
+                status = .high
             } else if percent >= 60 {
                 status = .moderate
             } else {

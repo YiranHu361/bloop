@@ -231,8 +231,6 @@ final class PersonalizationService: ObservableObject {
             return nil
         }
 
-        let timeContext = ActionableNotificationBuilder.TimeContext.current
-
         switch threshold {
         case 50:
             switch patternType {

@@ -87,7 +87,7 @@ final class WeeklyDigestScheduler: ObservableObject {
         let averageLevel = levelsWithData.isEmpty ? nil : levelsWithData.reduce(0.0, +) / Double(levelsWithData.count)
 
         // Get previous week's data for comparison
-        let previousWeekAverage = try await getPreviousWeekAverage(before: targetWeekStart)
+        let previousWeekAverage = try getPreviousWeekAverage(before: targetWeekStart)
 
         // Calculate streak
         let (currentStreak, bestStreak) = try calculateStreaks()
@@ -198,7 +198,7 @@ final class WeeklyDigestScheduler: ObservableObject {
         return calendar.date(byAdding: .day, value: -daysToSubtract, to: date) ?? date
     }
 
-    private func getPreviousWeekAverage(before weekStart: Date) async throws -> Double? {
+    private func getPreviousWeekAverage(before weekStart: Date) throws -> Double? {
         guard let context = modelContext else { return nil }
 
         let calendar = Calendar.current

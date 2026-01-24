@@ -270,7 +270,7 @@ struct LiveSpectrumView: View {
             
             Button {
                 Task {
-                    await spectrumService.requestPermission()
+                    _ = await spectrumService.requestPermission()
                     if spectrumService.permissionStatus == .authorized && isMonitoring {
                         await spectrumService.start()
                     }

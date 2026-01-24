@@ -177,7 +177,7 @@ final class BloopLiveActivity: ObservableObject {
         switch status {
         case .safe: return .safe
         case .moderate: return .caution
-        case .elevated: return .warning
+        case .high: return .warning
         case .dangerous: return .danger
         }
     }

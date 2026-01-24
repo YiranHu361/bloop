@@ -114,7 +114,7 @@ struct WeeklyDigestView: View {
                 StatusChipView(status: digest.weekStatus)
 
                 // Comparison to previous week
-                if let previous = digest.previousWeekAveragePercent,
+                if let _ = digest.previousWeekAveragePercent,
                    let change = digest.weekOverWeekChange {
                     HStack(spacing: 8) {
                         Text("vs last week:")
