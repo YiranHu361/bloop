@@ -176,6 +176,7 @@ struct ExposureProfileView: View {
                         }
                     }
                     .chartYScale(domain: 40...110)
+                    .chartXScale(domain: xAxisDomain)
                     .chartYAxis {
                         AxisMarks(values: [50, 70, 85, 100]) { value in
                             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
@@ -190,8 +191,10 @@ struct ExposureProfileView: View {
                         }
                     }
                     .chartXAxis {
-                        AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                            AxisValueLabel(format: .dateTime.hour().minute())
+                        AxisMarks(values: .stride(by: .hour, count: 6)) { value in
+                            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.3))
+                                .foregroundStyle(AppColors.tertiaryLabel.opacity(0.3))
+                            AxisValueLabel(format: .dateTime.hour())
                                 .font(AppTypography.chartLabel)
                         }
                     }
@@ -363,6 +366,13 @@ struct ExposureProfileView: View {
     }
 
     // MARK: - Helpers
+    
+    /// X-axis domain: always show full 24 hours from now-24h to now
+    private var xAxisDomain: ClosedRange<Date> {
+        let now = Date()
+        let twentyFourHoursAgo = now.addingTimeInterval(-24 * 60 * 60)
+        return twentyFourHoursAgo...now
+    }
 
     private func colorForLevel(_ level: Double) -> Color {
         if level >= 90 { return AppColors.danger }

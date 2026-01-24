@@ -572,12 +572,12 @@ final class TodayViewModel: ObservableObject {
     private static func buildTimeline(from samples: [ExposureSample]) -> [ExposureTimelinePoint] {
         guard !samples.isEmpty else { return [] }
         
-        // Gap threshold: if consecutive samples are more than 5 minutes apart,
+        // Gap threshold: if consecutive samples are more than 10 minutes apart,
         // start a new segment to avoid drawing a misleading line across the gap
-        let gapThresholdSeconds: TimeInterval = 5 * 60
-        let maxPoints = 60
+        let gapThresholdSeconds: TimeInterval = 10 * 60
+        let maxPoints = 144  // ~10 min resolution over 24 hours (144 points)
         
-        // First, downsample if needed
+        // First, downsample if needed while preserving time distribution
         let sampledData: [ExposureSample]
         if samples.count > maxPoints {
             let stride = max(1, samples.count / maxPoints)
@@ -614,17 +614,21 @@ final class TodayViewModel: ObservableObject {
     }
     
     /// Build a moving average trendline from samples
-    /// Uses a 30-minute window to smooth out the data
+    /// Uses a 1-hour window to smooth out the data across 24 hours
     private static func buildTrendline(from samples: [ExposureSample]) -> [ExposureTimelinePoint] {
         guard samples.count >= 3 else { return [] }
         
-        // Moving average window in seconds (30 minutes)
-        let windowSize: TimeInterval = 30 * 60
-        let maxPoints = 30  // Fewer points for smooth trendline
+        // Moving average window in seconds (1 hour for smoother 24h trendline)
+        let windowSize: TimeInterval = 60 * 60
+        let maxPoints = 48  // One point every 30 minutes for smooth 24h coverage
         
-        // Create evenly-spaced time points across the sample range
-        guard let firstDate = samples.first?.startDate,
-              let lastDate = samples.last?.startDate else { return [] }
+        // Create evenly-spaced time points across the full 24-hour window
+        let now = Date()
+        let twentyFourHoursAgo = now.addingTimeInterval(-24 * 60 * 60)
+        
+        // Use the full 24h range for trendline
+        let firstDate = twentyFourHoursAgo
+        let lastDate = now
         
         let totalDuration = lastDate.timeIntervalSince(firstDate)
         guard totalDuration > 0 else { return [] }
@@ -643,9 +647,10 @@ final class TodayViewModel: ObservableObject {
                 sample.startDate >= windowStart && sample.startDate <= windowEnd
             }
             
-            // Calculate weighted average for this window
+            // Skip points with no data nearby
             guard !samplesInWindow.isEmpty else { continue }
             
+            // Calculate weighted average for this window
             let totalWeight = samplesInWindow.reduce(0.0) { $0 + $1.duration }
             let weightedSum = samplesInWindow.reduce(0.0) { $0 + ($1.levelDBASPL * $1.duration) }
             
