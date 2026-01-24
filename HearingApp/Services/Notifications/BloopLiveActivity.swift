@@ -6,12 +6,24 @@ import SwiftUI
 
 struct BloopExposureAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
-        var currentPercent: Int
+        var currentPercent: Int           // Daily dose used (0-100+)
+        var dailyLimitPercent: Int        // User's configured daily limit (default 100)
         var currentDB: Int
         var status: ExposureStatusType
         var message: String
         var remainingMinutes: Int?
         var isBreakTime: Bool
+        
+        /// Remaining budget percentage (limit - used)
+        var remainingPercent: Int {
+            max(0, dailyLimitPercent - currentPercent)
+        }
+        
+        /// Progress toward limit (0.0 to 1.0+)
+        var progressTowardLimit: Double {
+            guard dailyLimitPercent > 0 else { return 0 }
+            return min(Double(currentPercent) / Double(dailyLimitPercent), 1.5)
+        }
         
         enum ExposureStatusType: String, Codable, Hashable {
             case safe
@@ -61,6 +73,9 @@ final class BloopLiveActivity: ObservableObject {
     @Published private(set) var currentActivity: Activity<BloopExposureAttributes>?
     @Published private(set) var isRunning: Bool = false
     
+    /// Cached daily limit to use when updating
+    private var cachedDailyLimit: Int = 100
+    
     private init() {}
     
     // MARK: - Start/Update/End
@@ -68,7 +83,8 @@ final class BloopLiveActivity: ObservableObject {
     func startExposureTracking(
         currentPercent: Int,
         currentDB: Int,
-        status: ExposureStatus
+        status: ExposureStatus,
+        dailyLimitPercent: Int = 100
     ) async {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             print("BloopLiveActivity: Activities not enabled")
@@ -78,9 +94,13 @@ final class BloopLiveActivity: ObservableObject {
         // End any existing activity first
         await endActivity()
         
+        // Cache the limit
+        cachedDailyLimit = dailyLimitPercent
+        
         let attributes = BloopExposureAttributes(startTime: Date())
         let state = BloopExposureAttributes.ContentState(
             currentPercent: currentPercent,
+            dailyLimitPercent: dailyLimitPercent,
             currentDB: currentDB,
             status: mapStatus(status),
             message: status.kidFriendlyMessage,
@@ -106,21 +126,29 @@ final class BloopLiveActivity: ObservableObject {
         currentPercent: Int,
         currentDB: Int,
         status: ExposureStatus,
+        dailyLimitPercent: Int? = nil,
         remainingMinutes: Int? = nil,
         isBreakTime: Bool = false
     ) async {
+        // Update cached limit if provided
+        if let limit = dailyLimitPercent {
+            cachedDailyLimit = limit
+        }
+        
         guard let activity = currentActivity else {
             // Start new activity if none exists
             await startExposureTracking(
                 currentPercent: currentPercent,
                 currentDB: currentDB,
-                status: status
+                status: status,
+                dailyLimitPercent: dailyLimitPercent ?? cachedDailyLimit
             )
             return
         }
         
         let state = BloopExposureAttributes.ContentState(
             currentPercent: currentPercent,
+            dailyLimitPercent: dailyLimitPercent ?? cachedDailyLimit,
             currentDB: currentDB,
             status: mapStatus(status),
             message: isBreakTime ? "Time for a break!" : status.kidFriendlyMessage,
@@ -138,6 +166,7 @@ final class BloopLiveActivity: ObservableObject {
         
         let state = BloopExposureAttributes.ContentState(
             currentPercent: 0,
+            dailyLimitPercent: cachedDailyLimit,
             currentDB: 0,
             status: .caution,
             message: "Take a \(breakDurationMinutes) minute break!",
@@ -155,6 +184,7 @@ final class BloopLiveActivity: ObservableObject {
         
         let finalState = BloopExposureAttributes.ContentState(
             currentPercent: 0,
+            dailyLimitPercent: cachedDailyLimit,
             currentDB: 0,
             status: .safe,
             message: "Listening session ended",

@@ -10,6 +10,10 @@ struct BloopWidgetBundle: WidgetBundle {
         if #available(iOSApplicationExtension 16.0, *) {
             BloopWidgetLockScreen()
         }
+        
+        if #available(iOSApplicationExtension 16.1, *) {
+            BloopLiveActivityWidget()
+        }
         #endif
     }
 }

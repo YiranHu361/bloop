@@ -52,6 +52,9 @@ struct BloopApp: App {
 
                 // Configure personalization service
                 PersonalizationService.shared.configure(modelContext: sharedModelContainer.mainContext)
+                
+                // Configure Live Session coordinator for Live Activity
+                LiveSessionCoordinator.shared.configure(modelContext: sharedModelContainer.mainContext)
 
                 // Enable background delivery
                 HealthKitService.shared.enableBackgroundDelivery()

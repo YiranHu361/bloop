@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -135,7 +135,7 @@
 		A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureSample.swift; sourceTree = "<group>"; };
 		A0D26536D4D22635131036B8 /* AlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBanner.swift; sourceTree = "<group>"; };
 		A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteMonitor.swift; sourceTree = "<group>"; };
-		A5CC73C70F7E105B6E84F4E4 /* bloop.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = bloop.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5CC73C70F7E105B6E84F4E4 /* bloop..app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bloop..app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADBBD125000CF49572A0B097 /* bloopTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = bloopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADD6FEBB272E683231B67FBD /* HearingApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HearingApp.entitlements; sourceTree = "<group>"; };
 		B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSyncService.swift; sourceTree = "<group>"; };
@@ -155,7 +155,7 @@
 		EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigestView.swift; sourceTree = "<group>"; };
 		F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSpectrumService.swift; sourceTree = "<group>"; };
-		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAF33A90C96C54EBB8BAC7A8 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -173,7 +173,7 @@
 		1471B7479A006CBF39EB03B8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A5CC73C70F7E105B6E84F4E4 /* bloop.app */,
+				A5CC73C70F7E105B6E84F4E4 /* bloop..app */,
 				ADBBD125000CF49572A0B097 /* bloopTests.xctest */,
 				F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */,
 			);
@@ -440,7 +440,7 @@
 			packageProductDependencies = (
 			);
 			productName = bloop;
-			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop.app */;
+			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop..app */;
 			productType = "com.apple.product-type.application";
 		};
 		9AF6D3D4AE1D372C01E318F4 /* bloopTests */ = {
@@ -471,11 +471,9 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					149892A44449853DCCE9D266 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					8FBFC0EE96A57F143D6676FA = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					9AF6D3D4AE1D372C01E318F4 = {
@@ -494,7 +492,6 @@
 			);
 			mainGroup = BA0B4FAEECE75BB027819E2C;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -662,6 +659,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -753,6 +751,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingApp/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -773,6 +772,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = "HearingApp/Resources/Info-Debug.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -808,6 +808,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XUFG4TWAV8;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (

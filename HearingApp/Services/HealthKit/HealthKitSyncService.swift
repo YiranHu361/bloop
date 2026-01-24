@@ -311,6 +311,7 @@ final class HealthKitSyncService: ObservableObject {
         let calendar = Calendar.current
         var affectedDates = Set<Date>()
         var insertedCount = 0
+        var latestSample: HKQuantitySample?
         
         for sample in quantitySamples {
             let hkUUID = sample.uuid.uuidString
@@ -338,6 +339,11 @@ final class HealthKitSyncService: ObservableObject {
                     context.insert(exposureSample)
                     affectedDates.insert(calendar.startOfDay(for: sample.startDate))
                     insertedCount += 1
+                    
+                    // Track the most recent sample for Live Activity notification
+                    if latestSample == nil || sample.endDate > latestSample!.endDate {
+                        latestSample = sample
+                    }
                 }
             } catch {
                 print("Live update error: \(error)")
@@ -362,6 +368,19 @@ final class HealthKitSyncService: ObservableObject {
                 
                 // Post notification for immediate UI update
                 NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
+                
+                // Notify LiveSessionCoordinator about the new sample for Live Activity
+                if let sample = latestSample {
+                    let payload = ExposureSamplePayload(
+                        timestamp: sample.endDate,
+                        levelDBASPL: HealthKitService.decibels(from: sample),
+                        durationSeconds: sample.endDate.timeIntervalSince(sample.startDate)
+                    )
+                    NotificationCenter.default.post(
+                        name: .exposureSampleArrived,
+                        object: payload
+                    )
+                }
                 
                 print("⚡️ Live update: \(insertedCount) new samples")
             } catch {
