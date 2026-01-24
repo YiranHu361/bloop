@@ -14,16 +14,6 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Monitoring Mode Section
-                Section {
-                    MonitoringModeSelector(selectedMode: $viewModel.monitoringMode)
-                } header: {
-                    sectionHeader(icon: "slider.horizontal.3", title: "Display Mode")
-                } footer: {
-                    Text("Both modes provide the same hearing protection. Privacy Mode just shows less detail on screen.")
-                        .font(AppTypography.caption1)
-                }
-                
                 // Alerts & Notifications Section
                 Section {
                     Toggle(isOn: $viewModel.notify60Percent) {
@@ -184,121 +174,6 @@ struct SettingsView: View {
                 .foregroundColor(AppColors.primaryFallback)
             
             Text(title.uppercased())
-        }
-    }
-}
-
-// MARK: - Monitoring Mode Selector
-
-struct MonitoringModeSelector: View {
-    @Binding var selectedMode: MonitoringMode
-    
-    var body: some View {
-        ForEach(MonitoringMode.allCases, id: \.self) { mode in
-            Button(action: {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    selectedMode = mode
-                }
-            }) {
-                HStack(spacing: 14) {
-                    ZStack {
-                        Circle()
-                            .fill(mode.color.opacity(0.12))
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: mode.icon)
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(mode.color)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
-                            Text(mode.displayName)
-                                .font(AppTypography.headline)
-                                .foregroundColor(AppColors.label)
-                            
-                            if let badge = mode.badge {
-                                Text(badge)
-                                    .font(AppTypography.caption2)
-                                    .foregroundColor(AppColors.primaryFallback)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(
-                                        Capsule()
-                                            .fill(AppColors.primaryFallback.opacity(0.12))
-                                    )
-                            }
-                        }
-                        
-                        Text(mode.detailedDescription)
-                            .font(AppTypography.caption1)
-                            .foregroundColor(AppColors.secondaryLabel)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    
-                    Spacer()
-                    
-                    if selectedMode == mode {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(AppColors.primaryFallback)
-                    } else {
-                        Circle()
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 2)
-                            .frame(width: 24, height: 24)
-                    }
-                }
-                .padding(.vertical, 8)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-}
-
-enum MonitoringMode: String, CaseIterable {
-    case standard = "standard"
-    case privacy = "privacy"
-    
-    var displayName: String {
-        switch self {
-        case .standard: return "Standard"
-        case .privacy: return "Privacy Mode"
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .standard: return "Full hearing protection with detailed insights"
-        case .privacy: return "Same protection, minimal data display"
-        }
-    }
-    
-    var detailedDescription: String {
-        switch self {
-        case .standard: return "See your listening patterns, volume levels, and personalized recommendations."
-        case .privacy: return "App still protects your hearing but shows less detail. Good if you prefer a simpler view."
-        }
-    }
-    
-    var icon: String {
-        switch self {
-        case .standard: return "waveform.path.ecg"
-        case .privacy: return "lock.shield"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .standard: return AppColors.primaryFallback
-        case .privacy: return AppColors.safe
-        }
-    }
-    
-    var badge: String? {
-        switch self {
-        case .standard: return "Recommended"
-        case .privacy: return nil
         }
     }
 }

@@ -6,9 +6,6 @@ import SwiftData
 @MainActor
 final class SettingsViewModel: ObservableObject {
     
-    // MARK: - Display Mode
-    @Published var monitoringMode: MonitoringMode = .standard
-    
     // MARK: - Alerts & Nudges (60/80/100 thresholds)
     @Published var notify60Percent: Bool = true
     @Published var notify80Percent: Bool = true
