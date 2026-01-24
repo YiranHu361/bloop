@@ -8,15 +8,34 @@ struct TrendsView: View {
     @StateObject private var viewModel = TrendsViewModel()
     @State private var selectedPeriod: TrendPeriod = .week
     @State private var selectedDay: DailyDose?
+    @State private var isMonitoringPaused = false
+    @State private var lastUpdated: Date? = Date()
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Quick Actions (Pause/Resume Monitoring)
+                    QuickActionsCard(
+                        isMonitoringPaused: $isMonitoringPaused,
+                        lastUpdated: lastUpdated
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.05)
+                    
+                    // Safe Listening Score
+                    SafeListeningScoreCard(
+                        score: viewModel.safeListeningScore,
+                        streak: viewModel.currentStreak,
+                        trend: viewModel.scoreTrend
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.1)
+                    
                     // Period Selector
                     PeriodSelector(selectedPeriod: $selectedPeriod)
                         .padding(.horizontal)
-                        .cardEntrance(delay: 0.1)
+                        .cardEntrance(delay: 0.15)
                     
                     // Period Bar Chart (7D or 30D)
                     PeriodBarChart(
@@ -25,7 +44,7 @@ struct TrendsView: View {
                         selectedDay: $selectedDay
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.2)
+                    .cardEntrance(delay: 0.25)
                     
                     // Highlights Section
                     HighlightsSection(
@@ -35,7 +54,7 @@ struct TrendsView: View {
                         trend: viewModel.listeningTrend
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.3)
+                    .cardEntrance(delay: 0.35)
                     
                     // Summary Stats
                     SummaryStatsGrid(
@@ -45,7 +64,7 @@ struct TrendsView: View {
                         streak: viewModel.currentStreak
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.4)
+                    .cardEntrance(delay: 0.45)
                     
                     // Selected Day Details
                     if let day = selectedDay {
@@ -209,11 +228,38 @@ struct PeriodBarChart: View {
                     .foregroundColor(AppColors.tertiaryLabel)
             }
             
-            // Chart (scrollable for 30D)
+            // Chart (scrollable for 30D, auto-scrolls to show most recent days)
             if isScrollable {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    chartContent
-                        .frame(width: CGFloat(periodDays) * 24 + 60)  // 24pt per bar + padding
+                ScrollViewReader { scrollProxy in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 0) {
+                            chartContent
+                                .frame(width: CGFloat(periodDays) * 24 + 60)  // 24pt per bar + padding
+                            
+                            // Invisible anchor at the end for auto-scrolling
+                            Color.clear
+                                .frame(width: 1)
+                                .id("chartEnd")
+                        }
+                    }
+                    .onAppear {
+                        // Auto-scroll to show most recent days first
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                scrollProxy.scrollTo("chartEnd", anchor: .trailing)
+                            }
+                        }
+                    }
+                    .onChange(of: periodDays) { _, newValue in
+                        // Re-scroll when switching to 30D
+                        if newValue > 14 {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    scrollProxy.scrollTo("chartEnd", anchor: .trailing)
+                                }
+                            }
+                        }
+                    }
                 }
             } else {
                 chartContent

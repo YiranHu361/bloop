@@ -9,6 +9,10 @@ final class TrendsViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var error: Error?
     
+    // Safe Listening Score data
+    @Published var safeListeningScore: Int = 100
+    @Published var scoreTrend: SafeListeningScoreCard.ScoreTrend = .stable
+    
     private var modelContext: ModelContext?
     
     // MARK: - Computed Properties
@@ -171,8 +175,74 @@ final class TrendsViewModel: ObservableObject {
             descriptor.sortBy = [SortDescriptor(\.date, order: .forward)]
             
             dailyDoses = try context.fetch(descriptor)
+            
+            // Calculate safe listening score
+            await calculateSafeListeningScore()
         } catch {
             self.error = error
+        }
+    }
+    
+    // MARK: - Safe Listening Score
+    
+    private func calculateSafeListeningScore() async {
+        guard let context = modelContext else { return }
+        
+        do {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            
+            // Fetch last 7 days for score calculation
+            guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: today) else { return }
+            
+            let weekComponents = calendar.dateComponents([.year, .month, .day], from: weekAgo)
+            guard let weekYear = weekComponents.year,
+                  let weekMonth = weekComponents.month,
+                  let weekDay = weekComponents.day else { return }
+            
+            let recentPredicate = #Predicate<DailyDose> { dose in
+                (dose.year > weekYear ||
+                 (dose.year == weekYear && dose.month > weekMonth) ||
+                 (dose.year == weekYear && dose.month == weekMonth && dose.day >= weekDay))
+            }
+            
+            let recentDescriptor = FetchDescriptor<DailyDose>(
+                predicate: recentPredicate,
+                sortBy: [SortDescriptor(\.date, order: .reverse)]
+            )
+            
+            let recentDoses = try context.fetch(recentDescriptor)
+            
+            // Calculate score
+            safeListeningScore = SafeListeningScoreCalculator.calculateScore(from: recentDoses)
+            
+            // Fetch older week for trend comparison
+            guard let twoWeeksAgo = calendar.date(byAdding: .day, value: -14, to: today) else { return }
+            
+            let twoWeekComponents = calendar.dateComponents([.year, .month, .day], from: twoWeeksAgo)
+            guard let twoWeekYear = twoWeekComponents.year,
+                  let twoWeekMonth = twoWeekComponents.month,
+                  let twoWeekDay = twoWeekComponents.day else { return }
+            
+            let olderPredicate = #Predicate<DailyDose> { dose in
+                (dose.year > twoWeekYear ||
+                 (dose.year == twoWeekYear && dose.month > twoWeekMonth) ||
+                 (dose.year == twoWeekYear && dose.month == twoWeekMonth && dose.day >= twoWeekDay)) &&
+                (dose.year < weekYear ||
+                 (dose.year == weekYear && dose.month < weekMonth) ||
+                 (dose.year == weekYear && dose.month == weekMonth && dose.day < weekDay))
+            }
+            
+            let olderDescriptor = FetchDescriptor<DailyDose>(predicate: olderPredicate)
+            let olderDoses = try context.fetch(olderDescriptor)
+            
+            scoreTrend = SafeListeningScoreCalculator.calculateTrend(
+                recentDoses: recentDoses,
+                olderDoses: olderDoses
+            )
+            
+        } catch {
+            print("Error calculating score: \(error)")
         }
     }
 }

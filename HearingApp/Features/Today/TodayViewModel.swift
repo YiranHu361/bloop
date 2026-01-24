@@ -9,8 +9,10 @@ final class TodayViewModel: ObservableObject {
     @Published var todayDose: DailyDose?
     @Published var recentEvents: [ExposureEvent] = []
     @Published var todaySamples: [ExposureSample] = []
+    @Published var timelineSamples24h: [ExposureSample] = []  // Last 24 hours for timeline chart
     @Published var exposureBands: [ExposureBand] = []
     @Published var exposureTimeline: [ExposureTimelinePoint] = []
+    @Published var exposureTrendline: [ExposureTimelinePoint] = []  // Moving average trendline
     @Published var currentLevelDB: Double?
     @Published var exposureSummary: String?
     @Published var isLoading: Bool = false
@@ -148,6 +150,16 @@ final class TodayViewModel: ObservableObject {
             var sampleDescriptor = FetchDescriptor<ExposureSample>(predicate: samplePredicate)
             sampleDescriptor.sortBy = [SortDescriptor(\.startDate, order: .forward)]
             todaySamples = try context.fetch(sampleDescriptor)
+            
+            // Load last 24 hours of samples for timeline chart
+            let twentyFourHoursAgo = Date().addingTimeInterval(-24 * 60 * 60)
+            let sample24hPredicate = #Predicate<ExposureSample> { sample in
+                sample.startDate >= twentyFourHoursAgo
+            }
+            
+            var sample24hDescriptor = FetchDescriptor<ExposureSample>(predicate: sample24hPredicate)
+            sample24hDescriptor.sortBy = [SortDescriptor(\.startDate, order: .forward)]
+            timelineSamples24h = try context.fetch(sample24hDescriptor)
 
             rebuildAnalytics()
             lastUpdated = Date()
@@ -207,6 +219,16 @@ final class TodayViewModel: ObservableObject {
             var sampleDescriptor = FetchDescriptor<ExposureSample>(predicate: samplePredicate)
             sampleDescriptor.sortBy = [SortDescriptor(\.startDate, order: .forward)]
             todaySamples = try context.fetch(sampleDescriptor)
+            
+            // Load last 24 hours of samples for timeline chart
+            let twentyFourHoursAgo = Date().addingTimeInterval(-24 * 60 * 60)
+            let sample24hPredicate = #Predicate<ExposureSample> { sample in
+                sample.startDate >= twentyFourHoursAgo
+            }
+            
+            var sample24hDescriptor = FetchDescriptor<ExposureSample>(predicate: sample24hPredicate)
+            sample24hDescriptor.sortBy = [SortDescriptor(\.startDate, order: .forward)]
+            timelineSamples24h = try context.fetch(sample24hDescriptor)
 
             rebuildAnalytics()
             lastUpdated = Date()
@@ -305,6 +327,7 @@ final class TodayViewModel: ObservableObject {
         guard !todaySamples.isEmpty else {
             exposureBands = Self.emptyBands()
             exposureTimeline = []
+            exposureTrendline = []
             currentLevelDB = nil
             exposureSummary = nil
             aiInsight = .inactive
@@ -323,7 +346,12 @@ final class TodayViewModel: ObservableObject {
 
         currentLevelDB = newLevel
         exposureBands = Self.buildBands(from: todaySamples)
-        exposureTimeline = Self.buildTimeline(from: todaySamples)
+        
+        // Use 24h samples for timeline chart (or today samples if 24h is empty)
+        let timelineSamples = timelineSamples24h.isEmpty ? todaySamples : timelineSamples24h
+        exposureTimeline = Self.buildTimeline(from: timelineSamples)
+        exposureTrendline = Self.buildTrendline(from: timelineSamples)
+        
         exposureSummary = Self.buildSummary(from: todayDose, samples: todaySamples)
 
         // Calculate AI insight
@@ -580,6 +608,54 @@ final class TodayViewModel: ObservableObject {
                 segment: currentSegment
             ))
             previousDate = sample.startDate
+        }
+        
+        return result
+    }
+    
+    /// Build a moving average trendline from samples
+    /// Uses a 30-minute window to smooth out the data
+    private static func buildTrendline(from samples: [ExposureSample]) -> [ExposureTimelinePoint] {
+        guard samples.count >= 3 else { return [] }
+        
+        // Moving average window in seconds (30 minutes)
+        let windowSize: TimeInterval = 30 * 60
+        let maxPoints = 30  // Fewer points for smooth trendline
+        
+        // Create evenly-spaced time points across the sample range
+        guard let firstDate = samples.first?.startDate,
+              let lastDate = samples.last?.startDate else { return [] }
+        
+        let totalDuration = lastDate.timeIntervalSince(firstDate)
+        guard totalDuration > 0 else { return [] }
+        
+        let interval = totalDuration / Double(maxPoints - 1)
+        var result: [ExposureTimelinePoint] = []
+        
+        for i in 0..<maxPoints {
+            let targetTime = firstDate.addingTimeInterval(Double(i) * interval)
+            
+            // Find samples within the window centered on targetTime
+            let windowStart = targetTime.addingTimeInterval(-windowSize / 2)
+            let windowEnd = targetTime.addingTimeInterval(windowSize / 2)
+            
+            let samplesInWindow = samples.filter { sample in
+                sample.startDate >= windowStart && sample.startDate <= windowEnd
+            }
+            
+            // Calculate weighted average for this window
+            guard !samplesInWindow.isEmpty else { continue }
+            
+            let totalWeight = samplesInWindow.reduce(0.0) { $0 + $1.duration }
+            let weightedSum = samplesInWindow.reduce(0.0) { $0 + ($1.levelDBASPL * $1.duration) }
+            
+            let avgLevel = totalWeight > 0 ? weightedSum / totalWeight : samplesInWindow.map(\.levelDBASPL).reduce(0, +) / Double(samplesInWindow.count)
+            
+            result.append(ExposureTimelinePoint(
+                date: targetTime,
+                levelDB: avgLevel,
+                segment: 0  // Trendline is always one continuous segment
+            ))
         }
         
         return result

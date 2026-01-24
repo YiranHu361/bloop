@@ -9,7 +9,6 @@ struct TodayView: View {
     @StateObject private var viewModel = TodayViewModel()
     @ObservedObject private var routeMonitor = AudioRouteMonitor.shared
 
-    @State private var isMonitoringPaused = false
     @State private var isRefreshing = false
 
     var body: some View {
@@ -49,38 +48,22 @@ struct TodayView: View {
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.25)
 
-                    // Quick Actions
-                    QuickActionsCard(
-                        isMonitoringPaused: $isMonitoringPaused,
-                        lastUpdated: viewModel.lastUpdated
-                    )
-                    .padding(.horizontal)
-                    .cardEntrance(delay: 0.35)
-
-                    // Safe Listening Score
-                    SafeListeningScoreCard(
-                        score: viewModel.safeListeningScore,
-                        streak: viewModel.currentStreak,
-                        trend: viewModel.scoreTrend
-                    )
-                    .padding(.horizontal)
-                    .cardEntrance(delay: 0.45)
-
-                    // Exposure Details (Timeline / Log)
+                    // Exposure Details (Timeline / Log) - Last 24 hours
                     ExposureProfileView(
                         timeline: viewModel.exposureTimeline,
+                        trendline: viewModel.exposureTrendline,
                         currentLevelDB: viewModel.currentLevelDB,
                         descriptorText: viewModel.exposureSummary,
                         lastUpdated: viewModel.lastUpdated
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.55)
+                    .cardEntrance(delay: 0.35)
 
                     // Recent Events
                     if !viewModel.recentEvents.isEmpty {
                         RecentEventsSection(events: viewModel.recentEvents)
                             .padding(.horizontal)
-                            .cardEntrance(delay: 0.65)
+                            .cardEntrance(delay: 0.45)
                     }
 
                     // Bottom spacing

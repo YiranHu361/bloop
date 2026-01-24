@@ -2,8 +2,8 @@ import SwiftUI
 import Charts
 
 /// Live exposure visualization showing timeline chart and recent dB readings.
+/// Shows last 24 hours of data with raw line + moving average trendline.
 /// HealthKit provides loudness levels (dB), not frequency spectrum data.
-/// Note: Zones mode moved to PrimaryAudioCard for a cleaner dashboard layout.
 struct ExposureProfileView: View {
     enum Mode: String, CaseIterable, Identifiable {
         case timeline = "Timeline"
@@ -13,6 +13,7 @@ struct ExposureProfileView: View {
     }
 
     let timeline: [ExposureTimelinePoint]
+    var trendline: [ExposureTimelinePoint] = []  // Moving average trendline
     let currentLevelDB: Double?
     let descriptorText: String?
     var lastUpdated: Date?
@@ -25,7 +26,7 @@ struct ExposureProfileView: View {
             // Header with mode picker
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Live Exposure")
+                    Text("Last 24 Hours")
                         .font(AppTypography.headline)
                         .foregroundColor(AppColors.label)
 
@@ -144,38 +145,35 @@ struct ExposureProfileView: View {
     private var timelineChart: some View {
         Group {
             if timeline.isEmpty {
-                emptyStateView(message: "No exposure data yet today", icon: "waveform.path")
+                emptyStateView(message: "No exposure data in the last 24 hours", icon: "waveform.path")
             } else {
                 VStack(spacing: 8) {
-                    Chart(timeline) { point in
-                        // Use stepEnd for accurate representation of discrete samples
-                        // and series(by:) to break the line at large time gaps
-                        LineMark(
-                            x: .value("Time", point.date),
-                            y: .value("dB", clampedLevel(point.levelDB)),
-                            series: .value("Segment", point.segment)
-                        )
-                        .interpolationMethod(.stepEnd)
-                        .foregroundStyle(colorForLevel(point.levelDB))
-                        .lineStyle(StrokeStyle(lineWidth: 2.5))
-
-                        AreaMark(
-                            x: .value("Time", point.date),
-                            yStart: .value("Start", 40),
-                            yEnd: .value("dB", clampedLevel(point.levelDB)),
-                            series: .value("Segment", point.segment)
-                        )
-                        .interpolationMethod(.stepEnd)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [
-                                    colorForLevel(point.levelDB).opacity(0.02),
-                                    colorForLevel(point.levelDB).opacity(0.2)
-                                ],
-                                startPoint: .bottom,
-                                endPoint: .top
+                    Chart {
+                        // Raw data line - continuous line with breaks at gaps
+                        ForEach(timeline) { point in
+                            LineMark(
+                                x: .value("Time", point.date),
+                                y: .value("dB", clampedLevel(point.levelDB)),
+                                series: .value("Series", "Raw-\(point.segment)")
                             )
-                        )
+                            .interpolationMethod(.linear)
+                            .foregroundStyle(colorForLevel(point.levelDB).opacity(0.8))
+                            .lineStyle(StrokeStyle(lineWidth: 2))
+                        }
+                        
+                        // Moving average trendline - smooth overlay
+                        if !trendline.isEmpty {
+                            ForEach(trendline) { point in
+                                LineMark(
+                                    x: .value("Time", point.date),
+                                    y: .value("dB", clampedLevel(point.levelDB)),
+                                    series: .value("Series", "Trend")
+                                )
+                                .interpolationMethod(.catmullRom)
+                                .foregroundStyle(AppColors.primaryFallback)
+                                .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
+                            }
+                        }
                     }
                     .chartYScale(domain: 40...110)
                     .chartYAxis {
@@ -205,11 +203,22 @@ struct ExposureProfileView: View {
                     .animation(.easeInOut(duration: 0.3), value: timeline.count)
                     .id(timeline.count)  // Force redraw when data changes
 
-                    // Risk threshold legend
-                    HStack(spacing: 16) {
+                    // Legend with trendline indicator
+                    HStack(spacing: 12) {
                         legendItem(color: AppColors.safe, label: "Safe (<70)")
                         legendItem(color: AppColors.caution, label: "Caution (70-85)")
                         legendItem(color: AppColors.danger, label: "Risk (>85)")
+                        
+                        Spacer()
+                        
+                        // Trendline indicator
+                        HStack(spacing: 4) {
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(AppColors.primaryFallback)
+                                .frame(width: 16, height: 3)
+                            Text("Avg")
+                                .foregroundColor(AppColors.tertiaryLabel)
+                        }
                     }
                     .font(AppTypography.caption2)
                 }
@@ -227,7 +236,7 @@ struct ExposureProfileView: View {
     private var recentLogView: some View {
         Group {
             if timeline.isEmpty {
-                emptyStateView(message: "No readings logged yet", icon: "list.bullet")
+                emptyStateView(message: "No readings in the last 24 hours", icon: "list.bullet")
             } else {
                 VStack(spacing: 0) {
                     // Header row
@@ -409,6 +418,12 @@ struct ExposureTimelinePoint: Identifiable {
                     .init(date: .now.addingTimeInterval(-600), levelDB: 78),
                     .init(date: .now.addingTimeInterval(-300), levelDB: 72),
                     .init(date: .now, levelDB: 68),
+                ],
+                trendline: [
+                    .init(date: .now.addingTimeInterval(-3600), levelDB: 65),
+                    .init(date: .now.addingTimeInterval(-2400), levelDB: 72),
+                    .init(date: .now.addingTimeInterval(-1200), levelDB: 82),
+                    .init(date: .now, levelDB: 74),
                 ],
                 currentLevelDB: 68,
                 descriptorText: "Mostly moderate listening with a few loud peaks.",
