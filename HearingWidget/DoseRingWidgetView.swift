@@ -232,6 +232,7 @@ struct RectangularAccessoryView: View {
         date: .now,
         dosePercent: 65,
         remainingTime: 2 * 3600,
+        listeningTime: 3 * 3600 + 45 * 60,
         status: .moderate
     ))
     .previewContext(WidgetPreviewContext(family: .systemSmall))
@@ -242,6 +243,7 @@ struct RectangularAccessoryView: View {
         date: .now,
         dosePercent: 45,
         remainingTime: 4 * 3600,
+        listeningTime: 2 * 3600 + 15 * 60,
         status: .safe
     ))
     .previewContext(WidgetPreviewContext(family: .systemMedium))

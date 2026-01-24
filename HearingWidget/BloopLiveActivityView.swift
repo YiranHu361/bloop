@@ -410,24 +410,5 @@ struct ExpandedBottomView: View {
 }
 
 // MARK: - Note on Previews
-// Live Activities cannot be previewed in Xcode Previews.
-// Test Live Activities on a physical device or simulator by running the app.
-
-#if DEBUG
-// MARK: - Live Activity Widget Previews (Canvas)
-//
-// Important: Widget extensions can only host widget previews.
-// This previews the *Widget* (`BloopLiveActivityWidget`) rather than a plain SwiftUI view.
-@available(iOSApplicationExtension 17.0, *)
-#Preview("Live Activity (Lock Screen)", as: .content, using: BloopExposureAttributes(startTime: .now)) {
-    BloopExposureAttributes.ContentState(
-        currentPercent: 65,
-        dailyLimitPercent: 100,
-        currentDB: 0,
-        status: .caution,
-        message: "Getting a bit loud!",
-        remainingMinutes: 150,
-        isBreakTime: false
-    )
-}
-#endif
+// Live Activities can be previewed by running the app on device/simulator.
+// Canvas previews for Live Activities have limited support in widget extensions.
