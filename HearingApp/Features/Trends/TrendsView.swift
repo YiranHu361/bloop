@@ -8,8 +8,6 @@ struct TrendsView: View {
     @StateObject private var viewModel = TrendsViewModel()
     @State private var selectedPeriod: TrendPeriod = .week
     @State private var selectedDay: DailyDose?
-    @State private var isMonitoringPaused = false
-    @State private var lastUpdated: Date? = Date()
     
     var body: some View {
         NavigationStack {
@@ -24,18 +22,10 @@ struct TrendsView: View {
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.05)
                     
-                    // Quick Actions (Pause/Resume Monitoring)
-                    QuickActionsCard(
-                        isMonitoringPaused: $isMonitoringPaused,
-                        lastUpdated: lastUpdated
-                    )
-                    .padding(.horizontal)
-                    .cardEntrance(delay: 0.1)
-                    
                     // Period Selector
                     PeriodSelector(selectedPeriod: $selectedPeriod)
                         .padding(.horizontal)
-                        .cardEntrance(delay: 0.15)
+                        .cardEntrance(delay: 0.1)
                     
                     // Period Bar Chart (7D or 30D)
                     PeriodBarChart(
@@ -44,7 +34,7 @@ struct TrendsView: View {
                         selectedDay: $selectedDay
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.25)
+                    .cardEntrance(delay: 0.2)
                     
                     // Highlights Section
                     HighlightsSection(
@@ -54,7 +44,7 @@ struct TrendsView: View {
                         trend: viewModel.listeningTrend
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.35)
+                    .cardEntrance(delay: 0.3)
                     
                     // Summary Stats
                     SummaryStatsGrid(
@@ -64,7 +54,7 @@ struct TrendsView: View {
                         streak: viewModel.currentStreak
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.45)
+                    .cardEntrance(delay: 0.4)
                     
                     // Selected Day Details
                     if let day = selectedDay {

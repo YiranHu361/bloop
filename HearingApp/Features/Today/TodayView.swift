@@ -263,37 +263,17 @@ struct RecentEventRow: View {
     }
 }
 
-// MARK: - Headphone Status Dot
+// MARK: - Headphone Status Indicator
 
-/// Compact headphone status indicator - green when connected, orange when not
+/// Minimal headphone status - just an icon that's green when connected, gray when not
 struct HeadphoneStatusDot: View {
     let isConnected: Bool
     
-    private var statusColor: Color {
-        isConnected ? AppColors.safe : AppColors.caution
-    }
-    
-    private var statusIcon: String {
-        isConnected ? "headphones" : "speaker.wave.2"
-    }
-    
     var body: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 8, height: 8)
-            
-            Image(systemName: statusIcon)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(statusColor)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-            Capsule()
-                .fill(statusColor.opacity(0.12))
-        )
-        .animation(.easeInOut(duration: 0.2), value: isConnected)
+        Image(systemName: "headphones")
+            .font(.system(size: 16, weight: .medium))
+            .foregroundColor(isConnected ? AppColors.safe : AppColors.tertiaryLabel)
+            .animation(.easeInOut(duration: 0.2), value: isConnected)
     }
 }
 
