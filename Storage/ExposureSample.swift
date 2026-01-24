@@ -8,8 +8,8 @@ final class ExposureSample {
     var startDate: Date
     var endDate: Date
     var levelDBASPL: Double
+    var sourceBundleId: String?
 
-    /// Duration in seconds
     var duration: TimeInterval {
         endDate.timeIntervalSince(startDate)
     }
@@ -18,11 +18,13 @@ final class ExposureSample {
         id: UUID = UUID(),
         startDate: Date,
         endDate: Date,
-        levelDBASPL: Double
+        levelDBASPL: Double,
+        sourceBundleId: String? = nil
     ) {
         self.id = id
         self.startDate = startDate
         self.endDate = endDate
         self.levelDBASPL = levelDBASPL
+        self.sourceBundleId = sourceBundleId
     }
 }

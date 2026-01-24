@@ -1,7 +1,8 @@
 import Foundation
 import HealthKit
+import SwiftData
 
-/// Basic HealthKit service - prototype version
+/// HealthKit service for fetching headphone audio exposure data
 @MainActor
 final class HealthKitService: ObservableObject {
     static let shared = HealthKitService()
@@ -12,13 +13,9 @@ final class HealthKitService: ObservableObject {
 
     private init() {}
 
-    // MARK: - Types
-
     private var headphoneAudioExposureType: HKQuantityType? {
         HKQuantityType.quantityType(forIdentifier: .headphoneAudioExposure)
     }
-
-    // MARK: - Authorization
 
     func requestAuthorization() async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
@@ -32,8 +29,6 @@ final class HealthKitService: ObservableObject {
         try await healthStore.requestAuthorization(toShare: [], read: [exposureType])
         isAuthorized = true
     }
-
-    // MARK: - Data Fetching
 
     func fetchExposureSamples(from startDate: Date, to endDate: Date) async throws -> [HKQuantitySample] {
         guard let exposureType = headphoneAudioExposureType else {
@@ -65,6 +60,27 @@ final class HealthKitService: ObservableObject {
             healthStore.execute(query)
         }
     }
+
+    func fetchAndStoreSamples(context: ModelContext, days: Int) async throws {
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -days, to: endDate) else { return }
+
+        let hkSamples = try await fetchExposureSamples(from: startDate, to: endDate)
+
+        for sample in hkSamples {
+            let dbLevel = sample.quantity.doubleValue(for: .decibelAWeightedSoundPressureLevel())
+            let exposureSample = ExposureSample(
+                startDate: sample.startDate,
+                endDate: sample.endDate,
+                levelDBASPL: dbLevel,
+                sourceBundleId: sample.sourceRevision.source.bundleIdentifier
+            )
+            context.insert(exposureSample)
+        }
+
+        try context.save()
+    }
 }
 
 enum HealthKitError: LocalizedError {
@@ -73,10 +89,8 @@ enum HealthKitError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .notAvailable:
-            return "HealthKit is not available"
-        case .typesNotAvailable:
-            return "Required types not available"
+        case .notAvailable: return "HealthKit is not available"
+        case .typesNotAvailable: return "Required types not available"
         }
     }
 }

@@ -6,6 +6,7 @@ struct HearingAppApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             ExposureSample.self,
+            DailyDose.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -19,7 +20,21 @@ struct HearingAppApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    setupHealthKit()
+                }
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    private func setupHealthKit() {
+        Task {
+            if HealthKitService.shared.isAuthorized {
+                try? await HealthKitService.shared.fetchAndStoreSamples(
+                    context: sharedModelContainer.mainContext,
+                    days: 7
+                )
+            }
+        }
     }
 }
