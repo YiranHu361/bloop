@@ -225,13 +225,16 @@ enum NotificationCategory: String {
     case volumeSuggestion = "VOLUME_SUGGESTION"
     case contextAware = "CONTEXT_AWARE"
     case weeklyDigest = "WEEKLY_DIGEST"
+    case breakReminder = "BREAK_REMINDER"
+    case volumeAlert = "VOLUME_ALERT"
+    case quietHours = "QUIET_HOURS"
 }
 
 // MARK: - Notification Actions
 
 enum NotificationAction: String {
-    case viewDetails = "VIEW_ACTION"
-    case dismiss = "DISMISS_ACTION"
+    case viewDetails = "VIEW_DETAILS"
+    case dismiss = "DISMISS"
     case showVolumeTips = "SHOW_VOLUME_TIPS"
     case startBreakTimer = "START_BREAK_TIMER"
     case viewDigest = "VIEW_DIGEST"
