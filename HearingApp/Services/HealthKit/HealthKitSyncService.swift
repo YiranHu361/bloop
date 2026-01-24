@@ -547,7 +547,7 @@ final class HealthKitSyncService: ObservableObject {
     // MARK: - Widget Integration
 
     private func updateWidgetData(dose: DailyDose) {
-        let appGroupIdentifier = "group.com.hearingapp.shared"
+        let appGroupIdentifier = "group.com.bloopapp.shared"
 
         guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else {
             return

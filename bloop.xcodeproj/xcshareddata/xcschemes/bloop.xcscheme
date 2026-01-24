@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DDD208FD1A324ACC8D796458"
-               BuildableName = "HearingApp.app"
-               BlueprintName = "HearingApp"
-               ReferencedContainer = "container:HearingApp.xcodeproj">
+               BlueprintIdentifier = "8FBFC0EE96A57F143D6676FA"
+               BuildableName = "bloop.app"
+               BlueprintName = "bloop"
+               ReferencedContainer = "container:bloop.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -29,10 +29,10 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7077874BD44BF63F96686F15"
-               BuildableName = "HearingAppTests.xctest"
-               BlueprintName = "HearingAppTests"
-               ReferencedContainer = "container:HearingApp.xcodeproj">
+               BlueprintIdentifier = "9AF6D3D4AE1D372C01E318F4"
+               BuildableName = "bloopTests.xctest"
+               BlueprintName = "bloopTests"
+               ReferencedContainer = "container:bloop.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,10 +46,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DDD208FD1A324ACC8D796458"
-            BuildableName = "HearingApp.app"
-            BlueprintName = "HearingApp"
-            ReferencedContainer = "container:HearingApp.xcodeproj">
+            BlueprintIdentifier = "8FBFC0EE96A57F143D6676FA"
+            BuildableName = "bloop.app"
+            BlueprintName = "bloop"
+            ReferencedContainer = "container:bloop.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -58,10 +58,10 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7077874BD44BF63F96686F15"
-               BuildableName = "HearingAppTests.xctest"
-               BlueprintName = "HearingAppTests"
-               ReferencedContainer = "container:HearingApp.xcodeproj">
+               BlueprintIdentifier = "9AF6D3D4AE1D372C01E318F4"
+               BuildableName = "bloopTests.xctest"
+               BlueprintName = "bloopTests"
+               ReferencedContainer = "container:bloop.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -82,10 +82,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DDD208FD1A324ACC8D796458"
-            BuildableName = "HearingApp.app"
-            BlueprintName = "HearingApp"
-            ReferencedContainer = "container:HearingApp.xcodeproj">
+            BlueprintIdentifier = "8FBFC0EE96A57F143D6676FA"
+            BuildableName = "bloop.app"
+            BlueprintName = "bloop"
+            ReferencedContainer = "container:bloop.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -101,10 +101,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DDD208FD1A324ACC8D796458"
-            BuildableName = "HearingApp.app"
-            BlueprintName = "HearingApp"
-            ReferencedContainer = "container:HearingApp.xcodeproj">
+            BlueprintIdentifier = "8FBFC0EE96A57F143D6676FA"
+            BuildableName = "bloop.app"
+            BlueprintName = "bloop"
+            ReferencedContainer = "container:bloop.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>

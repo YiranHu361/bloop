@@ -1,13 +1,14 @@
 import SwiftUI
 import SwiftData
 
-/// Main dashboard view - "Hearing Risk Dashboard"
+/// Main dashboard view - bloop. "Parent Dashboard"
 struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = TodayViewModel()
     @ObservedObject private var spectrumService = AudioSpectrumService.shared
+    @ObservedObject private var routeMonitor = AudioRouteMonitor.shared
     
     @State private var isMonitoringPaused = false
     @State private var isRefreshing = false
@@ -16,10 +17,18 @@ struct TodayView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Primary Audio Card (Spectrum / Zones toggle)
+                    // Headphone Status Banner (when no headphones)
+                    if !routeMonitor.isHeadphonesConnected {
+                        HeadphoneStatusBanner(routeMonitor: routeMonitor)
+                            .padding(.horizontal)
+                            .cardEntrance(delay: 0.05)
+                    }
+                    
+                    // Primary Audio Card (Zones / Timeline toggle, Spectrum in Debug only)
                     PrimaryAudioCard(
                         spectrumService: spectrumService,
                         bands: viewModel.exposureBands,
+                        timeline: viewModel.exposureTimeline,
                         currentLevelDB: viewModel.currentLevelDB,
                         isMonitoring: !isMonitoringPaused
                     )
@@ -263,6 +272,79 @@ struct RecentEventRow: View {
         } else {
             return "< 1 min"
         }
+    }
+}
+
+// MARK: - Headphone Status Banner
+
+struct HeadphoneStatusBanner: View {
+    @ObservedObject var routeMonitor: AudioRouteMonitor
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "headphones")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(AppColors.secondaryLabel)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("No Headphones Detected")
+                    .font(AppTypography.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(AppColors.label)
+                
+                Text("Connect headphones to track listening")
+                    .font(AppTypography.caption1)
+                    .foregroundColor(AppColors.secondaryLabel)
+            }
+            
+            Spacer()
+            
+            // Current output indicator
+            HStack(spacing: 4) {
+                Image(systemName: routeMonitor.currentOutputType.icon)
+                    .font(.system(size: 12))
+                Text(routeMonitor.currentOutputType.rawValue)
+                    .font(AppTypography.caption2)
+            }
+            .foregroundColor(AppColors.tertiaryLabel)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(Color.gray.opacity(0.15))
+            )
+        }
+        .padding(16)
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(borderGradient, lineWidth: 1)
+        )
+    }
+    
+    private var cardBackground: some View {
+        ZStack {
+            if colorScheme == .dark {
+                Color.black.opacity(0.15)
+            } else {
+                Color.white.opacity(0.8)
+            }
+        }
+        .background(.ultraThinMaterial)
+    }
+    
+    private var borderGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                AppColors.glassBorder.opacity(colorScheme == .dark ? 0.15 : 0.3),
+                AppColors.glassBorder.opacity(0.05)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 }
 

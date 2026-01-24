@@ -4,9 +4,9 @@ import Foundation
 struct AppConfig {
     
     // MARK: - App Information
-    static let appName = "Hearing App"
+    static let appName = "bloop."
     static let appVersion = "1.0.0"
-    static let bundleIdentifier = "com.example.hearingapp"
+    static let bundleIdentifier = "com.bloopapp.app"
     
     // MARK: - HealthKit Configuration
     static let healthKitSyncIntervalMinutes: Double = 15

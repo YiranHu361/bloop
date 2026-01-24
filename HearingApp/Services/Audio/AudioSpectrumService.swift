@@ -47,9 +47,22 @@ final class AudioSpectrumService: ObservableObject {
         }
     }
     
+    // MARK: - Feature Flag Check
+    
+    /// Whether mic spectrum is available (Debug-only feature)
+    var isAvailable: Bool {
+        FeatureFlags.micSpectrumEnabled
+    }
+    
     // MARK: - Permission
     
     func checkPermission() {
+        // If feature is disabled, report as denied (no mic access in Release)
+        guard FeatureFlags.micSpectrumEnabled else {
+            permissionStatus = .denied
+            return
+        }
+        
         switch AVAudioApplication.shared.recordPermission {
         case .granted:
             permissionStatus = .authorized
@@ -63,6 +76,14 @@ final class AudioSpectrumService: ObservableObject {
     }
     
     func requestPermission() async -> Bool {
+        // If feature is disabled, don't request permission
+        guard FeatureFlags.micSpectrumEnabled else {
+            await MainActor.run {
+                permissionStatus = .denied
+            }
+            return false
+        }
+        
         let granted = await AVAudioApplication.requestRecordPermission()
         await MainActor.run {
             permissionStatus = granted ? .authorized : .denied
@@ -73,6 +94,8 @@ final class AudioSpectrumService: ObservableObject {
     // MARK: - Start / Stop
     
     func start() async {
+        // Feature gate: don't start if mic spectrum is disabled
+        guard FeatureFlags.micSpectrumEnabled else { return }
         guard !isRunning else { return }
         
         // Check/request permission

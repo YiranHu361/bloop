@@ -1,6 +1,6 @@
-name: HearingApp
+name: bloop
 options:
-  bundleIdPrefix: com.hearingapp
+  bundleIdPrefix: com.bloopapp
   deploymentTarget:
     iOS: "17.0"
   xcodeVersion: "15.0"
@@ -16,7 +16,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
 
 targets:
-  HearingApp:
+  bloop:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
@@ -29,24 +29,31 @@ targets:
     resources:
       - path: HearingApp/Resources/Assets.xcassets
       - path: HearingApp/Resources/Info.plist
+      - path: HearingApp/Resources/Info-Debug.plist
     settings:
       base:
-        INFOPLIST_FILE: HearingApp/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: HearingApp/Resources/HearingApp.entitlements
-        PRODUCT_BUNDLE_IDENTIFIER: com.hearingapp.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.bloopapp.app
+        PRODUCT_NAME: "bloop."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+      configs:
+        Debug:
+          INFOPLIST_FILE: HearingApp/Resources/Info-Debug.plist
+        Release:
+          INFOPLIST_FILE: HearingApp/Resources/Info.plist
     entitlements:
       path: HearingApp/Resources/HearingApp.entitlements
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.background-delivery: true
         com.apple.security.application-groups:
-          - group.com.hearingapp.shared
+          - group.com.bloopapp.shared
     info:
       path: HearingApp/Resources/Info.plist
       properties:
-        NSHealthShareUsageDescription: HearingApp needs access to your headphone audio levels to track your daily sound exposure and help protect your hearing.
+        CFBundleDisplayName: "bloop."
+        NSHealthShareUsageDescription: bloop. needs access to your child's headphone audio levels to track daily sound exposure and help protect their hearing.
         UIBackgroundModes:
           - processing
         UILaunchScreen: {}
@@ -58,10 +65,10 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
     dependencies:
-      - target: HearingWidget
+      - target: bloopWidget
         embed: true
     
-  HearingWidget:
+  bloopWidget:
     type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
@@ -69,7 +76,8 @@ targets:
       - path: HearingWidget
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.hearingapp.app.widget
+        PRODUCT_BUNDLE_IDENTIFIER: com.bloopapp.app.widget
+        PRODUCT_NAME: "bloopWidget"
         SWIFT_EMIT_LOC_STRINGS: "YES"
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "1.0"
@@ -79,9 +87,9 @@ targets:
       path: HearingWidget/HearingWidget.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.com.hearingapp.shared
+          - group.com.bloopapp.shared
 
-  HearingAppTests:
+  bloopTests:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "17.0"
@@ -89,22 +97,22 @@ targets:
       - path: HearingAppTests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.hearingapp.app.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.bloopapp.app.tests
     dependencies:
-      - target: HearingApp
+      - target: bloop
 
 schemes:
-  HearingApp:
+  bloop:
     build:
       targets:
-        HearingApp: all
-        HearingAppTests: [test]
+        bloop: all
+        bloopTests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - HearingAppTests
+        - bloopTests
     profile:
       config: Release
     analyze:

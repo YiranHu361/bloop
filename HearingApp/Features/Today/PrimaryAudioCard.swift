@@ -1,21 +1,33 @@
 import SwiftUI
 
-/// Primary dashboard card that toggles between Live Spectrum and Exposure Zones views.
+/// Primary dashboard card that toggles between Zones and Timeline views.
+/// In Debug builds with mic enabled, also includes Spectrum mode.
 /// Provides a unified top-level visualization with consistent glass styling.
 struct PrimaryAudioCard: View {
-    enum Mode: String, CaseIterable, Identifiable {
-        case spectrum = "Spectrum"
+    enum Mode: String, Identifiable {
         case zones = "Zones"
+        case timeline = "Timeline"
+        case spectrum = "Spectrum"  // Debug-only
         
         var id: String { rawValue }
+        
+        /// Available modes based on feature flags
+        static var availableModes: [Mode] {
+            var modes: [Mode] = [.zones, .timeline]
+            if FeatureFlags.micSpectrumEnabled {
+                modes.insert(.spectrum, at: 0)
+            }
+            return modes
+        }
     }
     
     @ObservedObject var spectrumService: AudioSpectrumService
     let bands: [ExposureBand]
+    let timeline: [ExposureTimelinePoint]
     let currentLevelDB: Double?
     let isMonitoring: Bool
     
-    @State private var mode: Mode = .spectrum
+    @State private var mode: Mode = FeatureFlags.micSpectrumEnabled ? .spectrum : .zones
     @Environment(\.colorScheme) private var colorScheme
     
     private let barCount = 32
@@ -32,6 +44,8 @@ struct PrimaryAudioCard: View {
                 spectrumContent
             case .zones:
                 zonesContent
+            case .timeline:
+                timelineContent
             }
         }
         .padding(20)
@@ -43,24 +57,28 @@ struct PrimaryAudioCard: View {
         )
         .shadow(color: AppColors.cardShadow, radius: 12, x: 0, y: 6)
         .onAppear {
-            spectrumService.checkPermission()
-            if mode == .spectrum && spectrumService.permissionStatus == .authorized && isMonitoring {
-                Task {
-                    await spectrumService.start()
+            if FeatureFlags.micSpectrumEnabled {
+                spectrumService.checkPermission()
+                if mode == .spectrum && spectrumService.permissionStatus == .authorized && isMonitoring {
+                    Task {
+                        await spectrumService.start()
+                    }
                 }
             }
         }
         .onChange(of: mode) { _, newMode in
-            if newMode == .spectrum && spectrumService.permissionStatus == .authorized && isMonitoring {
-                Task {
-                    await spectrumService.start()
+            if newMode == .spectrum && FeatureFlags.micSpectrumEnabled {
+                if spectrumService.permissionStatus == .authorized && isMonitoring {
+                    Task {
+                        await spectrumService.start()
+                    }
                 }
-            } else if newMode == .zones {
+            } else {
                 spectrumService.stop()
             }
         }
         .onChange(of: isMonitoring) { _, newValue in
-            if newValue && mode == .spectrum && spectrumService.permissionStatus == .authorized {
+            if newValue && mode == .spectrum && FeatureFlags.micSpectrumEnabled && spectrumService.permissionStatus == .authorized {
                 Task {
                     await spectrumService.start()
                 }
@@ -75,16 +93,32 @@ struct PrimaryAudioCard: View {
     
     // MARK: - Header with Toggle
     
+    private var modeIcon: String {
+        switch mode {
+        case .spectrum: return "waveform"
+        case .zones: return "chart.bar.fill"
+        case .timeline: return "waveform.path.ecg"
+        }
+    }
+    
+    private var modeTitle: String {
+        switch mode {
+        case .spectrum: return "Live Spectrum"
+        case .zones: return "Exposure Zones"
+        case .timeline: return "Today's Timeline"
+        }
+    }
+    
     private var headerWithToggle: some View {
         VStack(spacing: 12) {
             // Title row
             HStack {
                 HStack(spacing: 8) {
-                    Image(systemName: mode == .spectrum ? "waveform" : "chart.bar.fill")
+                    Image(systemName: modeIcon)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(AppColors.primaryFallback)
                     
-                    Text(mode == .spectrum ? "Live Spectrum" : "Exposure Zones")
+                    Text(modeTitle)
                         .font(AppTypography.headline)
                         .foregroundColor(AppColors.label)
                 }
@@ -105,7 +139,7 @@ struct PrimaryAudioCard: View {
             
             // Centered segmented toggle
             Picker("Mode", selection: $mode) {
-                ForEach(Mode.allCases) { m in
+                ForEach(Mode.availableModes) { m in
                     Text(m.rawValue).tag(m)
                 }
             }
@@ -392,6 +426,96 @@ struct PrimaryAudioCard: View {
         }
     }
     
+    // MARK: - Timeline Content
+    
+    private var timelineContent: some View {
+        VStack(spacing: 12) {
+            // Current level banner (if available)
+            if let level = currentLevelDB {
+                currentLevelBanner(level: level)
+            }
+            
+            if timeline.isEmpty {
+                // Empty state
+                VStack(spacing: 16) {
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.system(size: 40))
+                        .foregroundColor(AppColors.tertiaryLabel)
+                    
+                    Text("No exposure data yet")
+                        .font(AppTypography.subheadline)
+                        .foregroundColor(AppColors.secondaryLabel)
+                    
+                    Text("Start using headphones to see your timeline")
+                        .font(AppTypography.caption1)
+                        .foregroundColor(AppColors.tertiaryLabel)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(height: 130)
+            } else {
+                // Mini timeline chart
+                GeometryReader { geo in
+                    let maxLevel: Double = 100
+                    let minLevel: Double = 40
+                    let range = maxLevel - minLevel
+                    
+                    Path { path in
+                        guard timeline.count > 1 else { return }
+                        
+                        let stepX = geo.size.width / CGFloat(max(1, timeline.count - 1))
+                        
+                        for (index, point) in timeline.enumerated() {
+                            let x = CGFloat(index) * stepX
+                            let normalizedY = (point.levelDB - minLevel) / range
+                            let y = geo.size.height - (CGFloat(normalizedY) * geo.size.height)
+                            
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                    }
+                    .stroke(
+                        LinearGradient(
+                            colors: [AppColors.safe, AppColors.caution, AppColors.danger],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        ),
+                        lineWidth: 2.5
+                    )
+                    
+                    // Danger threshold line
+                    let dangerY = geo.size.height - (CGFloat((85 - minLevel) / range) * geo.size.height)
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: dangerY))
+                        path.addLine(to: CGPoint(x: geo.size.width, y: dangerY))
+                    }
+                    .stroke(AppColors.danger.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                }
+                .frame(height: 100)
+                
+                // Legend
+                HStack(spacing: 16) {
+                    legendItem(color: AppColors.safe, label: "Safe (<70)")
+                    legendItem(color: AppColors.caution, label: "Caution (70-85)")
+                    legendItem(color: AppColors.danger, label: "Risk (>85)")
+                }
+                .font(AppTypography.caption2)
+            }
+        }
+    }
+    
+    private func legendItem(color: Color, label: String) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(label)
+                .foregroundColor(AppColors.tertiaryLabel)
+        }
+    }
+    
     private func currentLevelBanner(level: Double) -> some View {
         HStack(spacing: 12) {
             // Pulsing indicator
@@ -509,6 +633,13 @@ struct PrimaryAudioCard: View {
                     .init(id: "6", label: "90-95", shortLabel: "90-95", seconds: 120, color: AppColors.danger.opacity(0.9)),
                     .init(id: "7", label: "95-100", shortLabel: "95-100", seconds: 60, color: AppColors.danger),
                     .init(id: "8", label: "100+", shortLabel: "100+", seconds: 20, color: AppColors.danger.opacity(0.75)),
+                ],
+                timeline: [
+                    .init(date: .now.addingTimeInterval(-3600), levelDB: 65),
+                    .init(date: .now.addingTimeInterval(-2700), levelDB: 72),
+                    .init(date: .now.addingTimeInterval(-1800), levelDB: 78),
+                    .init(date: .now.addingTimeInterval(-900), levelDB: 68),
+                    .init(date: .now, levelDB: 72),
                 ],
                 currentLevelDB: 72,
                 isMonitoring: true

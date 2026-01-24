@@ -2,18 +2,19 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-/// ViewModel for Settings view
+/// ViewModel for Settings view - bloop. parent control center
 @MainActor
 final class SettingsViewModel: ObservableObject {
     // Monitoring
     @Published var monitoringMode: MonitoringMode = .standard
     
-    // Notifications
-    @Published var notify50Percent: Bool = true
-    @Published var notify75Percent: Bool = true
+    // Alerts & Nudges (60/80/100 thresholds per bloop. spec)
+    @Published var notify60Percent: Bool = true
+    @Published var notify80Percent: Bool = true
     @Published var notify100Percent: Bool = true
+    @Published var breakSuggestionsEnabled: Bool = true
     
-    // Dose model
+    // Exposure model (renamed from Dose)
     @Published var doseModel: DoseModel = .niosh
     
     // Data storage
@@ -35,9 +36,10 @@ final class SettingsViewModel: ObservableObject {
             
             if let userSettings = settings.first {
                 doseModel = userSettings.doseModelEnum
-                notify50Percent = userSettings.warningThreshold50Enabled
-                notify75Percent = userSettings.warningThreshold80Enabled // Using 80 for 75
+                notify60Percent = userSettings.warningThreshold50Enabled // Using existing field for 60%
+                notify80Percent = userSettings.warningThreshold80Enabled
                 notify100Percent = userSettings.warningThreshold100Enabled
+                // breakSuggestionsEnabled - use default for now (could add to UserSettings later)
             }
         } catch {
             print("Error loading settings: \(error)")
@@ -53,15 +55,15 @@ final class SettingsViewModel: ObservableObject {
             
             if let userSettings = settings.first {
                 userSettings.doseModel = doseModel.rawValue
-                userSettings.warningThreshold50Enabled = notify50Percent
-                userSettings.warningThreshold80Enabled = notify75Percent
+                userSettings.warningThreshold50Enabled = notify60Percent
+                userSettings.warningThreshold80Enabled = notify80Percent
                 userSettings.warningThreshold100Enabled = notify100Percent
                 userSettings.lastModified = Date()
             } else {
                 let newSettings = UserSettings(
                     doseModel: doseModel,
-                    warningThreshold50Enabled: notify50Percent,
-                    warningThreshold80Enabled: notify75Percent,
+                    warningThreshold50Enabled: notify60Percent,
+                    warningThreshold80Enabled: notify80Percent,
                     warningThreshold100Enabled: notify100Percent
                 )
                 context.insert(newSettings)

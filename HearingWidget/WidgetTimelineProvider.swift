@@ -81,7 +81,7 @@ extension Color {
 
 struct DoseTimelineProvider: TimelineProvider {
     // App group identifier for shared container
-    static let appGroupIdentifier = "group.com.hearingapp.shared"
+    static let appGroupIdentifier = "group.com.bloopapp.shared"
 
     func placeholder(in context: Context) -> DoseEntry {
         DoseEntry.placeholder
@@ -133,7 +133,7 @@ struct DoseTimelineProvider: TimelineProvider {
 // MARK: - Widget Data Updater (called from main app)
 
 enum WidgetDataUpdater {
-    static let appGroupIdentifier = "group.com.hearingapp.shared"
+    static let appGroupIdentifier = "group.com.bloopapp.shared"
 
     static func updateWidgetData(dosePercent: Double, remainingTime: TimeInterval) {
         guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else {

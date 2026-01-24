@@ -1,0 +1,882 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0175519A0712F63228ADC2AF /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4778164EF93E0BC942699A83 /* UserSettings.swift */; };
+		0573BAB6E84CF46C5D87EF25 /* ExposureSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */; };
+		0E9846BC09C70E3A7D98AA72 /* LiveRiskIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5653B1D0AC3FC1865D43BA6 /* LiveRiskIndicator.swift */; };
+		0FF3C7125B347F0CABBB86F5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3727F53B5D59E9796BDB8A6B /* GlassCard.swift */; };
+		16D8E101E55017F6C68F7B74 /* AppTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B6AC37D612540CF43BBE96 /* AppTypography.swift */; };
+		24096176355E3F22226E66D3 /* WeeklyDigestScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E272FB23A79A81B68C8D0618 /* WeeklyDigestScheduler.swift */; };
+		244D1A3CD2CB5A3EB135CEAD /* AudioSpectrumService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */; };
+		25F11C66C8161B08AEF89B87 /* SessionSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8BA14E99A8F91CF4D81FB9A /* SessionSummaryCard.swift */; };
+		2875C24D51672F925A8CDEC8 /* GradientBackgrounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60029EEB7CD727C58B07DB29 /* GradientBackgrounds.swift */; };
+		2CE7422962AA830EFCBD5F20 /* DoseRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5057FBA8B953E59D8FC42C6 /* DoseRingView.swift */; };
+		2CFDFC481D747F9849A4CB32 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF9A61CFA1E84CABAA04B58 /* SettingsView.swift */; };
+		45B0AD4BC7C8AD1726B01943 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D955A63C20F82B0E864D3A9 /* OnboardingView.swift */; };
+		45F6D50E8350E5F27BF417AE /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A979F3256BB07E09245D6C8 /* SettingsViewModel.swift */; };
+		4B43FB4CA53641107F707FFF /* WeeklyDigest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA029EF0AE40EE7B3FE3A890 /* WeeklyDigest.swift */; };
+		4D7E1278D6E165878CD0C261 /* ActionableNotificationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE231F1E5D7B68E21049A16 /* ActionableNotificationBuilder.swift */; };
+		5348957C40C4A9AB441967E8 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4537E3789A6225C9A2CC2 /* NotificationService.swift */; };
+		5BC213DB13DE933EC065A153 /* AudioRouteMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */; };
+		5C9BBDD7F8EC4C19351DD9D2 /* ExposureEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9EABFB9D794B8099F7AA30B /* ExposureEvent.swift */; };
+		5F3C4ADF2B4BF00E3EB0DE70 /* HearingAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1230040F9E0BE8A08B1E86B9 /* HearingAppApp.swift */; };
+		651AC64A0FC29352279C2DCF /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2547292430B097CFB784CD01 /* TrendsView.swift */; };
+		6BA48A6B3E7DA18AEBD1F173 /* ExposureStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC268567E0CD69219B62F36 /* ExposureStatus.swift */; };
+		6C91872A6EA98BF5EFB6EA11 /* DoseCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0457B9F20497919EE8F698 /* DoseCalculatorTests.swift */; };
+		73DFE8738B38C0502FCAB693 /* bloopWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		73F3843F3EEF7D683BBCFF90 /* PersonalizedThreshold.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED87A7573119D151D96A866 /* PersonalizedThreshold.swift */; };
+		7CCD46431F168235B2F9F0C4 /* WidgetTimelineProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 621A04E03522254A9221DD1D /* WidgetTimelineProvider.swift */; };
+		805BAED06173C64CEA1E04A1 /* HealthKitSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */; };
+		83A863C4E772F8B2A1276B30 /* LiveSpectrumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7AEB4625CD90B46BB9FD6D /* LiveSpectrumView.swift */; };
+		83CC47BB860FD1C497196F51 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6634D51E63D705253A03EDDB /* AppState.swift */; };
+		84FEBA6173417C420DB0CAC5 /* SyncState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE46FDA45A5EFE99786B192 /* SyncState.swift */; };
+		86952569998D8C875752420A /* StatusChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6B219CE296CA5B74169974C /* StatusChipView.swift */; };
+		8A530C68B403ADEE2A1B8AD8 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FCA0A938BEFD1B7C98CB6FE /* TodayView.swift */; };
+		8F30D4C3DD75C7B8174D66A8 /* ExposureProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AC72031B784E43E33AB82A /* ExposureProfileView.swift */; };
+		94096679CB792BC769693A21 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */; };
+		94F8DCBAE5B2F121D19A60F3 /* QuickActionsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2183F5C68CBAC94AE6CC27FE /* QuickActionsCard.swift */; };
+		9E9100DA5368AEE4EB9A8B10 /* DailyDose.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BFC7B9769C02EB8AEDC984 /* DailyDose.swift */; };
+		ABD7A307023C41C653F50D90 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0299043F84C1568EB2FC10E8 /* TrendsViewModel.swift */; };
+		BDCFCCCF4692DE61DACC217B /* AlertBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D26536D4D22635131036B8 /* AlertBanner.swift */; };
+		BE38B868D94EE2D9AB0CED6B /* DoseRingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453EE8485C3A46640EF2778C /* DoseRingWidgetView.swift */; };
+		C55802E99AE3093C3991DA96 /* AccuracyInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD26AE300C296B58CB77D76 /* AccuracyInfoView.swift */; };
+		C9D09FC49BC479D71B949977 /* WeeklyDigestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */; };
+		CA3B3256E107D9ED311709F9 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E44C123CC5F15C2C0259687 /* AppColors.swift */; };
+		CC1981BA5FB1A779B7FEF795 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7503A545E586E5BD97D58280 /* TodayViewModel.swift */; };
+		CF8F84833EEFE57FDEEDCF87 /* SafeListeningScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0EABB182CD97106B70D384 /* SafeListeningScore.swift */; };
+		DA466A16F1171538C22C70F6 /* PrivacyDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F145E67B834574F28517F54 /* PrivacyDetailView.swift */; };
+		DC6E23B9CF14D29E8A38EA5C /* AnimationTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF414D174CAE04615D558EC /* AnimationTokens.swift */; };
+		E080939FD34CB26146C6655A /* PrimaryAudioCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAB479559E8A89421F856A3 /* PrimaryAudioCard.swift */; };
+		E1B697A4F424DBB71D582C45 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CA307DA315668B3DCC5085 /* HealthKitService.swift */; };
+		E6FA12C1830B909367EAA16F /* PersonalizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573DB75926349D4033B2CC45 /* PersonalizationService.swift */; };
+		E780F46D5D066FF2EF73A81D /* HearingWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92FB80637608F47844C3EEBA /* HearingWidget.swift */; };
+		F162CAC288AFF4A23B3BDB2A /* DoseCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3E33501712C2C1176E9DB5 /* DoseCalculator.swift */; };
+		F16F9D98F3CB5E3F1911C055 /* StatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 157D7994F17F52E1564FD5CE /* StatCardView.swift */; };
+		F233F9E6C409FE5485693EFC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55247140D2389C8123F2597 /* ContentView.swift */; };
+		FA0C31367B0EE4463D534077 /* GlassDoseRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBD04FA5A075D9E55380D13 /* GlassDoseRingView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0F65D325051046DBDD28F41B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5D7964A856FE89F4C246ABE9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8FBFC0EE96A57F143D6676FA;
+			remoteInfo = bloop;
+		};
+		4A19E92EB67CB1A5154F46C5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5D7964A856FE89F4C246ABE9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 149892A44449853DCCE9D266;
+			remoteInfo = bloopWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5E5BB2E9ED58C59A58854781 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				73DFE8738B38C0502FCAB693 /* bloopWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		01CA307DA315668B3DCC5085 /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		0299043F84C1568EB2FC10E8 /* TrendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModel.swift; sourceTree = "<group>"; };
+		0A3E33501712C2C1176E9DB5 /* DoseCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseCalculator.swift; sourceTree = "<group>"; };
+		0C7AEB4625CD90B46BB9FD6D /* LiveSpectrumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSpectrumView.swift; sourceTree = "<group>"; };
+		0EE46FDA45A5EFE99786B192 /* SyncState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncState.swift; sourceTree = "<group>"; };
+		1230040F9E0BE8A08B1E86B9 /* HearingAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearingAppApp.swift; sourceTree = "<group>"; };
+		157D7994F17F52E1564FD5CE /* StatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCardView.swift; sourceTree = "<group>"; };
+		1F0EABB182CD97106B70D384 /* SafeListeningScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeListeningScore.swift; sourceTree = "<group>"; };
+		2183F5C68CBAC94AE6CC27FE /* QuickActionsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionsCard.swift; sourceTree = "<group>"; };
+		2547292430B097CFB784CD01 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		2ED87A7573119D151D96A866 /* PersonalizedThreshold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizedThreshold.swift; sourceTree = "<group>"; };
+		3727F53B5D59E9796BDB8A6B /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
+		3EEC0D7F7157B2235DCC371E /* HearingApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HearingApp.entitlements; sourceTree = "<group>"; };
+		453EE8485C3A46640EF2778C /* DoseRingWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseRingWidgetView.swift; sourceTree = "<group>"; };
+		45C4537E3789A6225C9A2CC2 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		4778164EF93E0BC942699A83 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		4EE231F1E5D7B68E21049A16 /* ActionableNotificationBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionableNotificationBuilder.swift; sourceTree = "<group>"; };
+		54B6AC37D612540CF43BBE96 /* AppTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypography.swift; sourceTree = "<group>"; };
+		573DB75926349D4033B2CC45 /* PersonalizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationService.swift; sourceTree = "<group>"; };
+		5A8B90DEBAB960557633242F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5DD26AE300C296B58CB77D76 /* AccuracyInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccuracyInfoView.swift; sourceTree = "<group>"; };
+		5F145E67B834574F28517F54 /* PrivacyDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyDetailView.swift; sourceTree = "<group>"; };
+		60029EEB7CD727C58B07DB29 /* GradientBackgrounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientBackgrounds.swift; sourceTree = "<group>"; };
+		621A04E03522254A9221DD1D /* WidgetTimelineProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTimelineProvider.swift; sourceTree = "<group>"; };
+		6634D51E63D705253A03EDDB /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		6BC268567E0CD69219B62F36 /* ExposureStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureStatus.swift; sourceTree = "<group>"; };
+		6F0457B9F20497919EE8F698 /* DoseCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseCalculatorTests.swift; sourceTree = "<group>"; };
+		7503A545E586E5BD97D58280 /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
+		79CB0478B4D35E5152C4CFCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7CAB479559E8A89421F856A3 /* PrimaryAudioCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryAudioCard.swift; sourceTree = "<group>"; };
+		81AC72031B784E43E33AB82A /* ExposureProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureProfileView.swift; sourceTree = "<group>"; };
+		8D955A63C20F82B0E864D3A9 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		92FB80637608F47844C3EEBA /* HearingWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearingWidget.swift; sourceTree = "<group>"; };
+		9A979F3256BB07E09245D6C8 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		9E44C123CC5F15C2C0259687 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
+		9FCA0A938BEFD1B7C98CB6FE /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureSample.swift; sourceTree = "<group>"; };
+		A0D26536D4D22635131036B8 /* AlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBanner.swift; sourceTree = "<group>"; };
+		A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteMonitor.swift; sourceTree = "<group>"; };
+		A5CC73C70F7E105B6E84F4E4 /* bloop.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = bloop.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ADBBD125000CF49572A0B097 /* bloopTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = bloopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		ADD6FEBB272E683231B67FBD /* HearingApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HearingApp.entitlements; sourceTree = "<group>"; };
+		B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSyncService.swift; sourceTree = "<group>"; };
+		B6BFC7B9769C02EB8AEDC984 /* DailyDose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyDose.swift; sourceTree = "<group>"; };
+		B8BA14E99A8F91CF4D81FB9A /* SessionSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSummaryCard.swift; sourceTree = "<group>"; };
+		BA029EF0AE40EE7B3FE3A890 /* WeeklyDigest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigest.swift; sourceTree = "<group>"; };
+		C596A1195872DC10B8BDA32B /* HearingWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HearingWidget.entitlements; sourceTree = "<group>"; };
+		C9EABFB9D794B8099F7AA30B /* ExposureEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureEvent.swift; sourceTree = "<group>"; };
+		CDF414D174CAE04615D558EC /* AnimationTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationTokens.swift; sourceTree = "<group>"; };
+		D55247140D2389C8123F2597 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D5653B1D0AC3FC1865D43BA6 /* LiveRiskIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRiskIndicator.swift; sourceTree = "<group>"; };
+		D6B219CE296CA5B74169974C /* StatusChipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusChipView.swift; sourceTree = "<group>"; };
+		DBBD04FA5A075D9E55380D13 /* GlassDoseRingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassDoseRingView.swift; sourceTree = "<group>"; };
+		E272FB23A79A81B68C8D0618 /* WeeklyDigestScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigestScheduler.swift; sourceTree = "<group>"; };
+		E5057FBA8B953E59D8FC42C6 /* DoseRingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseRingView.swift; sourceTree = "<group>"; };
+		EBF9A61CFA1E84CABAA04B58 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
+		F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigestView.swift; sourceTree = "<group>"; };
+		F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSpectrumService.swift; sourceTree = "<group>"; };
+		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAF33A90C96C54EBB8BAC7A8 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-Debug.plist"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0082B36944A4846E7B4F748A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3EEC0D7F7157B2235DCC371E /* HearingApp.entitlements */,
+				FAF33A90C96C54EBB8BAC7A8 /* Info-Debug.plist */,
+				5A8B90DEBAB960557633242F /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		1471B7479A006CBF39EB03B8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A5CC73C70F7E105B6E84F4E4 /* bloop.app */,
+				ADBBD125000CF49572A0B097 /* bloopTests.xctest */,
+				F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1DB9567672B6674314F39B04 /* HearingAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				6F0457B9F20497919EE8F698 /* DoseCalculatorTests.swift */,
+			);
+			path = HearingAppTests;
+			sourceTree = "<group>";
+		};
+		3C7178360F4F023AF1B82754 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				81B6ECF18A9F4AA68B840372 /* Digest */,
+				48F049175D12188167750C70 /* Onboarding */,
+				5D973F8AD37667F2F348884A /* Settings */,
+				DF6C732905DCB2AB9DF1AA3D /* Today */,
+				E01D521C50A50C3ED4DDB0B0 /* Trends */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		3E91EE94465F756E8DF52490 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */,
+				4E66B746F2CD815C55542B41 /* Audio */,
+				74457839187733861C906554 /* Dose */,
+				D9ABD85DB4E1D4B0227CE96D /* HealthKit */,
+				768D6E02DB122E9BEB3A8DA2 /* Notifications */,
+				6FEBD2E03F1D4072AD94FCA9 /* Personalization */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		41864DE6CF217D1D63FB4B74 /* HearingWidget */ = {
+			isa = PBXGroup;
+			children = (
+				453EE8485C3A46640EF2778C /* DoseRingWidgetView.swift */,
+				C596A1195872DC10B8BDA32B /* HearingWidget.entitlements */,
+				92FB80637608F47844C3EEBA /* HearingWidget.swift */,
+				79CB0478B4D35E5152C4CFCB /* Info.plist */,
+				621A04E03522254A9221DD1D /* WidgetTimelineProvider.swift */,
+			);
+			path = HearingWidget;
+			sourceTree = "<group>";
+		};
+		48F049175D12188167750C70 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				8D955A63C20F82B0E864D3A9 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		4E66B746F2CD815C55542B41 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */,
+				F22314C8A0BC5F12CF943021 /* AudioSpectrumService.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		5D973F8AD37667F2F348884A /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				5DD26AE300C296B58CB77D76 /* AccuracyInfoView.swift */,
+				5F145E67B834574F28517F54 /* PrivacyDetailView.swift */,
+				EBF9A61CFA1E84CABAA04B58 /* SettingsView.swift */,
+				9A979F3256BB07E09245D6C8 /* SettingsViewModel.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		6FEBD2E03F1D4072AD94FCA9 /* Personalization */ = {
+			isa = PBXGroup;
+			children = (
+				573DB75926349D4033B2CC45 /* PersonalizationService.swift */,
+			);
+			path = Personalization;
+			sourceTree = "<group>";
+		};
+		74457839187733861C906554 /* Dose */ = {
+			isa = PBXGroup;
+			children = (
+				0A3E33501712C2C1176E9DB5 /* DoseCalculator.swift */,
+			);
+			path = Dose;
+			sourceTree = "<group>";
+		};
+		768D6E02DB122E9BEB3A8DA2 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				4EE231F1E5D7B68E21049A16 /* ActionableNotificationBuilder.swift */,
+				45C4537E3789A6225C9A2CC2 /* NotificationService.swift */,
+				E272FB23A79A81B68C8D0618 /* WeeklyDigestScheduler.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		7E6070AED05B73520DEB7C6F /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				B6BFC7B9769C02EB8AEDC984 /* DailyDose.swift */,
+				C9EABFB9D794B8099F7AA30B /* ExposureEvent.swift */,
+				A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */,
+				2ED87A7573119D151D96A866 /* PersonalizedThreshold.swift */,
+				0EE46FDA45A5EFE99786B192 /* SyncState.swift */,
+				4778164EF93E0BC942699A83 /* UserSettings.swift */,
+				BA029EF0AE40EE7B3FE3A890 /* WeeklyDigest.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		81B6ECF18A9F4AA68B840372 /* Digest */ = {
+			isa = PBXGroup;
+			children = (
+				F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */,
+			);
+			path = Digest;
+			sourceTree = "<group>";
+		};
+		98C77C3A4A89AE1048E9819B /* HearingApp */ = {
+			isa = PBXGroup;
+			children = (
+				A131DE3F5E4B51839F577DFD /* App */,
+				AB2F17732C20ECE38E186FB4 /* DesignSystem */,
+				3C7178360F4F023AF1B82754 /* Features */,
+				0082B36944A4846E7B4F748A /* Resources */,
+				3E91EE94465F756E8DF52490 /* Services */,
+				7E6070AED05B73520DEB7C6F /* Storage */,
+			);
+			path = HearingApp;
+			sourceTree = "<group>";
+		};
+		A131DE3F5E4B51839F577DFD /* App */ = {
+			isa = PBXGroup;
+			children = (
+				6634D51E63D705253A03EDDB /* AppState.swift */,
+				D55247140D2389C8123F2597 /* ContentView.swift */,
+				6BC268567E0CD69219B62F36 /* ExposureStatus.swift */,
+				ADD6FEBB272E683231B67FBD /* HearingApp.entitlements */,
+				1230040F9E0BE8A08B1E86B9 /* HearingAppApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AB2F17732C20ECE38E186FB4 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				9E44C123CC5F15C2C0259687 /* AppColors.swift */,
+				54B6AC37D612540CF43BBE96 /* AppTypography.swift */,
+				F7797E754B86AAC22DAC91A4 /* Components */,
+				B02EC01F047AE573CE1F83B2 /* Glass */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		B02EC01F047AE573CE1F83B2 /* Glass */ = {
+			isa = PBXGroup;
+			children = (
+				CDF414D174CAE04615D558EC /* AnimationTokens.swift */,
+				3727F53B5D59E9796BDB8A6B /* GlassCard.swift */,
+				60029EEB7CD727C58B07DB29 /* GradientBackgrounds.swift */,
+			);
+			path = Glass;
+			sourceTree = "<group>";
+		};
+		BA0B4FAEECE75BB027819E2C = {
+			isa = PBXGroup;
+			children = (
+				98C77C3A4A89AE1048E9819B /* HearingApp */,
+				1DB9567672B6674314F39B04 /* HearingAppTests */,
+				41864DE6CF217D1D63FB4B74 /* HearingWidget */,
+				1471B7479A006CBF39EB03B8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D9ABD85DB4E1D4B0227CE96D /* HealthKit */ = {
+			isa = PBXGroup;
+			children = (
+				01CA307DA315668B3DCC5085 /* HealthKitService.swift */,
+				B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */,
+			);
+			path = HealthKit;
+			sourceTree = "<group>";
+		};
+		DF6C732905DCB2AB9DF1AA3D /* Today */ = {
+			isa = PBXGroup;
+			children = (
+				81AC72031B784E43E33AB82A /* ExposureProfileView.swift */,
+				7CAB479559E8A89421F856A3 /* PrimaryAudioCard.swift */,
+				9FCA0A938BEFD1B7C98CB6FE /* TodayView.swift */,
+				7503A545E586E5BD97D58280 /* TodayViewModel.swift */,
+			);
+			path = Today;
+			sourceTree = "<group>";
+		};
+		E01D521C50A50C3ED4DDB0B0 /* Trends */ = {
+			isa = PBXGroup;
+			children = (
+				2547292430B097CFB784CD01 /* TrendsView.swift */,
+				0299043F84C1568EB2FC10E8 /* TrendsViewModel.swift */,
+			);
+			path = Trends;
+			sourceTree = "<group>";
+		};
+		F7797E754B86AAC22DAC91A4 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A0D26536D4D22635131036B8 /* AlertBanner.swift */,
+				E5057FBA8B953E59D8FC42C6 /* DoseRingView.swift */,
+				DBBD04FA5A075D9E55380D13 /* GlassDoseRingView.swift */,
+				D5653B1D0AC3FC1865D43BA6 /* LiveRiskIndicator.swift */,
+				0C7AEB4625CD90B46BB9FD6D /* LiveSpectrumView.swift */,
+				2183F5C68CBAC94AE6CC27FE /* QuickActionsCard.swift */,
+				1F0EABB182CD97106B70D384 /* SafeListeningScore.swift */,
+				B8BA14E99A8F91CF4D81FB9A /* SessionSummaryCard.swift */,
+				157D7994F17F52E1564FD5CE /* StatCardView.swift */,
+				D6B219CE296CA5B74169974C /* StatusChipView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		149892A44449853DCCE9D266 /* bloopWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 10D25FE694487E5CFB22385A /* Build configuration list for PBXNativeTarget "bloopWidget" */;
+			buildPhases = (
+				B3BB75745E42EFFAA9A1CD7A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = bloopWidget;
+			packageProductDependencies = (
+			);
+			productName = bloopWidget;
+			productReference = F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		8FBFC0EE96A57F143D6676FA /* bloop */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 219F84321979C146474D2B66 /* Build configuration list for PBXNativeTarget "bloop" */;
+			buildPhases = (
+				24EB2ADE51E869A282932B0B /* Sources */,
+				5E5BB2E9ED58C59A58854781 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8492B4CBC6E8C56C57FD373E /* PBXTargetDependency */,
+			);
+			name = bloop;
+			packageProductDependencies = (
+			);
+			productName = bloop;
+			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9AF6D3D4AE1D372C01E318F4 /* bloopTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C04818FFD1841A42DFE698A7 /* Build configuration list for PBXNativeTarget "bloopTests" */;
+			buildPhases = (
+				017F8BDD7003A05A0E87EF1F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5635D23B0494E341C77EBDF2 /* PBXTargetDependency */,
+			);
+			name = bloopTests;
+			packageProductDependencies = (
+			);
+			productName = bloopTests;
+			productReference = ADBBD125000CF49572A0B097 /* bloopTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5D7964A856FE89F4C246ABE9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					149892A44449853DCCE9D266 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					8FBFC0EE96A57F143D6676FA = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					9AF6D3D4AE1D372C01E318F4 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 5C8F7A38082E58C8FC0B9CA6 /* Build configuration list for PBXProject "bloop" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = BA0B4FAEECE75BB027819E2C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8FBFC0EE96A57F143D6676FA /* bloop */,
+				9AF6D3D4AE1D372C01E318F4 /* bloopTests */,
+				149892A44449853DCCE9D266 /* bloopWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		017F8BDD7003A05A0E87EF1F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6C91872A6EA98BF5EFB6EA11 /* DoseCalculatorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24EB2ADE51E869A282932B0B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C55802E99AE3093C3991DA96 /* AccuracyInfoView.swift in Sources */,
+				4D7E1278D6E165878CD0C261 /* ActionableNotificationBuilder.swift in Sources */,
+				BDCFCCCF4692DE61DACC217B /* AlertBanner.swift in Sources */,
+				DC6E23B9CF14D29E8A38EA5C /* AnimationTokens.swift in Sources */,
+				CA3B3256E107D9ED311709F9 /* AppColors.swift in Sources */,
+				83CC47BB860FD1C497196F51 /* AppState.swift in Sources */,
+				16D8E101E55017F6C68F7B74 /* AppTypography.swift in Sources */,
+				5BC213DB13DE933EC065A153 /* AudioRouteMonitor.swift in Sources */,
+				244D1A3CD2CB5A3EB135CEAD /* AudioSpectrumService.swift in Sources */,
+				F233F9E6C409FE5485693EFC /* ContentView.swift in Sources */,
+				9E9100DA5368AEE4EB9A8B10 /* DailyDose.swift in Sources */,
+				F162CAC288AFF4A23B3BDB2A /* DoseCalculator.swift in Sources */,
+				2CE7422962AA830EFCBD5F20 /* DoseRingView.swift in Sources */,
+				5C9BBDD7F8EC4C19351DD9D2 /* ExposureEvent.swift in Sources */,
+				8F30D4C3DD75C7B8174D66A8 /* ExposureProfileView.swift in Sources */,
+				0573BAB6E84CF46C5D87EF25 /* ExposureSample.swift in Sources */,
+				6BA48A6B3E7DA18AEBD1F173 /* ExposureStatus.swift in Sources */,
+				94096679CB792BC769693A21 /* FeatureFlags.swift in Sources */,
+				0FF3C7125B347F0CABBB86F5 /* GlassCard.swift in Sources */,
+				FA0C31367B0EE4463D534077 /* GlassDoseRingView.swift in Sources */,
+				2875C24D51672F925A8CDEC8 /* GradientBackgrounds.swift in Sources */,
+				E1B697A4F424DBB71D582C45 /* HealthKitService.swift in Sources */,
+				805BAED06173C64CEA1E04A1 /* HealthKitSyncService.swift in Sources */,
+				5F3C4ADF2B4BF00E3EB0DE70 /* HearingAppApp.swift in Sources */,
+				0E9846BC09C70E3A7D98AA72 /* LiveRiskIndicator.swift in Sources */,
+				83A863C4E772F8B2A1276B30 /* LiveSpectrumView.swift in Sources */,
+				5348957C40C4A9AB441967E8 /* NotificationService.swift in Sources */,
+				45B0AD4BC7C8AD1726B01943 /* OnboardingView.swift in Sources */,
+				E6FA12C1830B909367EAA16F /* PersonalizationService.swift in Sources */,
+				73F3843F3EEF7D683BBCFF90 /* PersonalizedThreshold.swift in Sources */,
+				E080939FD34CB26146C6655A /* PrimaryAudioCard.swift in Sources */,
+				DA466A16F1171538C22C70F6 /* PrivacyDetailView.swift in Sources */,
+				94F8DCBAE5B2F121D19A60F3 /* QuickActionsCard.swift in Sources */,
+				CF8F84833EEFE57FDEEDCF87 /* SafeListeningScore.swift in Sources */,
+				25F11C66C8161B08AEF89B87 /* SessionSummaryCard.swift in Sources */,
+				2CFDFC481D747F9849A4CB32 /* SettingsView.swift in Sources */,
+				45F6D50E8350E5F27BF417AE /* SettingsViewModel.swift in Sources */,
+				F16F9D98F3CB5E3F1911C055 /* StatCardView.swift in Sources */,
+				86952569998D8C875752420A /* StatusChipView.swift in Sources */,
+				84FEBA6173417C420DB0CAC5 /* SyncState.swift in Sources */,
+				8A530C68B403ADEE2A1B8AD8 /* TodayView.swift in Sources */,
+				CC1981BA5FB1A779B7FEF795 /* TodayViewModel.swift in Sources */,
+				651AC64A0FC29352279C2DCF /* TrendsView.swift in Sources */,
+				ABD7A307023C41C653F50D90 /* TrendsViewModel.swift in Sources */,
+				0175519A0712F63228ADC2AF /* UserSettings.swift in Sources */,
+				4B43FB4CA53641107F707FFF /* WeeklyDigest.swift in Sources */,
+				24096176355E3F22226E66D3 /* WeeklyDigestScheduler.swift in Sources */,
+				C9D09FC49BC479D71B949977 /* WeeklyDigestView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B3BB75745E42EFFAA9A1CD7A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE38B868D94EE2D9AB0CED6B /* DoseRingWidgetView.swift in Sources */,
+				E780F46D5D066FF2EF73A81D /* HearingWidget.swift in Sources */,
+				7CCD46431F168235B2F9F0C4 /* WidgetTimelineProvider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5635D23B0494E341C77EBDF2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8FBFC0EE96A57F143D6676FA /* bloop */;
+			targetProxy = 0F65D325051046DBDD28F41B /* PBXContainerItemProxy */;
+		};
+		8492B4CBC6E8C56C57FD373E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 149892A44449853DCCE9D266 /* bloopWidget */;
+			targetProxy = 4A19E92EB67CB1A5154F46C5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		04513CDF339639BEBECFBDC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		05FBB94B5DE2E0C5EE5D8485 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = HearingWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.widget;
+				PRODUCT_NAME = bloopWidget;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3350AF53B936244F59CF288C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3CC037B347A817F563269FED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = HearingApp/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app;
+				PRODUCT_NAME = bloop.;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		489D58E6DD39EC1002F1B19C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = "HearingApp/Resources/Info-Debug.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app;
+				PRODUCT_NAME = bloop.;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A2C9D2E1E5D08145EC8FDF86 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/bloop.app/bloop";
+			};
+			name = Release;
+		};
+		C011D4D87D517D22C6C61A3C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = HearingWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.widget;
+				PRODUCT_NAME = bloopWidget;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E4F7F819EA6998A9FFA1CB0A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/bloop.app/bloop";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		10D25FE694487E5CFB22385A /* Build configuration list for PBXNativeTarget "bloopWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				05FBB94B5DE2E0C5EE5D8485 /* Debug */,
+				C011D4D87D517D22C6C61A3C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		219F84321979C146474D2B66 /* Build configuration list for PBXNativeTarget "bloop" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				489D58E6DD39EC1002F1B19C /* Debug */,
+				3CC037B347A817F563269FED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5C8F7A38082E58C8FC0B9CA6 /* Build configuration list for PBXProject "bloop" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3350AF53B936244F59CF288C /* Debug */,
+				04513CDF339639BEBECFBDC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C04818FFD1841A42DFE698A7 /* Build configuration list for PBXNativeTarget "bloopTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4F7F819EA6998A9FFA1CB0A /* Debug */,
+				A2C9D2E1E5D08145EC8FDF86 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5D7964A856FE89F4C246ABE9 /* Project object */;
+}

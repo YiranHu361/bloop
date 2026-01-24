@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct HearingAppApp: App {
+struct BloopApp: App {
     @StateObject private var appState = AppState()
     
     var sharedModelContainer: ModelContainer = {

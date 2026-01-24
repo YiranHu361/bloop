@@ -4,8 +4,6 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>bloop.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,6 +20,8 @@
 	<string>1</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>bloop. needs access to your child's headphone audio levels to track daily sound exposure and help protect their hearing.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>[DEBUG ONLY] bloop. uses the microphone for development spectrum visualization. This feature is disabled in release builds.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>

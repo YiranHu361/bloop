@@ -138,11 +138,11 @@ struct WelcomePage: View {
             .opacity(isAnimated ? 1.0 : 0)
             
             VStack(spacing: 16) {
-                Text("SafeSound")
+                Text("bloop.")
                     .font(AppTypography.largeTitle)
                     .foregroundColor(.white)
                 
-                Text("Protect your hearing.\nPrivately. Intelligently.")
+                Text("Safe listening for kids.\nPeace of mind for parents.")
                     .font(AppTypography.title3)
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
@@ -327,7 +327,7 @@ struct PermissionsPage: View {
                 .font(AppTypography.title1)
                 .foregroundColor(.white)
             
-            Text("We need a couple of permissions to protect your hearing")
+            Text("We need a couple of permissions to protect their hearing")
                 .font(AppTypography.subheadline)
                 .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
@@ -473,7 +473,7 @@ struct GetStartedPage: View {
                     .font(AppTypography.title1)
                     .foregroundColor(.white)
                 
-                Text("Start protecting your hearing today.\nWe'll help you stay within safe limits.")
+                Text("Start protecting their hearing today.\nWe'll help them stay within safe limits.")
                     .font(AppTypography.body)
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)

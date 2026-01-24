@@ -24,22 +24,24 @@ struct SettingsView: View {
                         .font(AppTypography.caption1)
                 }
                 
-                // Alerts & Notifications Section
+                // Alerts & Nudges Section (Parent Controls)
                 Section {
-                    Toggle(isOn: $viewModel.notify50Percent) {
+                    Toggle(isOn: $viewModel.notify60Percent) {
                         AlertToggleRow(
-                            percent: 50,
+                            percent: 60,
                             icon: "bell",
-                            color: AppColors.safe
+                            color: AppColors.safe,
+                            subtitle: "Heads-up notification"
                         )
                     }
                     .toggleStyle(SwitchToggleStyle(tint: AppColors.primaryFallback))
                     
-                    Toggle(isOn: $viewModel.notify75Percent) {
+                    Toggle(isOn: $viewModel.notify80Percent) {
                         AlertToggleRow(
-                            percent: 75,
+                            percent: 80,
                             icon: "bell.badge",
-                            color: AppColors.caution
+                            color: AppColors.caution,
+                            subtitle: "Warning notification"
                         )
                     }
                     .toggleStyle(SwitchToggleStyle(tint: AppColors.primaryFallback))
@@ -48,17 +50,47 @@ struct SettingsView: View {
                         AlertToggleRow(
                             percent: 100,
                             icon: "bell.badge.fill",
-                            color: AppColors.danger
+                            color: AppColors.danger,
+                            subtitle: "Strong alert + break suggestion"
                         )
                     }
                     .toggleStyle(SwitchToggleStyle(tint: AppColors.primaryFallback))
+                    
+                    // Break suggestions toggle
+                    Toggle(isOn: $viewModel.breakSuggestionsEnabled) {
+                        HStack(spacing: 14) {
+                            ZStack {
+                                Circle()
+                                    .fill(AppColors.primaryFallback.opacity(0.12))
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: "clock.badge.checkmark")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(AppColors.primaryFallback)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Break Reminders")
+                                    .font(AppTypography.headline)
+                                    .foregroundColor(AppColors.label)
+                                
+                                Text("Gentle suggestions to take a break")
+                                    .font(AppTypography.caption1)
+                                    .foregroundColor(AppColors.secondaryLabel)
+                            }
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: AppColors.primaryFallback))
                 } header: {
-                    sectionHeader(icon: "bell.badge", title: "Alerts & Notifications")
+                    sectionHeader(icon: "bell.badge", title: "Alerts & Nudges")
+                } footer: {
+                    Text("bloop. alerts you when listening gets too loud, but never abruptly cuts sound.")
+                        .font(AppTypography.caption1)
                 }
                 
-                // Dose Model Section
+                // Exposure Standard Section
                 Section {
-                    Picker("Calculation Model", selection: $viewModel.doseModel) {
+                    Picker("Exposure Standard", selection: $viewModel.doseModel) {
                         ForEach(DoseModel.allCases) { model in
                             Text(model.displayName).tag(model)
                         }
@@ -71,9 +103,9 @@ struct SettingsView: View {
                         Label("About Accuracy", systemImage: "info.circle")
                     }
                 } header: {
-                    sectionHeader(icon: "function", title: "Dose Calculation")
+                    sectionHeader(icon: "ear.badge.waveform", title: "Exposure Standard")
                 } footer: {
-                    Text("NIOSH/WHO is recommended for most users. OSHA is the US workplace standard.")
+                    Text("WHO/NIOSH is recommended. 85 dB for 8 hours = 100% daily exposure.")
                         .font(AppTypography.caption1)
                 }
                 
@@ -309,6 +341,7 @@ struct AlertToggleRow: View {
     let percent: Int
     let icon: String
     let color: Color
+    var subtitle: String? = nil
     
     var body: some View {
         HStack(spacing: 12) {
@@ -323,11 +356,11 @@ struct AlertToggleRow: View {
             }
             
             VStack(alignment: .leading, spacing: 1) {
-                Text("Notify at \(percent)%")
+                Text("Alert at \(percent)%")
                     .font(AppTypography.subheadline)
                     .foregroundColor(AppColors.label)
                 
-                Text(alertDescription(for: percent))
+                Text(subtitle ?? alertDescription(for: percent))
                     .font(AppTypography.caption2)
                     .foregroundColor(AppColors.secondaryLabel)
             }
@@ -336,9 +369,9 @@ struct AlertToggleRow: View {
     
     private func alertDescription(for percent: Int) -> String {
         switch percent {
-        case 50: return "Halfway to daily limit"
-        case 75: return "Approaching limit"
-        case 100: return "Limit reached"
+        case 60: return "Getting loud"
+        case 80: return "Approaching daily limit"
+        case 100: return "Daily limit reached"
         default: return ""
         }
     }
@@ -352,19 +385,19 @@ struct PrivacyFooter: View {
             HStack(spacing: 4) {
                 Image(systemName: "checkmark.shield.fill")
                     .foregroundColor(AppColors.safe)
-                Text("Your data stays on this device")
+                Text("All data stays on this device")
             }
             
             HStack(spacing: 4) {
-                Image(systemName: "waveform")
+                Image(systemName: "mic.slash.fill")
                     .foregroundColor(AppColors.safe)
-                Text("Mic used for spectrum (on-device only)")
+                Text("No microphone access")
             }
             
             HStack(spacing: 4) {
                 Image(systemName: "phone.down.fill")
                     .foregroundColor(AppColors.safe)
-                Text("Phone calls cannot be accessed")
+                Text("Phone calls stay completely private")
             }
             
             HStack(spacing: 4) {
@@ -389,36 +422,36 @@ struct PrivacyPolicySheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Your Privacy Matters")
+                        Text("Privacy is Our Promise")
                             .font(AppTypography.title2)
                         
-                        Text("SafeSound is designed with your privacy as a top priority. Here's what you need to know:")
+                        Text("bloop. measures loudness, not listening. Here's what that means:")
                             .font(AppTypography.body)
                             .foregroundColor(AppColors.secondaryLabel)
                     }
                     
                     privacyItem(
-                        icon: "waveform",
-                        title: "Live Spectrum (Microphone)",
-                        description: "The spectrum visualization uses your microphone. Audio is processed on-device only and never recorded or stored."
+                        icon: "mic.slash.fill",
+                        title: "No Microphone Access",
+                        description: "bloop. never uses the microphone. We can't hear conversations, music, or any audio."
                     )
                     
                     privacyItem(
                         icon: "phone.down.fill",
                         title: "Phone Calls Stay Private",
-                        description: "iOS does not allow apps to access phone call audio. Your calls are completely private."
+                        description: "iOS doesn't allow apps to access call audio. Phone calls are completely private."
                     )
                     
                     privacyItem(
                         icon: "heart.fill",
-                        title: "HealthKit Volume Data",
-                        description: "We read headphone volume levels from HealthKit. This is just a number, not what you're listening to."
+                        title: "HealthKit Volume Data Only",
+                        description: "We read headphone volume levels from HealthKit — just a number, not what your child listens to."
                     )
                     
                     privacyItem(
                         icon: "iphone",
-                        title: "On-Device Processing",
-                        description: "All data stays on your phone. Nothing is sent to servers or shared with anyone."
+                        title: "All Data Stays On-Device",
+                        description: "Nothing is sent to servers. You control all data and can delete it anytime."
                     )
                     
                     Spacer()
