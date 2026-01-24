@@ -15,13 +15,6 @@ struct TodayView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Headphone Status Banner (when no headphones)
-                    if !routeMonitor.isHeadphonesConnected {
-                        HeadphoneStatusBanner(routeMonitor: routeMonitor)
-                            .padding(.horizontal)
-                            .cardEntrance(delay: 0.05)
-                    }
-
                     // Primary Audio Card (Exposure Zones)
                     PrimaryAudioCard(
                         bands: viewModel.exposureBands,
@@ -79,8 +72,13 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if viewModel.isLoading || isRefreshing {
-                        ProgressView()
+                    HStack(spacing: 12) {
+                        // Headphone status indicator
+                        HeadphoneStatusDot(isConnected: routeMonitor.isHeadphonesConnected)
+                        
+                        if viewModel.isLoading || isRefreshing {
+                            ProgressView()
+                        }
                     }
                 }
             }
@@ -265,76 +263,37 @@ struct RecentEventRow: View {
     }
 }
 
-// MARK: - Headphone Status Banner
+// MARK: - Headphone Status Dot
 
-struct HeadphoneStatusBanner: View {
-    @ObservedObject var routeMonitor: AudioRouteMonitor
+/// Compact headphone status indicator - green when connected, orange when not
+struct HeadphoneStatusDot: View {
+    let isConnected: Bool
     
-    @Environment(\.colorScheme) private var colorScheme
+    private var statusColor: Color {
+        isConnected ? AppColors.safe : AppColors.caution
+    }
+    
+    private var statusIcon: String {
+        isConnected ? "headphones" : "speaker.wave.2"
+    }
     
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "headphones")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(AppColors.secondaryLabel)
+        HStack(spacing: 4) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text("No Headphones Detected")
-                    .font(AppTypography.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(AppColors.label)
-                
-                Text("Connect headphones to track listening")
-                    .font(AppTypography.caption1)
-                    .foregroundColor(AppColors.secondaryLabel)
-            }
-            
-            Spacer()
-            
-            // Current output indicator
-            HStack(spacing: 4) {
-                Image(systemName: routeMonitor.currentOutputType.icon)
-                    .font(.system(size: 12))
-                Text(routeMonitor.currentOutputType.rawValue)
-                    .font(AppTypography.caption2)
-            }
-            .foregroundColor(AppColors.tertiaryLabel)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                Capsule()
-                    .fill(Color.gray.opacity(0.15))
-            )
+            Image(systemName: statusIcon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(statusColor)
         }
-        .padding(16)
-        .background(cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(borderGradient, lineWidth: 1)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(statusColor.opacity(0.12))
         )
-    }
-    
-    private var cardBackground: some View {
-        ZStack {
-            if colorScheme == .dark {
-                Color.black.opacity(0.15)
-            } else {
-                Color.white.opacity(0.8)
-            }
-        }
-        .background(.ultraThinMaterial)
-    }
-    
-    private var borderGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                AppColors.glassBorder.opacity(colorScheme == .dark ? 0.15 : 0.3),
-                AppColors.glassBorder.opacity(0.05)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        .animation(.easeInOut(duration: 0.2), value: isConnected)
     }
 }
 
