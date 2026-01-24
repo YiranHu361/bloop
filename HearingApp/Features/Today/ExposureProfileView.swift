@@ -148,30 +148,29 @@ struct ExposureProfileView: View {
             } else {
                 VStack(spacing: 8) {
                     Chart(timeline) { point in
+                        // Use stepEnd for accurate representation of discrete samples
+                        // and series(by:) to break the line at large time gaps
                         LineMark(
                             x: .value("Time", point.date),
-                            y: .value("dB", point.levelDB)
+                            y: .value("dB", clampedLevel(point.levelDB)),
+                            series: .value("Segment", point.segment)
                         )
-                        .interpolationMethod(.catmullRom)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [AppColors.safe, AppColors.caution, AppColors.danger],
-                                startPoint: .bottom,
-                                endPoint: .top
-                            )
-                        )
+                        .interpolationMethod(.stepEnd)
+                        .foregroundStyle(colorForLevel(point.levelDB))
                         .lineStyle(StrokeStyle(lineWidth: 2.5))
 
                         AreaMark(
                             x: .value("Time", point.date),
                             yStart: .value("Start", 40),
-                            yEnd: .value("dB", point.levelDB)
+                            yEnd: .value("dB", clampedLevel(point.levelDB)),
+                            series: .value("Segment", point.segment)
                         )
+                        .interpolationMethod(.stepEnd)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
-                                    AppColors.primaryFallback.opacity(0.01),
-                                    AppColors.primaryFallback.opacity(0.15)
+                                    colorForLevel(point.levelDB).opacity(0.02),
+                                    colorForLevel(point.levelDB).opacity(0.2)
                                 ],
                                 startPoint: .bottom,
                                 endPoint: .top
@@ -216,6 +215,11 @@ struct ExposureProfileView: View {
                 }
             }
         }
+    }
+    
+    /// Clamp dB level to the chart's visible range to prevent impossible values
+    private func clampedLevel(_ level: Double) -> Double {
+        min(max(level, 40), 110)
     }
 
     // MARK: - Recent Log View
@@ -385,6 +389,8 @@ struct ExposureTimelinePoint: Identifiable {
     let id: UUID = UUID()
     let date: Date
     let levelDB: Double
+    /// Segment identifier for breaking the line at large time gaps
+    var segment: Int = 0
 }
 
 // MARK: - Preview

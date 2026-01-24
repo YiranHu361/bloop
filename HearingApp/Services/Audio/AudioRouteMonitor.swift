@@ -19,7 +19,9 @@ final class AudioRouteMonitor: ObservableObject {
     
     enum OutputType: String {
         case headphones = "Headphones"
-        case bluetooth = "Bluetooth Audio"
+        case bluetoothHeadphones = "Bluetooth Headphones"
+        case bluetoothSpeaker = "Bluetooth Speaker"
+        case bluetoothUnknown = "Bluetooth Audio"
         case speaker = "Speaker"
         case airplay = "AirPlay"
         case unknown = "Unknown"
@@ -27,17 +29,32 @@ final class AudioRouteMonitor: ObservableObject {
         var icon: String {
             switch self {
             case .headphones: return "headphones"
-            case .bluetooth: return "beats.headphones"
+            case .bluetoothHeadphones: return "beats.headphones"
+            case .bluetoothSpeaker, .bluetoothUnknown: return "hifispeaker"
             case .speaker: return "speaker.wave.2"
             case .airplay: return "airplayaudio"
             case .unknown: return "questionmark.circle"
             }
         }
         
+        /// True only for wired headphones and Bluetooth headphones (not BT speakers)
         var isHeadphoneType: Bool {
             switch self {
-            case .headphones, .bluetooth: return true
+            case .headphones, .bluetoothHeadphones: return true
             default: return false
+            }
+        }
+        
+        /// User-facing display name
+        var displayName: String {
+            switch self {
+            case .headphones: return "Headphones"
+            case .bluetoothHeadphones: return "Bluetooth Headphones"
+            case .bluetoothSpeaker: return "Bluetooth Speaker"
+            case .bluetoothUnknown: return "Bluetooth Audio"
+            case .speaker: return "Speaker"
+            case .airplay: return "AirPlay"
+            case .unknown: return "Unknown"
             }
         }
     }
@@ -79,7 +96,7 @@ final class AudioRouteMonitor: ObservableObject {
         var name: String?
         
         for output in currentRoute.outputs {
-            let type = classifyPort(output.portType)
+            let type = classifyPort(output.portType, portName: output.portName)
             
             if type.isHeadphoneType {
                 foundHeadphones = true
@@ -102,13 +119,14 @@ final class AudioRouteMonitor: ObservableObject {
         deviceName = name
     }
     
-    private func classifyPort(_ portType: AVAudioSession.Port) -> OutputType {
+    /// Classify a port type, using the port name to distinguish BT headphones from BT speakers
+    private func classifyPort(_ portType: AVAudioSession.Port, portName: String) -> OutputType {
         switch portType {
         case .headphones, .headsetMic:
             return .headphones
             
         case .bluetoothA2DP, .bluetoothLE, .bluetoothHFP:
-            return .bluetooth
+            return classifyBluetoothDevice(portName: portName)
             
         case .builtInSpeaker, .builtInReceiver:
             return .speaker
@@ -117,13 +135,67 @@ final class AudioRouteMonitor: ObservableObject {
             return .airplay
             
         default:
-            // Check for common Bluetooth device patterns
+            // Check for common Bluetooth device patterns in port type string
             let portTypeString = portType.rawValue.lowercased()
-            if portTypeString.contains("bluetooth") || portTypeString.contains("airpod") || portTypeString.contains("beats") {
-                return .bluetooth
+            if portTypeString.contains("bluetooth") {
+                return classifyBluetoothDevice(portName: portName)
             }
             return .unknown
         }
+    }
+    
+    /// Use heuristics on device name to classify Bluetooth devices as headphones or speakers.
+    /// Conservative approach: unknown BT devices default to NOT headphones (matches HealthKit semantics).
+    private func classifyBluetoothDevice(portName: String) -> OutputType {
+        let nameLower = portName.lowercased()
+        
+        // Known headphone patterns (AirPods, Beats, common earbuds/headphones)
+        let headphonePatterns = [
+            "airpod", "airpods",
+            "beats", "powerbeats", "beatsx", "beats fit", "beats studio buds",
+            "buds", "earbuds", "earbud",
+            "headphone", "headphones", "headset",
+            "wh-1000", "wf-1000",  // Sony headphones
+            "qc35", "qc45", "nc700",  // Bose headphones
+            "px7", "px8",  // Bowers & Wilkins
+            "momentum",  // Sennheiser
+            "freebuds",  // Huawei
+            "galaxy buds",  // Samsung
+            "jabra elite",
+            "nothing ear",
+            "pixel buds",
+        ]
+        
+        // Known speaker patterns
+        let speakerPatterns = [
+            "speaker", "soundbar", "soundlink",
+            "homepod", "echo", "alexa",
+            "sonos", "bose soundlink", "jbl",
+            "ue boom", "megaboom", "wonderboom",
+            "marshall", "harman kardon",
+            "flip", "charge", "xtreme",  // JBL portable speakers
+            "pill",  // Beats Pill
+            "soundcore",
+            "anker",
+        ]
+        
+        // Check for headphone patterns first
+        for pattern in headphonePatterns {
+            if nameLower.contains(pattern) {
+                return .bluetoothHeadphones
+            }
+        }
+        
+        // Then check for speaker patterns
+        for pattern in speakerPatterns {
+            if nameLower.contains(pattern) {
+                return .bluetoothSpeaker
+            }
+        }
+        
+        // Default: unknown Bluetooth device - conservative approach, NOT headphones
+        // This aligns with HealthKit's "headphone audio exposure" semantics
+        return .bluetoothUnknown
     }
     
     // MARK: - Monitoring

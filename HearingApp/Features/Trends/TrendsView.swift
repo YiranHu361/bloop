@@ -18,9 +18,10 @@ struct TrendsView: View {
                         .padding(.horizontal)
                         .cardEntrance(delay: 0.1)
                     
-                    // Weekly Bar Chart
-                    WeeklyBarChart(
+                    // Period Bar Chart (7D or 30D)
+                    PeriodBarChart(
                         doses: viewModel.dailyDoses,
+                        periodDays: selectedPeriod.days,
                         selectedDay: $selectedDay
                     )
                     .padding(.horizontal)
@@ -112,28 +113,79 @@ struct PeriodSelector: View {
     }
 }
 
-// MARK: - Weekly Bar Chart
+// MARK: - Period Bar Chart (supports 7D and 30D)
 
-struct WeeklyBarChart: View {
+struct PeriodBarChart: View {
     let doses: [DailyDose]
+    let periodDays: Int
     @Binding var selectedDay: DailyDose?
     
     @Environment(\.colorScheme) private var colorScheme
     
-    private var chartData: [(day: String, dose: DailyDose?, percent: Double)] {
+    /// Data structure for each bar in the chart
+    private struct ChartItem: Identifiable {
+        let id: Int  // daysAgo
+        let label: String
+        let date: Date
+        let dose: DailyDose?
+        let percent: Double
+    }
+    
+    private var chartData: [ChartItem] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
+        let dateFormatter = DateFormatter()
 
-        return (0..<7).reversed().compactMap { daysAgo in
+        return (0..<periodDays).reversed().compactMap { daysAgo -> ChartItem? in
             guard let date = calendar.date(byAdding: .day, value: -daysAgo, to: today) else {
                 return nil
             }
-            let dayName = daysAgo == 0 ? "Today" :
-                          daysAgo == 1 ? "Yday" :
-                          DateFormatter().shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
+            
+            // Label formatting depends on period length
+            let label: String
+            if periodDays <= 7 {
+                // Short period: use day names
+                if daysAgo == 0 {
+                    label = "Today"
+                } else if daysAgo == 1 {
+                    label = "Yday"
+                } else {
+                    label = dateFormatter.shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
+                }
+            } else {
+                // Long period (30D): use day of month (e.g., "1", "15", "30")
+                let dayOfMonth = calendar.component(.day, from: date)
+                if daysAgo == 0 {
+                    label = "Today"
+                } else {
+                    label = "\(dayOfMonth)"
+                }
+            }
 
             let dose = doses.first { calendar.isDate($0.date, inSameDayAs: date) }
-            return (dayName, dose, dose?.dosePercent ?? 0)
+            return ChartItem(
+                id: daysAgo,
+                label: label,
+                date: date,
+                dose: dose,
+                percent: dose?.dosePercent ?? 0
+            )
+        }
+    }
+    
+    /// Whether to use a horizontally scrollable chart (for 30D)
+    private var isScrollable: Bool {
+        periodDays > 14
+    }
+    
+    /// Bar width based on period
+    private var barWidth: MarkDimension {
+        if periodDays <= 7 {
+            return .automatic
+        } else if periodDays <= 14 {
+            return .fixed(20)
+        } else {
+            return .fixed(16)
         }
     }
     
@@ -150,69 +202,21 @@ struct WeeklyBarChart: View {
                     .foregroundColor(AppColors.label)
                 
                 Spacer()
+                
+                // Period indicator
+                Text("\(periodDays) days")
+                    .font(AppTypography.caption1)
+                    .foregroundColor(AppColors.tertiaryLabel)
             }
             
-            // Chart
-            Chart {
-                ForEach(Array(chartData.enumerated()), id: \.offset) { index, item in
-                    BarMark(
-                        x: .value("Day", item.day),
-                        y: .value("Exposure", item.percent)
-                    )
-                    .foregroundStyle(barColor(for: item.percent))
-                    .cornerRadius(6)
-                    .annotation(position: .top) {
-                        if item.percent > 0 {
-                            Text("\(Int(item.percent))%")
-                                .font(AppTypography.caption2)
-                                .foregroundColor(AppColors.secondaryLabel)
-                        }
-                    }
+            // Chart (scrollable for 30D)
+            if isScrollable {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    chartContent
+                        .frame(width: CGFloat(periodDays) * 24 + 60)  // 24pt per bar + padding
                 }
-                
-                // Safe limit line
-                RuleMark(y: .value("Limit", 100))
-                    .foregroundStyle(AppColors.danger.opacity(0.5))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .annotation(position: .trailing, alignment: .leading) {
-                        Text("Limit")
-                            .font(AppTypography.caption2)
-                            .foregroundColor(AppColors.danger)
-                    }
-            }
-            .frame(height: 200)
-            .chartYScale(domain: 0...max(120, chartData.map { $0.percent }.max() ?? 100))
-            .chartXAxis {
-                AxisMarks { value in
-                    AxisValueLabel()
-                        .font(AppTypography.caption1)
-                        .foregroundStyle(AppColors.secondaryLabel)
-                }
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading, values: [0, 50, 100]) { value in
-                    AxisGridLine()
-                        .foregroundStyle(Color.gray.opacity(0.2))
-                    AxisValueLabel()
-                        .font(AppTypography.caption2)
-                        .foregroundStyle(AppColors.tertiaryLabel)
-                }
-            }
-            .chartOverlay { proxy in
-                GeometryReader { geometry in
-                    Rectangle()
-                        .fill(Color.clear)
-                        .contentShape(Rectangle())
-                        .onTapGesture { location in
-                            if let day = proxy.value(atX: location.x, as: String.self),
-                               let data = chartData.first(where: { $0.day == day }),
-                               let dose = data.dose {
-                                withAnimation {
-                                    selectedDay = dose
-                                }
-                            }
-                        }
-                }
+            } else {
+                chartContent
             }
             
             // Legend
@@ -233,8 +237,82 @@ struct WeeklyBarChart: View {
         .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
     }
     
+    private var chartContent: some View {
+        Chart {
+            ForEach(chartData) { item in
+                BarMark(
+                    x: .value("Day", item.label),
+                    y: .value("Exposure", item.percent),
+                    width: barWidth
+                )
+                .foregroundStyle(barColor(for: item.percent))
+                .cornerRadius(periodDays <= 7 ? 6 : 4)
+                .annotation(position: .top) {
+                    // Only show annotations for 7D or if value is significant
+                    if item.percent > 0 && (periodDays <= 7 || item.percent >= 50) {
+                        Text("\(Int(item.percent))%")
+                            .font(periodDays <= 7 ? AppTypography.caption2 : .system(size: 8))
+                            .foregroundColor(AppColors.secondaryLabel)
+                    }
+                }
+            }
+            
+            // Safe limit line
+            RuleMark(y: .value("Limit", 100))
+                .foregroundStyle(AppColors.danger.opacity(0.5))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                .annotation(position: .trailing, alignment: .leading) {
+                    Text("Limit")
+                        .font(AppTypography.caption2)
+                        .foregroundColor(AppColors.danger)
+                }
+        }
+        .frame(height: 200)
+        .chartYScale(domain: 0...max(120, chartData.map { $0.percent }.max() ?? 100))
+        .chartXAxis {
+            AxisMarks { value in
+                if periodDays <= 7 {
+                    // Show all labels for 7D
+                    AxisValueLabel()
+                        .font(AppTypography.caption1)
+                        .foregroundStyle(AppColors.secondaryLabel)
+                } else {
+                    // For 30D, show labels every 5 days or for key dates
+                    AxisValueLabel()
+                        .font(.system(size: 9))
+                        .foregroundStyle(AppColors.tertiaryLabel)
+                }
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading, values: [0, 50, 100]) { _ in
+                AxisGridLine()
+                    .foregroundStyle(Color.gray.opacity(0.2))
+                AxisValueLabel()
+                    .font(AppTypography.caption2)
+                    .foregroundStyle(AppColors.tertiaryLabel)
+            }
+        }
+        .chartOverlay { proxy in
+            GeometryReader { geometry in
+                Rectangle()
+                    .fill(Color.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture { location in
+                        if let label = proxy.value(atX: location.x, as: String.self),
+                           let data = chartData.first(where: { $0.label == label }),
+                           let dose = data.dose {
+                            withAnimation {
+                                selectedDay = dose
+                            }
+                        }
+                    }
+            }
+        }
+    }
+    
     private func barColor(for percent: Double) -> Color {
-        AppColors.statusColor(for: percent)  // Use centralized thresholds
+        AppColors.statusColor(for: percent)
     }
     
     private func legendItem(color: Color, label: String) -> some View {

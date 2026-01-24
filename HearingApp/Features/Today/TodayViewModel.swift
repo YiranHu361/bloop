@@ -542,16 +542,47 @@ final class TodayViewModel: ObservableObject {
     }
 
     private static func buildTimeline(from samples: [ExposureSample]) -> [ExposureTimelinePoint] {
+        guard !samples.isEmpty else { return [] }
+        
+        // Gap threshold: if consecutive samples are more than 5 minutes apart,
+        // start a new segment to avoid drawing a misleading line across the gap
+        let gapThresholdSeconds: TimeInterval = 5 * 60
         let maxPoints = 60
-        guard samples.count > maxPoints else {
-            return samples.map { ExposureTimelinePoint(date: $0.startDate, levelDB: $0.levelDBASPL) }
+        
+        // First, downsample if needed
+        let sampledData: [ExposureSample]
+        if samples.count > maxPoints {
+            let stride = max(1, samples.count / maxPoints)
+            sampledData = samples.enumerated().compactMap { idx, s in
+                idx % stride == 0 ? s : nil
+            }
+        } else {
+            sampledData = samples
         }
-
-        let stride = max(1, samples.count / maxPoints)
-        return samples.enumerated().compactMap { idx, s in
-            guard idx % stride == 0 else { return nil }
-            return ExposureTimelinePoint(date: s.startDate, levelDB: s.levelDBASPL)
+        
+        // Now assign segments based on time gaps
+        var result: [ExposureTimelinePoint] = []
+        var currentSegment = 0
+        var previousDate: Date?
+        
+        for sample in sampledData {
+            // Check for gap from previous sample
+            if let prevDate = previousDate {
+                let gap = sample.startDate.timeIntervalSince(prevDate)
+                if gap > gapThresholdSeconds {
+                    currentSegment += 1
+                }
+            }
+            
+            result.append(ExposureTimelinePoint(
+                date: sample.startDate,
+                levelDB: sample.levelDBASPL,
+                segment: currentSegment
+            ))
+            previousDate = sample.startDate
         }
+        
+        return result
     }
 
     private static func buildSummary(from dose: DailyDose?, samples: [ExposureSample]) -> String {
