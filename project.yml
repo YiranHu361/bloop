@@ -1,0 +1,113 @@
+name: HearingApp
+options:
+  bundleIdPrefix: com.hearingapp
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  HearingApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: HearingApp
+        excludes:
+          - "**/*.xcassets"
+          - "App/Constants.swift"
+          - "App/AppConfig.swift"
+    resources:
+      - path: HearingApp/Resources/Assets.xcassets
+      - path: HearingApp/Resources/Info.plist
+    settings:
+      base:
+        INFOPLIST_FILE: HearingApp/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: HearingApp/Resources/HearingApp.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.hearingapp.app
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    entitlements:
+      path: HearingApp/Resources/HearingApp.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.background-delivery: true
+        com.apple.security.application-groups:
+          - group.com.hearingapp.shared
+    info:
+      path: HearingApp/Resources/Info.plist
+      properties:
+        NSHealthShareUsageDescription: HearingApp needs access to your headphone audio levels to track your daily sound exposure and help protect your hearing.
+        UIBackgroundModes:
+          - processing
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    dependencies:
+      - target: HearingWidget
+        embed: true
+    
+  HearingWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: HearingWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hearingapp.app.widget
+        SWIFT_EMIT_LOC_STRINGS: "YES"
+        CURRENT_PROJECT_VERSION: "1"
+        MARKETING_VERSION: "1.0"
+        CODE_SIGN_ENTITLEMENTS: HearingWidget/HearingWidget.entitlements
+        INFOPLIST_FILE: HearingWidget/Info.plist
+    entitlements:
+      path: HearingWidget/HearingWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.hearingapp.shared
+
+  HearingAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: HearingAppTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hearingapp.app.tests
+    dependencies:
+      - target: HearingApp
+
+schemes:
+  HearingApp:
+    build:
+      targets:
+        HearingApp: all
+        HearingAppTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - HearingAppTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

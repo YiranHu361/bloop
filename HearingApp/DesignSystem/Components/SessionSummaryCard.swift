@@ -1,36 +1,82 @@
 import SwiftUI
 
-/// Session summary statistics card
+/// Session summary card showing key metrics: dB level, listening time, dose %
 struct SessionSummaryCard: View {
     let averageDB: Double?
     let peakDB: Double?
-    let listeningTime: Double
+    let listeningTime: TimeInterval
     let dosePercent: Double
-
+    
     @Environment(\.colorScheme) private var colorScheme
-
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(spacing: 0) {
+            // Header
             HStack {
-                Image(systemName: "waveform")
+                Image(systemName: "chart.bar.doc.horizontal")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppColors.primaryFallback)
-
-                Text("Session Summary")
+                
+                Text("Today's Session")
                     .font(AppTypography.headline)
                     .foregroundColor(AppColors.label)
-
+                
                 Spacer()
+                
+                Text("Live")
+                    .font(AppTypography.caption1Bold)
+                    .foregroundColor(AppColors.safe)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(AppColors.safe.opacity(0.15))
+                    )
             }
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                StatItem(title: "Avg Level", value: averageDB.map { "\(Int($0)) dB" } ?? "--", icon: "waveform")
-                StatItem(title: "Peak Level", value: peakDB.map { "\(Int($0)) dB" } ?? "--", icon: "arrow.up.to.line")
-                StatItem(title: "Listen Time", value: formatTime(listeningTime), icon: "clock")
-                StatItem(title: "Dose", value: "\(Int(dosePercent))%", icon: "gauge", color: AppColors.statusColor(for: dosePercent))
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+            
+            Divider()
+                .padding(.horizontal, 16)
+            
+            // Stats Grid
+            HStack(spacing: 0) {
+                // Average dB
+                statItem(
+                    icon: "waveform",
+                    value: averageDB != nil ? "\(Int(averageDB!)) dB" : "—",
+                    label: "Avg Level",
+                    color: levelColor(for: averageDB ?? 0)
+                )
+                
+                verticalDivider
+                
+                // Listening Time
+                statItem(
+                    icon: "clock",
+                    value: formatDuration(listeningTime),
+                    label: "Duration",
+                    color: AppColors.primaryFallback
+                )
+                
+                verticalDivider
+                
+                // Dose
+                statItem(
+                    icon: "gauge.with.dots.needle.67percent",
+                    value: "\(Int(dosePercent))%",
+                    label: "Dose",
+                    color: AppColors.statusColor(for: dosePercent)
+                )
+            }
+            .padding(.vertical, 16)
+            
+            // Peak level banner if high
+            if let peak = peakDB, peak >= 85 {
+                peakWarningBanner(level: peak)
             }
         }
-        .padding(16)
         .background(cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
@@ -39,14 +85,51 @@ struct SessionSummaryCard: View {
         )
         .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
     }
-
-    private func formatTime(_ seconds: Double) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        if hours > 0 { return "\(hours)h \(minutes)m" }
-        return "\(minutes)m"
+    
+    // MARK: - Subviews
+    
+    private func statItem(icon: String, value: String, label: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 18))
+                .foregroundColor(color)
+            
+            Text(value)
+                .font(AppTypography.statNumberMedium)
+                .foregroundColor(AppColors.label)
+            
+            Text(label)
+                .font(AppTypography.caption1)
+                .foregroundColor(AppColors.secondaryLabel)
+        }
+        .frame(maxWidth: .infinity)
     }
-
+    
+    private var verticalDivider: some View {
+        Rectangle()
+            .fill(Color.gray.opacity(0.2))
+            .frame(width: 1, height: 50)
+    }
+    
+    private func peakWarningBanner(level: Double) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 12))
+            
+            Text("Peak: \(Int(level)) dB")
+                .font(AppTypography.caption1Bold)
+            
+            Spacer()
+            
+            Text("Loud exposure detected")
+                .font(AppTypography.caption2)
+        }
+        .foregroundColor(AppColors.danger)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(AppColors.danger.opacity(0.1))
+    }
+    
     private var cardBackground: some View {
         ZStack {
             if colorScheme == .dark {
@@ -57,7 +140,7 @@ struct SessionSummaryCard: View {
         }
         .background(.ultraThinMaterial)
     }
-
+    
     private var borderGradient: LinearGradient {
         LinearGradient(
             colors: [
@@ -68,29 +151,48 @@ struct SessionSummaryCard: View {
             endPoint: .bottomTrailing
         )
     }
+    
+    private func levelColor(for db: Double) -> Color {
+        switch db {
+        case ..<70: return AppColors.safe
+        case 70..<85: return AppColors.caution
+        case 85..<95: return AppColors.warning
+        default: return AppColors.danger
+        }
+    }
+    
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = (Int(seconds) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else if minutes > 0 {
+            return "\(minutes) min"
+        } else {
+            return "< 1 min"
+        }
+    }
 }
 
-struct StatItem: View {
-    let title: String
-    let value: String
-    let icon: String
-    var color: Color = AppColors.primaryFallback
+// MARK: - Preview
 
-    var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundColor(color)
-
-            Text(value)
-                .font(AppTypography.statNumberSmall)
-                .foregroundColor(AppColors.label)
-
-            Text(title)
-                .font(AppTypography.caption2)
-                .foregroundColor(AppColors.secondaryLabel)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+#Preview {
+    VStack(spacing: 20) {
+        SessionSummaryCard(
+            averageDB: 72,
+            peakDB: 78,
+            listeningTime: 2.5 * 3600,
+            dosePercent: 45
+        )
+        
+        SessionSummaryCard(
+            averageDB: 86,
+            peakDB: 95,
+            listeningTime: 4 * 3600,
+            dosePercent: 85
+        )
     }
+    .padding()
+    .background(Color(UIColor.systemGroupedBackground))
 }

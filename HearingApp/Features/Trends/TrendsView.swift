@@ -2,12 +2,13 @@ import SwiftUI
 import SwiftData
 import Charts
 
-/// Enhanced Trends View
+/// Enhanced Trends View - "Your Hearing Patterns"
 struct TrendsView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = TrendsViewModel()
     @State private var selectedPeriod: TrendPeriod = .week
-
+    @State private var selectedDay: DailyDose?
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -16,12 +17,24 @@ struct TrendsView: View {
                     PeriodSelector(selectedPeriod: $selectedPeriod)
                         .padding(.horizontal)
                         .cardEntrance(delay: 0.1)
-
+                    
                     // Weekly Bar Chart
-                    WeeklyBarChart(doses: viewModel.dailyDoses)
-                        .padding(.horizontal)
-                        .cardEntrance(delay: 0.2)
-
+                    WeeklyBarChart(
+                        doses: viewModel.dailyDoses,
+                        selectedDay: $selectedDay
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.2)
+                    
+                    // Highlights Section
+                    HighlightsSection(
+                        highestDay: viewModel.highestExposureDay,
+                        averageDB: viewModel.averageLevel,
+                        trend: viewModel.listeningTrend
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.3)
+                    
                     // Summary Stats
                     SummaryStatsGrid(
                         averageDose: viewModel.averageDose,
@@ -30,8 +43,19 @@ struct TrendsView: View {
                         streak: viewModel.currentStreak
                     )
                     .padding(.horizontal)
-                    .cardEntrance(delay: 0.3)
-
+                    .cardEntrance(delay: 0.4)
+                    
+                    // Selected Day Details
+                    if let day = selectedDay {
+                        SelectedDayCard(dose: day) {
+                            withAnimation {
+                                selectedDay = nil
+                            }
+                        }
+                        .padding(.horizontal)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                    
                     Spacer(minLength: 40)
                 }
                 .padding(.top, 8)
@@ -42,25 +66,31 @@ struct TrendsView: View {
         }
         .onAppear {
             viewModel.setup(modelContext: modelContext)
-            Task { await viewModel.loadData(for: selectedPeriod) }
+            Task {
+                await viewModel.loadData(for: selectedPeriod)
+            }
         }
         .onChange(of: selectedPeriod) { _, newPeriod in
-            Task { await viewModel.loadData(for: newPeriod) }
+            Task {
+                await viewModel.loadData(for: newPeriod)
+            }
         }
     }
 }
 
+// MARK: - Period Selector
+
 struct PeriodSelector: View {
     @Binding var selectedPeriod: TrendPeriod
-
+    
     var body: some View {
         HStack(spacing: 8) {
             ForEach(TrendPeriod.allCases, id: \.self) { period in
-                Button {
+                Button(action: {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         selectedPeriod = period
                     }
-                } label: {
+                }) {
                     Text(period.displayName)
                         .font(AppTypography.buttonMedium)
                         .foregroundColor(selectedPeriod == period ? .white : AppColors.label)
@@ -74,52 +104,150 @@ struct PeriodSelector: View {
             }
         }
         .padding(4)
-        .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(.ultraThinMaterial))
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(.ultraThinMaterial)
+        )
     }
 }
 
+// MARK: - Weekly Bar Chart
+
 struct WeeklyBarChart: View {
     let doses: [DailyDose]
-
+    @Binding var selectedDay: DailyDose?
+    
     @Environment(\.colorScheme) private var colorScheme
-
+    
+    private var chartData: [(day: String, dose: DailyDose?, percent: Double)] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        return (0..<7).reversed().map { daysAgo in
+            let date = calendar.date(byAdding: .day, value: -daysAgo, to: today)!
+            let dayName = daysAgo == 0 ? "Today" : 
+                          daysAgo == 1 ? "Yday" :
+                          DateFormatter().shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
+            
+            let dose = doses.first { calendar.isDate($0.date, inSameDayAs: date) }
+            return (dayName, dose, dose?.dosePercent ?? 0)
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Header
             HStack {
                 Image(systemName: "chart.bar.fill")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppColors.primaryFallback)
-
+                
                 Text("Weekly Overview")
                     .font(AppTypography.headline)
                     .foregroundColor(AppColors.label)
-
+                
                 Spacer()
             }
-
-            if doses.isEmpty {
-                Text("No data for this period")
-                    .foregroundColor(AppColors.secondaryLabel)
-                    .frame(height: 200)
-            } else {
-                Chart(doses, id: \.date) { dose in
+            
+            // Chart
+            Chart {
+                ForEach(Array(chartData.enumerated()), id: \.offset) { index, item in
                     BarMark(
-                        x: .value("Day", dose.date, unit: .day),
-                        y: .value("Dose", dose.dosePercent)
+                        x: .value("Day", item.day),
+                        y: .value("Dose", item.percent)
                     )
-                    .foregroundStyle(AppColors.statusColor(for: dose.dosePercent))
+                    .foregroundStyle(barColor(for: item.percent))
                     .cornerRadius(6)
+                    .annotation(position: .top) {
+                        if item.percent > 0 {
+                            Text("\(Int(item.percent))%")
+                                .font(AppTypography.caption2)
+                                .foregroundColor(AppColors.secondaryLabel)
+                        }
+                    }
                 }
-                .chartYScale(domain: 0...max(120, doses.map { $0.dosePercent }.max() ?? 100))
-                .frame(height: 200)
+                
+                // Safe limit line
+                RuleMark(y: .value("Limit", 100))
+                    .foregroundStyle(AppColors.danger.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .annotation(position: .trailing, alignment: .leading) {
+                        Text("100%")
+                            .font(AppTypography.caption2)
+                            .foregroundColor(AppColors.danger)
+                    }
             }
+            .frame(height: 200)
+            .chartYScale(domain: 0...max(120, chartData.map { $0.percent }.max() ?? 100))
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisValueLabel()
+                        .font(AppTypography.caption1)
+                        .foregroundStyle(AppColors.secondaryLabel)
+                }
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading, values: [0, 50, 100]) { value in
+                    AxisGridLine()
+                        .foregroundStyle(Color.gray.opacity(0.2))
+                    AxisValueLabel()
+                        .font(AppTypography.caption2)
+                        .foregroundStyle(AppColors.tertiaryLabel)
+                }
+            }
+            .chartOverlay { proxy in
+                GeometryReader { geometry in
+                    Rectangle()
+                        .fill(Color.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture { location in
+                            if let day = proxy.value(atX: location.x, as: String.self),
+                               let data = chartData.first(where: { $0.day == day }),
+                               let dose = data.dose {
+                                withAnimation {
+                                    selectedDay = dose
+                                }
+                            }
+                        }
+                }
+            }
+            
+            // Legend
+            HStack(spacing: 16) {
+                legendItem(color: AppColors.safe, label: "Safe (<60%)")
+                legendItem(color: AppColors.caution, label: "Caution (60-90%)")
+                legendItem(color: AppColors.danger, label: "Risk (>90%)")
+            }
+            .font(AppTypography.caption2)
         }
         .padding(16)
         .background(cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(borderGradient, lineWidth: 1)
+        )
         .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
     }
-
+    
+    private func barColor(for percent: Double) -> Color {
+        switch percent {
+        case ..<60: return AppColors.safe
+        case 60..<90: return AppColors.caution
+        default: return AppColors.danger
+        }
+    }
+    
+    private func legendItem(color: Color, label: String) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(label)
+                .foregroundColor(AppColors.tertiaryLabel)
+        }
+    }
+    
     private var cardBackground: some View {
         ZStack {
             if colorScheme == .dark {
@@ -130,74 +258,278 @@ struct WeeklyBarChart: View {
         }
         .background(.ultraThinMaterial)
     }
+    
+    private var borderGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                AppColors.glassBorder.opacity(colorScheme == .dark ? 0.2 : 0.4),
+                AppColors.glassBorder.opacity(0.05)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }
+
+// MARK: - Highlights Section
+
+struct HighlightsSection: View {
+    let highestDay: (date: Date, percent: Double)?
+    let averageDB: Double?
+    let trend: String?
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "lightbulb.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppColors.caution)
+                
+                Text("Insights")
+                    .font(AppTypography.headline)
+                    .foregroundColor(AppColors.label)
+                
+                Spacer()
+            }
+            
+            VStack(spacing: 12) {
+                if let highest = highestDay {
+                    insightRow(
+                        icon: "arrow.up.circle.fill",
+                        iconColor: AppColors.danger,
+                        title: "Highest Exposure",
+                        value: "\(Int(highest.percent))% on \(formatDate(highest.date))"
+                    )
+                }
+                
+                if let avg = averageDB {
+                    insightRow(
+                        icon: "waveform",
+                        iconColor: AppColors.primaryFallback,
+                        title: "Average Level",
+                        value: "\(Int(avg)) dB this week"
+                    )
+                }
+                
+                if let trend = trend {
+                    insightRow(
+                        icon: "clock.fill",
+                        iconColor: AppColors.accent,
+                        title: "Listening Pattern",
+                        value: trend
+                    )
+                }
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(borderGradient, lineWidth: 1)
+        )
+        .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
+    }
+    
+    private func insightRow(icon: String, iconColor: Color, title: String, value: String) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(iconColor)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(AppTypography.caption1)
+                    .foregroundColor(AppColors.secondaryLabel)
+                
+                Text(value)
+                    .font(AppTypography.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(AppColors.label)
+            }
+            
+            Spacer()
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: date)
+    }
+    
+    private var cardBackground: some View {
+        ZStack {
+            if colorScheme == .dark {
+                Color.black.opacity(0.2)
+            } else {
+                Color.white.opacity(0.9)
+            }
+        }
+        .background(.ultraThinMaterial)
+    }
+    
+    private var borderGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                AppColors.glassBorder.opacity(colorScheme == .dark ? 0.2 : 0.4),
+                AppColors.glassBorder.opacity(0.05)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+// MARK: - Summary Stats Grid
 
 struct SummaryStatsGrid: View {
     let averageDose: Double
     let daysOverLimit: Int
     let totalTime: String
     let streak: Int
-
+    
     var body: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            StatCardView(title: "Avg. Dose", value: "\(Int(averageDose))%", icon: "chart.line.uptrend.xyaxis", color: AppColors.statusColor(for: averageDose))
-            StatCardView(title: "Days Over", value: "\(daysOverLimit)", subtitle: "Above 100%", icon: "exclamationmark.triangle", color: daysOverLimit > 0 ? AppColors.danger : AppColors.safe)
-            StatCardView(title: "Listen Time", value: totalTime, icon: "clock", color: AppColors.primaryFallback)
-            StatCardView(title: "Safe Streak", value: "\(streak) days", icon: "flame.fill", color: AppColors.safe)
+            StatCardView(
+                title: "Avg. Dose",
+                value: "\(Int(averageDose))%",
+                icon: "chart.line.uptrend.xyaxis",
+                color: AppColors.statusColor(for: averageDose)
+            )
+            
+            StatCardView(
+                title: "Days Over",
+                value: "\(daysOverLimit)",
+                subtitle: "Above 100%",
+                icon: "exclamationmark.triangle",
+                color: daysOverLimit > 0 ? AppColors.danger : AppColors.safe
+            )
+            
+            StatCardView(
+                title: "Listen Time",
+                value: totalTime,
+                icon: "clock",
+                color: AppColors.primaryFallback
+            )
+            
+            StatCardView(
+                title: "Safe Streak",
+                value: "\(streak) days",
+                icon: "flame.fill",
+                color: AppColors.safe
+            )
         }
     }
 }
 
-struct StatCardView: View {
-    let title: String
-    let value: String
-    var subtitle: String? = nil
-    let icon: String
-    let color: Color
+// MARK: - Selected Day Card
 
+struct SelectedDayCard: View {
+    let dose: DailyDose
+    let onDismiss: () -> Void
+    
     @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(color)
-
-            Text(value)
-                .font(AppTypography.statNumber)
-                .foregroundColor(AppColors.label)
-
-            Text(title)
-                .font(AppTypography.caption1)
-                .foregroundColor(AppColors.secondaryLabel)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    
+    private var dateString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMM d"
+        return formatter.string(from: dose.date)
     }
-
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text(dateString)
+                    .font(AppTypography.headline)
+                    .foregroundColor(AppColors.label)
+                
+                Spacer()
+                
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(AppColors.tertiaryLabel)
+                }
+            }
+            
+            Divider()
+            
+            HStack(spacing: 24) {
+                statItem(label: "Dose", value: "\(Int(dose.dosePercent))%", color: AppColors.statusColor(for: dose.dosePercent))
+                
+                if let avg = dose.averageLevelDBASPL {
+                    statItem(label: "Avg dB", value: "\(Int(avg))", color: AppColors.primaryFallback)
+                }
+                
+                if let peak = dose.peakLevelDBASPL {
+                    statItem(label: "Peak dB", value: "\(Int(peak))", color: peak >= 90 ? AppColors.danger : AppColors.caution)
+                }
+                
+                statItem(label: "Time", value: dose.formattedExposureTime, color: AppColors.secondaryLabel)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppColors.primaryFallback.opacity(0.3), lineWidth: 2)
+        )
+        .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
+    }
+    
+    private func statItem(label: String, value: String, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(AppTypography.statNumberSmall)
+                .foregroundColor(color)
+            
+            Text(label)
+                .font(AppTypography.caption2)
+                .foregroundColor(AppColors.tertiaryLabel)
+        }
+    }
+    
     private var cardBackground: some View {
         ZStack {
             if colorScheme == .dark {
-                Color.black.opacity(0.15)
+                Color.black.opacity(0.25)
             } else {
-                Color.white.opacity(0.6)
+                Color.white
             }
         }
         .background(.ultraThinMaterial)
     }
 }
 
+// MARK: - Trend Period
+
 enum TrendPeriod: String, CaseIterable {
     case week = "7D"
     case month = "30D"
-
+    
     var displayName: String { rawValue }
+    
     var days: Int {
         switch self {
         case .week: return 7
         case .month: return 30
         }
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    TrendsView()
+        .modelContainer(for: [DailyDose.self])
 }

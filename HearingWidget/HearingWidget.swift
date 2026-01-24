@@ -5,15 +5,23 @@ import SwiftUI
 struct HearingWidgetBundle: WidgetBundle {
     var body: some Widget {
         HearingWidget()
+
+        #if os(iOS)
+        if #available(iOSApplicationExtension 16.0, *) {
+            HearingWidgetLockScreen()
+        }
+        #endif
     }
 }
+
+// MARK: - Main Widget
 
 struct HearingWidget: Widget {
     let kind: String = "HearingWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: DoseTimelineProvider()) { entry in
-            DoseWidgetView(entry: entry)
+            DoseRingWidgetView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Daily Dose")
@@ -22,105 +30,34 @@ struct HearingWidget: Widget {
     }
 }
 
-struct DoseEntry: TimelineEntry {
-    let date: Date
-    let dosePercent: Double
-    let remainingTime: TimeInterval
-    let status: ExposureStatus
-}
+// MARK: - Lock Screen Widget
 
-struct DoseTimelineProvider: TimelineProvider {
-    func placeholder(in context: Context) -> DoseEntry {
-        DoseEntry(date: Date(), dosePercent: 45, remainingTime: 4 * 3600, status: .safe)
-    }
+@available(iOSApplicationExtension 16.0, *)
+struct HearingWidgetLockScreen: Widget {
+    let kind: String = "HearingWidgetLockScreen"
 
-    func getSnapshot(in context: Context, completion: @escaping (DoseEntry) -> Void) {
-        let entry = DoseEntry(date: Date(), dosePercent: 45, remainingTime: 4 * 3600, status: .safe)
-        completion(entry)
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<DoseEntry>) -> Void) {
-        let appGroupIdentifier = "group.com.hearingapp.shared"
-        let defaults = UserDefaults(suiteName: appGroupIdentifier)
-
-        let dosePercent = defaults?.double(forKey: "widget_dosePercent") ?? 0
-        let remainingTime = defaults?.double(forKey: "widget_remainingTime") ?? 0
-        let status = ExposureStatus.from(dosePercent: dosePercent)
-
-        let entry = DoseEntry(
-            date: Date(),
-            dosePercent: dosePercent,
-            remainingTime: remainingTime,
-            status: status
-        )
-
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-        completion(timeline)
-    }
-}
-
-struct DoseWidgetView: View {
-    let entry: DoseEntry
-
-    var body: some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle()
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 8)
-
-                Circle()
-                    .trim(from: 0, to: min(entry.dosePercent / 100, 1.0))
-                    .stroke(statusColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-
-                Text("\(Int(entry.dosePercent))%")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-            }
-            .frame(width: 60, height: 60)
-
-            Text("Daily Dose")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-
-            Text(entry.status.displayName)
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(statusColor)
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: DoseTimelineProvider()) { entry in
+            LockScreenWidgetView(entry: entry)
         }
-        .padding()
-    }
-
-    private var statusColor: Color {
-        switch entry.status {
-        case .safe: return .green
-        case .moderate: return .orange
-        case .high: return .orange
-        case .dangerous: return .red
-        }
+        .configurationDisplayName("Dose Gauge")
+        .description("Quick view of your daily dose on the lock screen.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular])
     }
 }
 
-enum ExposureStatus: String {
-    case safe, moderate, high, dangerous
-
-    static func from(dosePercent: Double) -> ExposureStatus {
-        switch dosePercent {
-        case 0..<50: return .safe
-        case 50..<80: return .moderate
-        case 80..<100: return .high
-        default: return .dangerous
-        }
-    }
-
-    var displayName: String {
-        rawValue.capitalized
-    }
-}
+// MARK: - Preview
 
 #Preview("Small Widget", as: .systemSmall) {
     HearingWidget()
 } timeline: {
     DoseEntry(date: .now, dosePercent: 45, remainingTime: 4 * 3600, status: .safe)
     DoseEntry(date: .now, dosePercent: 75, remainingTime: 1.5 * 3600, status: .moderate)
+    DoseEntry(date: .now, dosePercent: 110, remainingTime: 0, status: .dangerous)
+}
+
+#Preview("Medium Widget", as: .systemMedium) {
+    HearingWidget()
+} timeline: {
+    DoseEntry(date: .now, dosePercent: 65, remainingTime: 2.5 * 3600, status: .moderate)
 }
