@@ -36,11 +36,26 @@ struct ContentView: View {
             configureTabBarAppearance()
         }
     }
-
+    
     private func configureTabBarAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
+        
+        // Slight blur effect
         appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        
+        // Selected item
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(AppColors.primaryFallback)
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor(AppColors.primaryFallback)
+        ]
+        
+        // Normal item
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.secondaryLabel
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.secondaryLabel
+        ]
+        
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }

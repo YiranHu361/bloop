@@ -4,6 +4,7 @@ import SwiftData
 /// Normalized exposure event from HealthKit HKCategorySample
 @Model
 final class ExposureEvent {
+    /// HealthKit sample UUID as string (prevents duplicates)
     @Attribute(.unique) var healthKitUUID: String
     var startDate: Date
     var endDate: Date
@@ -11,7 +12,7 @@ final class ExposureEvent {
     var eventDurationSeconds: Double?
     var sourceBundleId: String?
     var sourceName: String?
-
+    
     init(
         healthKitUUID: String,
         startDate: Date,

@@ -1,20 +1,33 @@
 import SwiftUI
 import SwiftData
 
-/// Main dashboard view with glassmorphism design
+/// Main dashboard view - "Hearing Risk Dashboard"
 struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = TodayViewModel()
-
+    
     @State private var isMonitoringPaused = false
+    @State private var isPrivacyMode = false
     @State private var showAlert = true
-
+    @State private var isRefreshing = false
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Alert banner (if dose is high)
+                    if showAlert, let dose = viewModel.todayDose, dose.dosePercent >= 75 {
+                        DoseWarningBanner(dosePercent: dose.dosePercent) {
+                            withAnimation {
+                                showAlert = false
+                            }
+                        }
+                        .padding(.horizontal)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    
                     // Live Risk Indicator
                     LiveRiskIndicator(
                         dosePercent: viewModel.todayDose?.dosePercent ?? 0,
@@ -24,7 +37,7 @@ struct TodayView: View {
                     .frame(width: 280, height: 280)
                     .padding(.vertical, 16)
                     .cardEntrance(delay: 0.1)
-
+                    
                     // Session Summary Card
                     SessionSummaryCard(
                         averageDB: viewModel.todayDose?.averageLevelDBASPL,
@@ -34,7 +47,44 @@ struct TodayView: View {
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.2)
-
+                    
+                    // Quick Actions
+                    QuickActionsCard(
+                        isMonitoringPaused: $isMonitoringPaused,
+                        isPrivacyMode: $isPrivacyMode,
+                        lastUpdated: viewModel.lastUpdated
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.3)
+                    
+                    // Safe Listening Score
+                    SafeListeningScoreCard(
+                        score: viewModel.safeListeningScore,
+                        streak: viewModel.currentStreak,
+                        trend: viewModel.scoreTrend
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.4)
+                    
+                    // Live Exposure Profile (always show - will display empty state if no data)
+                    ExposureProfileView(
+                        bands: viewModel.exposureBands,
+                        timeline: viewModel.exposureTimeline,
+                        currentLevelDB: viewModel.currentLevelDB,
+                        descriptorText: viewModel.exposureSummary,
+                        lastUpdated: viewModel.lastUpdated
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.5)
+                    
+                    // Recent Events
+                    if !viewModel.recentEvents.isEmpty {
+                        RecentEventsSection(events: viewModel.recentEvents)
+                            .padding(.horizontal)
+                            .cardEntrance(delay: 0.6)
+                    }
+                    
+                    // Bottom spacing
                     Spacer(minLength: 40)
                 }
                 .padding(.top, 8)
@@ -47,7 +97,7 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if viewModel.isLoading {
+                    if viewModel.isLoading || isRefreshing {
                         ProgressView()
                     }
                 }
@@ -55,15 +105,20 @@ struct TodayView: View {
         }
         .onAppear {
             viewModel.setup(modelContext: modelContext)
-            Task { await viewModel.loadData() }
+            Task {
+                await viewModel.loadData()
+            }
             viewModel.startPeriodicRefresh()
         }
         .onDisappear {
             viewModel.stopPeriodicRefresh()
         }
-        .onChange(of: scenePhase) { _, newPhase in
+        .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
-                Task { await viewModel.silentRefresh() }
+                // Refresh when returning to foreground
+                Task {
+                    await viewModel.silentRefresh()
+                }
                 viewModel.startPeriodicRefresh()
             } else if newPhase == .background {
                 viewModel.stopPeriodicRefresh()
@@ -72,8 +127,159 @@ struct TodayView: View {
     }
 }
 
+// MARK: - Recent Events Section
+
+struct RecentEventsSection: View {
+    let events: [ExposureEvent]
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "waveform.badge.exclamationmark")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppColors.caution)
+                
+                Text("Recent Loud Exposures")
+                    .font(AppTypography.headline)
+                    .foregroundColor(AppColors.label)
+                
+                Spacer()
+                
+                Text("\(events.count)")
+                    .font(AppTypography.caption1Bold)
+                    .foregroundColor(AppColors.secondaryLabel)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(Color.gray.opacity(0.15))
+                    )
+            }
+            
+            ForEach(events.prefix(3), id: \.healthKitUUID) { event in
+                RecentEventRow(event: event)
+            }
+            
+            if events.count > 3 {
+                Button(action: {}) {
+                    Text("View all \(events.count) events")
+                        .font(AppTypography.subheadline)
+                        .foregroundColor(AppColors.primaryFallback)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 4)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(borderGradient, lineWidth: 1)
+        )
+        .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
+    }
+    
+    private var cardBackground: some View {
+        ZStack {
+            if colorScheme == .dark {
+                Color.black.opacity(0.2)
+            } else {
+                Color.white.opacity(0.9)
+            }
+        }
+        .background(.ultraThinMaterial)
+    }
+    
+    private var borderGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                AppColors.glassBorder.opacity(colorScheme == .dark ? 0.2 : 0.4),
+                AppColors.glassBorder.opacity(0.05)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+struct RecentEventRow: View {
+    let event: ExposureEvent
+    
+    private var timeAgo: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: event.startDate, relativeTo: Date())
+    }
+    
+    private var levelColor: Color {
+        guard let level = event.eventLevelDBASPL else { return AppColors.secondaryLabel }
+        switch level {
+        case ..<85: return AppColors.safe
+        case 85..<95: return AppColors.caution
+        default: return AppColors.danger
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Level indicator
+            ZStack {
+                Circle()
+                    .fill(levelColor.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                
+                if let level = event.eventLevelDBASPL {
+                    Text("\(Int(level))")
+                        .font(AppTypography.caption1Bold)
+                        .foregroundColor(levelColor)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    if let level = event.eventLevelDBASPL {
+                        Text("\(Int(level)) dB exposure")
+                            .font(AppTypography.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(AppColors.label)
+                    }
+                    
+                    Spacer()
+                    
+                    Text(timeAgo)
+                        .font(AppTypography.caption1)
+                        .foregroundColor(AppColors.tertiaryLabel)
+                }
+                
+                if let duration = event.eventDurationSeconds {
+                    Text("Duration: \(formatDuration(duration))")
+                        .font(AppTypography.caption1)
+                        .foregroundColor(AppColors.secondaryLabel)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func formatDuration(_ seconds: Double) -> String {
+        let minutes = Int(seconds) / 60
+        if minutes >= 60 {
+            return "\(minutes / 60)h \(minutes % 60)m"
+        } else if minutes > 0 {
+            return "\(minutes) min"
+        } else {
+            return "< 1 min"
+        }
+    }
+}
+
+// MARK: - Preview
+
 #Preview {
     TodayView()
         .environmentObject(AppState())
-        .modelContainer(for: [DailyDose.self, ExposureSample.self])
+        .modelContainer(for: [DailyDose.self, ExposureSample.self, ExposureEvent.self])
 }
