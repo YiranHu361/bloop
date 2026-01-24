@@ -15,19 +15,19 @@ struct TrendsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Quick Actions (Pause/Resume Monitoring)
-                    QuickActionsCard(
-                        isMonitoringPaused: $isMonitoringPaused,
-                        lastUpdated: lastUpdated
-                    )
-                    .padding(.horizontal)
-                    .cardEntrance(delay: 0.05)
-                    
                     // Safe Listening Score
                     SafeListeningScoreCard(
                         score: viewModel.safeListeningScore,
                         streak: viewModel.currentStreak,
                         trend: viewModel.scoreTrend
+                    )
+                    .padding(.horizontal)
+                    .cardEntrance(delay: 0.05)
+                    
+                    // Quick Actions (Pause/Resume Monitoring)
+                    QuickActionsCard(
+                        isMonitoringPaused: $isMonitoringPaused,
+                        lastUpdated: lastUpdated
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.1)
