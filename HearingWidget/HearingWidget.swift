@@ -48,13 +48,13 @@ struct BloopWidgetLockScreen: Widget {
 #Preview("Small Widget", as: .systemSmall) {
     BloopWidget()
 } timeline: {
-    DoseEntry(date: .now, dosePercent: 45, remainingTime: 4 * 3600, status: .safe)
-    DoseEntry(date: .now, dosePercent: 75, remainingTime: 1.5 * 3600, status: .moderate)
-    DoseEntry(date: .now, dosePercent: 110, remainingTime: 0, status: .dangerous)
+    DoseEntry(date: .now, dosePercent: 45, remainingTime: 4 * 3600, listeningTime: 45 * 60, status: .safe)
+    DoseEntry(date: .now, dosePercent: 75, remainingTime: 1.5 * 3600, listeningTime: 2.5 * 3600, status: .moderate)
+    DoseEntry(date: .now, dosePercent: 110, remainingTime: 0, listeningTime: 4.25 * 3600, status: .dangerous)
 }
 
 #Preview("Medium Widget", as: .systemMedium) {
     BloopWidget()
 } timeline: {
-    DoseEntry(date: .now, dosePercent: 65, remainingTime: 2.5 * 3600, status: .moderate)
+    DoseEntry(date: .now, dosePercent: 65, remainingTime: 2.5 * 3600, listeningTime: 1.75 * 3600, status: .moderate)
 }

@@ -8,12 +8,14 @@ struct DoseEntry: TimelineEntry {
     let date: Date
     let dosePercent: Double
     let remainingTime: TimeInterval
+    let listeningTime: TimeInterval
     let status: WidgetExposureStatus
 
     static let placeholder = DoseEntry(
         date: .now,
         dosePercent: 0,
         remainingTime: 8 * 3600,
+        listeningTime: 0,
         status: .safe
     )
 }
@@ -112,16 +114,18 @@ struct DoseTimelineProvider: TimelineProvider {
 
         let dosePercent = defaults.double(forKey: "widget_dosePercent")
         let remainingTime = defaults.double(forKey: "widget_remainingTime")
+        let listeningTime = defaults.double(forKey: "widget_listeningTime")
         let lastUpdate = defaults.object(forKey: "widget_lastUpdate") as? Date
 
         // Check if data is from today
         if let lastUpdate = lastUpdate,
            Calendar.current.isDateInToday(lastUpdate),
-           dosePercent > 0 || remainingTime > 0 {
+           dosePercent > 0 || remainingTime > 0 || listeningTime > 0 {
             return DoseEntry(
                 date: .now,
                 dosePercent: dosePercent,
                 remainingTime: remainingTime,
+                listeningTime: listeningTime,
                 status: WidgetExposureStatus.from(dosePercent: dosePercent)
             )
         }

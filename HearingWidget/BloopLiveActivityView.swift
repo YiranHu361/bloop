@@ -173,6 +173,7 @@ struct LockScreenLiveActivityView: View {
                                 )
                             )
                             .frame(width: geo.size.width * usedPercent)
+                            .animation(.spring(response: 0.45, dampingFraction: 0.9), value: usedPercent)
                     }
                 }
                 .frame(height: 12)
@@ -188,6 +189,8 @@ struct LockScreenLiveActivityView: View {
                         Text("\(remainingPercent)% left today")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.white.opacity(0.9))
+                            .contentTransition(.numericText())
+                            .animation(.spring(response: 0.45, dampingFraction: 0.9), value: remainingPercent)
                     }
                     
                     Spacer()
@@ -372,6 +375,7 @@ struct ExpandedBottomView: View {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(state.status.progressBarColor)
                         .frame(width: geo.size.width * state.progressTowardLimit)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.9), value: state.progressTowardLimit)
                 }
             }
             .frame(height: 8)
@@ -408,3 +412,22 @@ struct ExpandedBottomView: View {
 // MARK: - Note on Previews
 // Live Activities cannot be previewed in Xcode Previews.
 // Test Live Activities on a physical device or simulator by running the app.
+
+#if DEBUG
+// MARK: - Live Activity Widget Previews (Canvas)
+//
+// Important: Widget extensions can only host widget previews.
+// This previews the *Widget* (`BloopLiveActivityWidget`) rather than a plain SwiftUI view.
+@available(iOSApplicationExtension 17.0, *)
+#Preview("Live Activity (Lock Screen)", as: .content, using: BloopExposureAttributes(startTime: .now)) {
+    BloopExposureAttributes.ContentState(
+        currentPercent: 65,
+        dailyLimitPercent: 100,
+        currentDB: 0,
+        status: .caution,
+        message: "Getting a bit loud!",
+        remainingMinutes: 150,
+        isBreakTime: false
+    )
+}
+#endif

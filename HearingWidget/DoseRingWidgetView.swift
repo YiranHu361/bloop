@@ -62,7 +62,8 @@ struct MediumWidgetView: View {
     let entry: DoseEntry
 
     var body: some View {
-        HStack(spacing: 20) {
+        // A bit more breathing room between ring and text column
+        HStack(spacing: 28) {
             // Dose ring
             ZStack {
                 Circle()
@@ -112,11 +113,23 @@ struct MediumWidgetView: View {
                         .foregroundColor(entry.remainingTime <= 30 * 60 ? Color(hex: "FF3B30") : .primary)
                 }
 
+                // Listening time today (minimal but useful)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Listened today")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+
+                    Text(formatDuration(entry.listeningTime))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundColor(.primary)
+                }
+
                 // Last updated
                 Text("Updated \(entry.date.formatted(.relative(presentation: .named)))")
                     .font(.system(size: 9))
                     .foregroundColor(.secondary)
             }
+            .padding(.leading, 2)
 
             Spacer()
         }

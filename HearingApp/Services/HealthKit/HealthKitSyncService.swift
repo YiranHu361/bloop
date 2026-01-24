@@ -564,6 +564,7 @@ final class HealthKitSyncService: ObservableObject {
 
         defaults.set(dose.dosePercent, forKey: "widget_dosePercent")
         defaults.set(remainingTime, forKey: "widget_remainingTime")
+        defaults.set(dose.totalExposureSeconds, forKey: "widget_listeningTime")
         defaults.set(Date(), forKey: "widget_lastUpdate")
 
         // Trigger widget refresh
