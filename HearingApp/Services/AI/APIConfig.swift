@@ -1,13 +1,13 @@
 import Foundation
 
 /// Configuration for external API keys
-/// IMPORTANT: Replace the placeholder with your actual API key before use
+/// IMPORTANT: Create a Secrets.swift file with your actual API key (see README)
 enum APIConfig {
     // MARK: - Gemini API
 
     /// Your Gemini API key - get one at https://aistudio.google.com/app/apikey
-    /// Replace "YOUR_GEMINI_API_KEY_HERE" with your actual key
-    static let geminiAPIKey = "AIzaSyBByEplgaXaZzarvontBrLC-UgM9WXSsjY"
+    /// Create Secrets.swift with: enum Secrets { static let geminiAPIKey = "YOUR_KEY" }
+    static let geminiAPIKey = Secrets.geminiAPIKey
 
     /// Gemini API base URL
     static let geminiBaseURL = "https://generativelanguage.googleapis.com/v1beta"
