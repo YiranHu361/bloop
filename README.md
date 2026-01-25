@@ -1,7 +1,5 @@
 # bloop.
 
-**Safe listening for kids. Peace of mind for parents.**
-
 > Built at HoyaHacks 2026
 
 ## The Problem
