@@ -7,7 +7,7 @@ struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var isRequestingPermissions = false
     
-    private let totalPages = 5
+    private let totalPages = 4
     
     var body: some View {
         ZStack {
@@ -38,16 +38,13 @@ struct OnboardingView: View {
                     PrivacyFirstPage()
                         .tag(1)
                     
-                    HowItWorksPage()
-                        .tag(2)
-                    
                     PermissionsPage(isRequesting: $isRequestingPermissions)
-                        .tag(3)
+                        .tag(2)
                     
                     GetStartedPage {
                         appState.completeOnboarding()
                     }
-                    .tag(4)
+                    .tag(3)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentPage)
@@ -67,7 +64,7 @@ struct OnboardingView: View {
                     // Navigation button
                     if currentPage < totalPages - 1 {
                         Button(action: {
-                            if currentPage == 3 && !isRequestingPermissions {
+                            if currentPage == 2 && !isRequestingPermissions {
                                 // Skip permissions page if already granted
                                 withAnimation {
                                     currentPage += 1
@@ -79,7 +76,7 @@ struct OnboardingView: View {
                             }
                         }) {
                             HStack {
-                                Text(currentPage == 3 ? "Continue" : "Next")
+                                Text(currentPage == 2 ? "Continue" : "Next")
                                     .font(AppTypography.buttonLarge)
                                 
                                 Image(systemName: "arrow.right")
@@ -225,83 +222,6 @@ struct PrivacyFirstPage: View {
             Text(text)
                 .font(AppTypography.body)
                 .foregroundColor(.white.opacity(0.9))
-            
-            Spacer()
-        }
-    }
-}
-
-// MARK: - How It Works Page
-
-struct HowItWorksPage: View {
-    @State private var isAnimated = false
-    
-    var body: some View {
-        VStack(spacing: 32) {
-            Spacer()
-            
-            Text("How It Works")
-                .font(AppTypography.title1)
-                .foregroundColor(.white)
-            
-            VStack(spacing: 24) {
-                howItWorksItem(
-                    number: 1,
-                    icon: "headphones",
-                    title: "We read volume levels",
-                    description: "From Apple's HealthKit when you use headphones"
-                )
-                
-                howItWorksItem(
-                    number: 2,
-                    icon: "function",
-                    title: "Calculate your dose",
-                    description: "Using WHO-recommended safety formulas"
-                )
-                
-                howItWorksItem(
-                    number: 3,
-                    icon: "bell.badge",
-                    title: "Alert you before damage",
-                    description: "Smart notifications help you stay safe"
-                )
-            }
-            .padding(.horizontal, 16)
-            .offset(y: isAnimated ? 0 : 30)
-            .opacity(isAnimated ? 1.0 : 0)
-            
-            Spacer()
-            Spacer()
-        }
-        .padding()
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1)) {
-                isAnimated = true
-            }
-        }
-    }
-    
-    private func howItWorksItem(number: Int, icon: String, title: String, description: String) -> some View {
-        HStack(alignment: .top, spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(AppColors.primaryFallback.opacity(0.2))
-                    .frame(width: 50, height: 50)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 22))
-                    .foregroundColor(AppColors.primaryFallback)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(AppTypography.headline)
-                    .foregroundColor(.white)
-                
-                Text(description)
-                    .font(AppTypography.subheadline)
-                    .foregroundColor(.white.opacity(0.7))
-            }
             
             Spacer()
         }
