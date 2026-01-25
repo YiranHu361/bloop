@@ -82,9 +82,6 @@ final class AudioRouteMonitor: ObservableObject {
             try session.setActive(true)
         } catch {
             // Non-fatal - route detection may still work via notifications
-            if FeatureFlags.verboseLoggingEnabled {
-                print("AudioRouteMonitor: Failed to configure audio session - \(error)")
-            }
         }
     }
     
@@ -119,10 +116,6 @@ final class AudioRouteMonitor: ObservableObject {
         for output in currentRoute.outputs {
             let type = classifyPort(output.portType, portName: output.portName)
             
-            if FeatureFlags.verboseLoggingEnabled {
-                print("AudioRouteMonitor: Port '\(output.portName)' type=\(output.portType.rawValue) -> \(type.rawValue)")
-            }
-            
             if type.isHeadphoneType {
                 foundHeadphones = true
                 outputType = type
@@ -139,16 +132,9 @@ final class AudioRouteMonitor: ObservableObject {
             outputType = .speaker
         }
         
-        // Only log state changes to reduce noise
-        let stateChanged = isHeadphonesConnected != foundHeadphones || currentOutputType != outputType
-        
         isHeadphonesConnected = foundHeadphones
         currentOutputType = outputType
         deviceName = name
-        
-        if stateChanged && FeatureFlags.verboseLoggingEnabled {
-            print("AudioRouteMonitor: State changed -> headphones=\(foundHeadphones), type=\(outputType.rawValue)")
-        }
     }
     
     /// Classify a port type, using the port name to distinguish BT headphones from BT speakers
@@ -291,37 +277,8 @@ final class AudioRouteMonitor: ObservableObject {
         switch reason {
         case .newDeviceAvailable, .oldDeviceUnavailable, .categoryChange, .override, .routeConfigurationChange:
             checkCurrentRoute()
-            
-            // Log for debugging
-            if FeatureFlags.verboseLoggingEnabled {
-                print("AudioRouteMonitor: Route changed - \(reason.description)")
-                print("AudioRouteMonitor: Headphones connected: \(isHeadphonesConnected)")
-                print("AudioRouteMonitor: Output type: \(currentOutputType.rawValue)")
-                if let name = deviceName {
-                    print("AudioRouteMonitor: Device name: \(name)")
-                }
-            }
-            
         default:
             break
-        }
-    }
-}
-
-// MARK: - Route Change Reason Description
-
-extension AVAudioSession.RouteChangeReason {
-    var description: String {
-        switch self {
-        case .unknown: return "Unknown"
-        case .newDeviceAvailable: return "New device available"
-        case .oldDeviceUnavailable: return "Old device unavailable"
-        case .categoryChange: return "Category change"
-        case .override: return "Override"
-        case .wakeFromSleep: return "Wake from sleep"
-        case .noSuitableRouteForCategory: return "No suitable route"
-        case .routeConfigurationChange: return "Configuration change"
-        @unknown default: return "Unknown (\(rawValue))"
         }
     }
 }

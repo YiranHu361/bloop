@@ -242,7 +242,7 @@ final class TrendsViewModel: ObservableObject {
             )
             
         } catch {
-            print("Error calculating score: \(error)")
+            // Error calculating score
         }
     }
 }

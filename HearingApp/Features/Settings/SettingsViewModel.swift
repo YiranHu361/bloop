@@ -118,7 +118,7 @@ final class SettingsViewModel: ObservableObject {
                 kidFriendlyMessages = userSettings.kidFriendlyMessages
             }
         } catch {
-            print("Error loading settings: \(error)")
+            // Error loading settings
         }
     }
     
@@ -138,7 +138,7 @@ final class SettingsViewModel: ObservableObject {
             
             try context.save()
         } catch {
-            print("Error saving settings: \(error)")
+            // Error saving settings
         }
     }
     
@@ -323,7 +323,7 @@ final class SettingsViewModel: ObservableObject {
             try context.delete(model: SyncState.self)
             try context.save()
         } catch {
-            print("Error clearing data: \(error)")
+            // Error clearing data
         }
     }
 }

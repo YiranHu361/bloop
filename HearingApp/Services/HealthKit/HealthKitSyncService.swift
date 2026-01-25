@@ -38,8 +38,6 @@ final class HealthKitSyncService: ObservableObject {
         isSyncing = true
         defer { isSyncing = false }
         
-        AppLogger.info("Starting full reset and resync", category: AppLogger.sync)
-        
         // Delete all existing samples
         try context.delete(model: ExposureSample.self)
         try context.delete(model: ExposureEvent.self)
@@ -47,12 +45,8 @@ final class HealthKitSyncService: ObservableObject {
         try context.delete(model: SyncState.self)
         try context.save()
         
-        AppLogger.info("Cleared all local data", category: AppLogger.sync)
-        
         // Perform fresh sync
         try await performFullSync(days: days)
-        
-        AppLogger.info("Reset and resync complete", category: AppLogger.sync)
     }
     
     // MARK: - Full Sync
@@ -82,8 +76,6 @@ final class HealthKitSyncService: ObservableObject {
             to: endDate
         )
         
-        AppLogger.debug("Fetched \(samples.count) samples and \(events.count) events", category: AppLogger.healthKit)
-
         // OPTIMIZATION: Batch fetch existing UUIDs upfront to avoid N+1 queries
         var existingSampleUUIDs = Set<String>()
         do {
@@ -91,7 +83,7 @@ final class HealthKitSyncService: ObservableObject {
             let allSamples = try context.fetch(allSamplesDescriptor)
             existingSampleUUIDs = Set(allSamples.map { $0.healthKitUUID })
         } catch {
-            AppLogger.error("Error fetching existing sample UUIDs: \(error)", category: AppLogger.sync)
+            // Error fetching existing sample UUIDs
         }
 
         // Upsert samples with fast in-memory deduplication
@@ -123,7 +115,7 @@ final class HealthKitSyncService: ObservableObject {
             let allEvents = try context.fetch(allEventsDescriptor)
             existingEventUUIDs = Set(allEvents.map { $0.healthKitUUID })
         } catch {
-            AppLogger.error("Error fetching existing event UUIDs: \(error)", category: AppLogger.sync)
+            // Error fetching existing event UUIDs
         }
 
         // Upsert events with fast in-memory deduplication
@@ -147,7 +139,6 @@ final class HealthKitSyncService: ObservableObject {
         }
         
         try context.save()
-        AppLogger.debug("Inserted \(insertedCount) new samples", category: AppLogger.sync)
         
         // Recalculate daily doses
         try await recalculateDailyDoses(from: startDate, to: endDate)
@@ -283,20 +274,14 @@ final class HealthKitSyncService: ObservableObject {
                 anchor: sampleAnchor,
                 limit: HKObjectQueryNoLimit
             ) { [weak self] query, samples, deleted, newAnchor, error in
-                if let error = error {
-                    AppLogger.warning("Live sample query error: \(error)", category: AppLogger.healthKit)
-                    return
-                }
+                if error != nil { return }
                 Task { @MainActor [weak self] in
                     await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
                 }
             }
 
             sampleQuery.updateHandler = { [weak self] query, samples, deleted, newAnchor, error in
-                if let error = error {
-                    AppLogger.warning("Live sample update error: \(error)", category: AppLogger.healthKit)
-                    return
-                }
+                if error != nil { return }
                 Task { @MainActor [weak self] in
                     await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
                 }
@@ -321,20 +306,14 @@ final class HealthKitSyncService: ObservableObject {
                 anchor: eventAnchor,
                 limit: HKObjectQueryNoLimit
             ) { [weak self] query, events, deleted, newAnchor, error in
-                if let error = error {
-                    AppLogger.warning("Live event query error: \(error)", category: AppLogger.healthKit)
-                    return
-                }
+                if error != nil { return }
                 Task { @MainActor [weak self] in
                     await self?.handleLiveEventUpdate(events: events, newAnchor: newAnchor)
                 }
             }
 
             eventQuery.updateHandler = { [weak self] query, events, deleted, newAnchor, error in
-                if let error = error {
-                    AppLogger.warning("Live event update error: \(error)", category: AppLogger.healthKit)
-                    return
-                }
+                if error != nil { return }
                 Task { @MainActor [weak self] in
                     await self?.handleLiveEventUpdate(events: events, newAnchor: newAnchor)
                 }
@@ -344,7 +323,6 @@ final class HealthKitSyncService: ObservableObject {
             healthStore.execute(eventQuery)
         }
 
-        AppLogger.info("Started live HealthKit streaming", category: AppLogger.healthKit)
     }
 
     /// Stop live streaming
@@ -367,7 +345,7 @@ final class HealthKitSyncService: ObservableObject {
             do {
                 try saveSyncAnchor(newAnchor, for: SyncState.exposureEventsId)
             } catch {
-                AppLogger.error("Event anchor save error: \(error)", category: AppLogger.sync)
+                // Event anchor save error
             }
         }
 
@@ -403,9 +381,7 @@ final class HealthKitSyncService: ObservableObject {
             NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
         } catch {
             // Log only in debug
-            if FeatureFlags.verboseLoggingEnabled {
-                AppLogger.error("Live event save error: \(error)", category: AppLogger.sync)
-            }
+            // Live event save error
         }
     }
     
@@ -417,7 +393,7 @@ final class HealthKitSyncService: ObservableObject {
             do {
                 try saveSyncAnchor(newAnchor, for: SyncState.exposureSamplesId)
             } catch {
-                AppLogger.error("Anchor save error: \(error)", category: AppLogger.sync)
+                // Anchor save error
             }
         }
 
@@ -484,9 +460,7 @@ final class HealthKitSyncService: ObservableObject {
             }
         } catch {
             // Log only in debug
-            if FeatureFlags.verboseLoggingEnabled {
-                AppLogger.error("Live update save error: \(error)", category: AppLogger.sync)
-            }
+            // Live update save error
         }
     }
     
@@ -641,7 +615,7 @@ final class HealthKitSyncService: ObservableObject {
                 updateWidgetData(dose: todayDose)
             }
         } catch {
-            AppLogger.error("Error checking notifications: \(error)", category: AppLogger.notifications)
+            // Error checking notifications
         }
     }
 

@@ -332,7 +332,7 @@ struct WeeklyDigestView: View {
                 digest = try await WeeklyDigestScheduler.shared.generateWeeklyDigest()
             }
         } catch {
-            print("Error loading digest: \(error)")
+            // Error loading digest
         }
 
         isLoading = false

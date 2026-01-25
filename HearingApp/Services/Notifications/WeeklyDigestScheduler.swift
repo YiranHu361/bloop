@@ -180,7 +180,7 @@ final class WeeklyDigestScheduler: ObservableObject {
         do {
             try await center.add(request)
         } catch {
-            AppLogger.error("Failed to schedule weekly digest notification: \(error)", category: AppLogger.notifications)
+            // Failed to schedule weekly digest notification
         }
     }
 

@@ -269,24 +269,16 @@ final class HealthKitService: ObservableObject {
         healthStore.enableBackgroundDelivery(
             for: exposureType,
             frequency: .immediate
-        ) { success, error in
-            if let error = error {
-                print("Failed to enable background delivery: \(error)")
-            } else if !success {
-                print("Background delivery not enabled for samples (unknown reason)")
-            }
+        ) { _, _ in
+            // Background delivery callback
         }
 
         if let eventType = headphoneAudioExposureEventType {
             healthStore.enableBackgroundDelivery(
                 for: eventType,
                 frequency: .immediate
-            ) { success, error in
-                if let error = error {
-                    print("Failed to enable background delivery for events: \(error)")
-                } else if !success {
-                    print("Background delivery not enabled for events (unknown reason)")
-                }
+            ) { _, _ in
+                // Background delivery callback
             }
         }
     }
@@ -304,7 +296,6 @@ final class HealthKitService: ObservableObject {
             }
             observerQueries.append(sampleQuery)
             healthStore.execute(sampleQuery)
-            print("👂 Started observing headphone audio exposure samples")
         }
 
         // Observe exposure events
@@ -317,7 +308,6 @@ final class HealthKitService: ObservableObject {
             }
             observerQueries.append(eventQuery)
             healthStore.execute(eventQuery)
-            print("👂 Started observing headphone audio exposure events")
         }
     }
     

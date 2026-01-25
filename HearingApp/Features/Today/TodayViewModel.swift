@@ -263,7 +263,7 @@ final class TodayViewModel: ObservableObject {
             )
             
         } catch {
-            AppLogger.error("Error calculating score: \(error)", category: AppLogger.ui)
+            // Error calculating score
         }
     }
 
@@ -282,10 +282,7 @@ final class TodayViewModel: ObservableObject {
 
         let newLevel = todaySamples.last?.levelDBASPL
 
-        if let level = newLevel {
-            let dosePercent = todayDose?.dosePercent ?? 0
-            AppLogger.debug("Current dB: \(String(format: "%.1f", level)) | Dose: \(String(format: "%.1f", dosePercent))%", category: AppLogger.ui)
-        }
+        _ = newLevel // Silence unused variable warning
 
         currentLevelDB = newLevel
         exposureBands = Self.buildBands(from: todaySamples)
@@ -402,7 +399,6 @@ final class TodayViewModel: ObservableObject {
 
         } catch {
             // Silently fail - we'll use the default message
-            AppLogger.debug("Gemini insight error: \(error.localizedDescription)", category: AppLogger.general)
         }
     }
 
@@ -457,7 +453,6 @@ final class TodayViewModel: ObservableObject {
 
             return totalDose / totalListeningHours
         } catch {
-            AppLogger.error("Error calculating typical burn rate: \(error)", category: AppLogger.ui)
             return nil
         }
     }

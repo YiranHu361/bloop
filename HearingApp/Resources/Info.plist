@@ -25,12 +25,9 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>
-		<string>healthkit</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

@@ -25,7 +25,7 @@ final class NotificationService: ObservableObject {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
             isAuthorized = granted
         } catch {
-            AppLogger.error("Notification authorization error: \(error)", category: AppLogger.notifications)
+            // Notification authorization error
             isAuthorized = false
         }
     }
@@ -105,7 +105,7 @@ final class NotificationService: ObservableObject {
             try await center.add(request)
             notificationCooldowns[threshold] = Date()
         } catch {
-            AppLogger.error("Failed to send notification: \(error)", category: AppLogger.notifications)
+            // Failed to send notification
         }
     }
 
@@ -169,7 +169,7 @@ final class NotificationService: ObservableObject {
             try await center.add(request)
             notificationCooldowns[actionableCooldownKey] = Date()
         } catch {
-            AppLogger.error("Failed to send actionable notification: \(error)", category: AppLogger.notifications)
+            // Failed to send actionable notification
         }
     }
 
@@ -208,7 +208,7 @@ final class NotificationService: ObservableObject {
         do {
             try await center.add(request)
         } catch {
-            AppLogger.error("Failed to send volume suggestion: \(error)", category: AppLogger.notifications)
+            // Failed to send volume suggestion
         }
     }
     
@@ -234,7 +234,7 @@ final class NotificationService: ObservableObject {
         do {
             try await center.add(request)
         } catch {
-            AppLogger.error("Failed to send exposure event notification: \(error)", category: AppLogger.notifications)
+            // Failed to send exposure event notification
         }
     }
     
@@ -271,7 +271,7 @@ final class NotificationService: ObservableObject {
         do {
             try await center.add(request)
         } catch {
-            AppLogger.error("Failed to schedule daily summary: \(error)", category: AppLogger.notifications)
+            // Failed to schedule daily summary
         }
     }
     

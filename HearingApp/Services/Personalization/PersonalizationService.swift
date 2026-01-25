@@ -38,7 +38,7 @@ final class PersonalizationService: ObservableObject {
                 self.preferences = newPrefs
             }
         } catch {
-            print("Error loading personalization preferences: \(error)")
+            // Error loading personalization preferences
         }
     }
 
@@ -153,7 +153,7 @@ final class PersonalizationService: ObservableObject {
             }
 
         } catch {
-            print("Error analyzing patterns: \(error)")
+            // Error analyzing patterns
         }
     }
 
