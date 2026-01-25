@@ -37,6 +37,7 @@ final class TodayViewModel: ObservableObject {
     private var doseModel: DoseModel = .niosh
     private let syncCooldown: TimeInterval = 60
     private var lastSyncAt: Date?
+
     
     var currentStatus: ExposureStatus {
         guard let dose = todayDose else { return .safe }
@@ -427,6 +428,7 @@ final class TodayViewModel: ObservableObject {
             // Silently fail - we'll use the default message
         }
     }
+
 
     /// Calculate typical burn rate from historical data
     private func calculateTypicalBurnRate() -> Double? {

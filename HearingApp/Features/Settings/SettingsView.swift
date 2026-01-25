@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var showExportSheet = false
     @State private var showResetConfirmation = false
     @State private var isGeneratingSampleData = false
+    @State private var isSendingAINotification = false
     
     var body: some View {
         NavigationStack {
@@ -153,6 +154,38 @@ struct SettingsView: View {
                         }
                     }
                     .disabled(isGeneratingSampleData)
+
+                    Button {
+                        guard !isSendingAINotification else { return }
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+
+                        isSendingAINotification = true
+                        Task {
+                            await viewModel.sendAINotificationTest(context: modelContext)
+                            let successFeedback = UINotificationFeedbackGenerator()
+                            successFeedback.notificationOccurred(.success)
+                            isSendingAINotification = false
+                        }
+                    } label: {
+                        HStack {
+                            Text("Send AI Notification")
+                            Spacer()
+                            if isSendingAINotification {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                    }
+                    .disabled(isSendingAINotification)
+                    
+                    Button("Reset AI History") {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
+                        Task {
+                            await viewModel.resetAgentHistory(context: modelContext)
+                        }
+                    }
                     
                     Button("Reset Onboarding") {
                         let impactFeedback = UIImpactFeedbackGenerator(style: .light)

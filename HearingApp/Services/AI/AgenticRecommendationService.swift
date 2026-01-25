@@ -8,7 +8,8 @@ final class AgenticRecommendationService {
 
     private let evaluationCooldown: TimeInterval = 60
     private let interventionCooldown: TimeInterval = 10 * 60
-    private let complianceWindow: TimeInterval = 10 * 60
+    private let complianceWindow: TimeInterval = 30 * 60
+    private let breakDetectionThreshold: TimeInterval = 10 * 60
     private let sessionGap: TimeInterval = 5 * 60
     private let volumeDropThresholdDB: Double = 3
     static let recentSampleWindowSeconds: TimeInterval = 10 * 60
@@ -17,6 +18,8 @@ final class AgenticRecommendationService {
     private let dailyLimitMax = 100
     private let volumeThresholdMin = 60
     private let volumeThresholdMax = 95
+    private let ignoreWindow: TimeInterval = 6 * 60 * 60
+    private let ignoreThreshold = 3
 
     private init() {}
 
@@ -28,20 +31,24 @@ final class AgenticRecommendationService {
         currentLevelDB: Double?,
         doseModel: DoseModel
     ) async {
-        guard let dose = dose else { return }
-
         let now = Date()
         let state = fetchOrCreateAgentState(context: modelContext)
-        if let lastEvaluatedAt = state.lastEvaluatedAt,
-           now.timeIntervalSince(lastEvaluatedAt) < evaluationCooldown {
-            return
-        }
-        state.lastEvaluatedAt = now
-
         let settings = fetchUserSettings(context: modelContext)
 
-        // Guardrail: no notifications during quiet hours unless strict mode is enabled.
+        if dose == nil {
+            print("🤖 AI gate: missing dose")
+            return
+        }
+
+        if let lastEvaluatedAt = state.lastEvaluatedAt,
+           now.timeIntervalSince(lastEvaluatedAt) < evaluationCooldown {
+            print("🤖 AI gate: evaluation cooldown")
+            return
+        }
+
         if isInQuietHours(settings: settings, now: now), !settings.quietHoursStrictMode {
+            print("🤖 AI gate: quiet hours")
+            state.lastEvaluatedAt = now
             try? modelContext.save()
             return
         }
@@ -50,7 +57,9 @@ final class AgenticRecommendationService {
         let isRecent = isRecentSample(samples: samples, now: now)
         let isHeadphoneOutput = AudioRouteMonitor.shared.currentOutputType.isHeadphoneType
 
-        guard isActivelyListening, isRecent, isHeadphoneOutput else {
+        if !isActivelyListening || !isRecent || !isHeadphoneOutput {
+            print("🤖 AI gate: listening=\(isActivelyListening) recent=\(isRecent) headphones=\(isHeadphoneOutput)")
+            state.lastEvaluatedAt = now
             await updateComplianceIfNeeded(
                 modelContext: modelContext,
                 samples: samples,
@@ -59,30 +68,42 @@ final class AgenticRecommendationService {
             try? modelContext.save()
             return
         }
+
+        if let lastInterventionAt = state.lastInterventionAt,
+           now.timeIntervalSince(lastInterventionAt) < interventionCooldown {
+            print("🤖 AI gate: intervention cooldown")
+            state.lastEvaluatedAt = now
+            await updateComplianceIfNeeded(
+                modelContext: modelContext,
+                samples: samples,
+                now: now
+            )
+            try? modelContext.save()
+            return
+        }
+
+        state.lastEvaluatedAt = now
+        let dose = dose!
 
         await updateHealthKitStatusIfNeeded(modelContext: modelContext, now: now)
 
         let sessionDuration = currentSessionDuration(samples: samples)
         let sessionId = sessionIdentifier(from: samples)
+        let suppressNotifications = shouldSuppressNotifications(
+            modelContext: modelContext,
+            now: now
+        )
 
-        if let lastInterventionAt = state.lastInterventionAt,
-           now.timeIntervalSince(lastInterventionAt) < interventionCooldown {
-            await updateComplianceIfNeeded(
-                modelContext: modelContext,
-                samples: samples,
-                now: now
-            )
-            try? modelContext.save()
-            return
-        }
-
-        if APIConfig.isGeminiConfigured {
+        let geminiConfigured = APIConfig.isGeminiConfigured
+        print("🤖 AI config: geminiConfigured=\(geminiConfigured) suppressNotifications=\(suppressNotifications)")
+        if geminiConfigured {
             if let decision = await fetchAIDecision(
                 dose: dose,
                 settings: settings,
                 insight: aiInsight,
                 currentLevelDB: currentLevelDB,
-                sessionDuration: sessionDuration
+                sessionDuration: sessionDuration,
+                suppressNotifications: suppressNotifications
             ) {
                 let sessionMinutes = sessionDuration.map { Int($0 / 60) } ?? 0
                 let handled = await applyDecision(
@@ -93,6 +114,7 @@ final class AgenticRecommendationService {
                     insight: aiInsight,
                     sessionId: sessionId,
                     sessionMinutes: sessionMinutes,
+                    suppressNotifications: suppressNotifications,
                     now: now
                 )
 
@@ -111,7 +133,8 @@ final class AgenticRecommendationService {
             try? modelContext.save()
         }
 
-        if dose.dosePercent >= Double(settings.dailyExposureLimit) {
+        if !suppressNotifications,
+           dose.dosePercent >= Double(settings.dailyExposureLimit) {
             await NotificationService.shared.sendActionableNotification(
                 dosePercent: dose.dosePercent,
                 currentLevel: currentLevelDB,
@@ -127,7 +150,8 @@ final class AgenticRecommendationService {
                 sessionId: sessionId
             )
             state.lastInterventionAt = now
-        } else if let eta = aiInsight.etaToLimit, eta <= 30 * 60 {
+        } else if !suppressNotifications,
+                  let eta = aiInsight.etaToLimit, eta <= 30 * 60 {
             await NotificationService.shared.sendActionableNotification(
                 dosePercent: dose.dosePercent,
                 currentLevel: currentLevelDB,
@@ -143,7 +167,8 @@ final class AgenticRecommendationService {
                 sessionId: sessionId
             )
             state.lastInterventionAt = now
-        } else if settings.breakRemindersEnabled,
+        } else if !suppressNotifications,
+                  settings.breakRemindersEnabled,
                   let sessionDuration = sessionDuration,
                   sessionDuration >= TimeInterval(settings.breakIntervalMinutes * 60),
                   shouldSendBreakReminder(state: state, now: now, intervalMinutes: settings.breakIntervalMinutes) {
@@ -163,7 +188,8 @@ final class AgenticRecommendationService {
             )
             state.lastBreakReminderAt = now
             state.lastInterventionAt = now
-        } else if settings.instantVolumeAlerts,
+        } else if !suppressNotifications,
+                  settings.instantVolumeAlerts,
                   let currentLevelDB = currentLevelDB,
                   currentLevelDB >= Double(settings.volumeAlertThresholdDB) {
             await NotificationService.shared.sendVolumeSuggestion(
@@ -212,14 +238,16 @@ final class AgenticRecommendationService {
         settings: UserSettings,
         insight: AIInsight,
         currentLevelDB: Double?,
-        sessionDuration: TimeInterval?
+        sessionDuration: TimeInterval?,
+        suppressNotifications: Bool
     ) async -> AgentDecision? {
         let prompt = buildAgentPrompt(
             dose: dose,
             settings: settings,
             insight: insight,
             currentLevelDB: currentLevelDB,
-            sessionDuration: sessionDuration
+            sessionDuration: sessionDuration,
+            suppressNotifications: suppressNotifications
         )
 
         do {
@@ -228,7 +256,15 @@ final class AgenticRecommendationService {
                 temperature: 0.2,
                 maxOutputTokens: 220
             )
-            return parseDecision(from: response)
+            // TEMP: decision logging for debugging
+            print("🤖 AI decision raw: \(response)")
+            let decision = parseDecision(from: response)
+            if let decision {
+                print("🤖 AI decision parsed: action=\(decision.action) reason=\(decision.reason ?? "none")")
+            } else {
+                print("🤖 AI decision parse failed")
+            }
+            return decision
         } catch {
             return nil
         }
@@ -239,7 +275,8 @@ final class AgenticRecommendationService {
         settings: UserSettings,
         insight: AIInsight,
         currentLevelDB: Double?,
-        sessionDuration: TimeInterval?
+        sessionDuration: TimeInterval?,
+        suppressNotifications: Bool
     ) -> String {
         let sessionMinutes = sessionDuration.map { Int($0 / 60) } ?? 0
         let level = currentLevelDB.map { String(format: "%.1f", $0) } ?? "unknown"
@@ -247,7 +284,10 @@ final class AgenticRecommendationService {
         let quietHours = settings.quietHoursEnabled && !settings.quietHoursStrictMode
 
         return """
-        You are a safety-first hearing assistant deciding the next action. Output ONLY valid JSON.
+        You are a safety-first hearing assistant deciding the next action.
+        Be helpful, concise, and supportive. Avoid nagging or shaming language.
+        Prefer the least intrusive action that still protects hearing.
+        Output ONLY valid JSON.
 
         Current state:
         - dosePercent: \(Int(dose.dosePercent))
@@ -259,9 +299,11 @@ final class AgenticRecommendationService {
         - dailyExposureLimit: \(settings.dailyExposureLimit)
         - volumeAlertThresholdDB: \(settings.volumeAlertThresholdDB)
         - quietHoursActive: \(quietHours)
+        - suppressNotifications: \(suppressNotifications)
 
         Guardrails:
         - Do NOT send notifications when quietHoursActive is true.
+        - At most one notification per 10 minutes; prefer fewer notifications and only when necessary.
         - Daily limit can be adjusted only within \(dailyLimitMin)-\(dailyLimitMax).
         - Volume alert threshold can be adjusted only within \(volumeThresholdMin)-\(volumeThresholdMax).
         - Actions allowed: "none", "notify", "break", "sync", "adjust_settings".
@@ -283,16 +325,17 @@ final class AgenticRecommendationService {
     }
 
     private func parseDecision(from response: String) -> AgentDecision? {
-        if let direct = decodeDecision(from: response) {
+        let cleaned = stripCodeFences(response)
+        if let direct = decodeDecision(from: cleaned) {
             return direct
         }
 
-        guard let start = response.firstIndex(of: "{"),
-              let end = response.lastIndex(of: "}") else {
+        guard let start = cleaned.firstIndex(of: "{"),
+              let end = cleaned.lastIndex(of: "}") else {
             return nil
         }
 
-        let jsonSlice = response[start...end]
+        let jsonSlice = cleaned[start...end]
         return decodeDecision(from: String(jsonSlice))
     }
 
@@ -305,6 +348,15 @@ final class AgenticRecommendationService {
         }
     }
 
+    private func stripCodeFences(_ text: String) -> String {
+        var cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleaned.hasPrefix("```") {
+            cleaned = cleaned.replacingOccurrences(of: "```json", with: "")
+            cleaned = cleaned.replacingOccurrences(of: "```", with: "")
+        }
+        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private func applyDecision(
         _ decision: AgentDecision,
         modelContext: ModelContext,
@@ -313,14 +365,17 @@ final class AgenticRecommendationService {
         insight: AIInsight,
         sessionId: String?,
         sessionMinutes: Int,
+        suppressNotifications: Bool,
         now: Date
     ) async -> Bool {
         let quietHoursBlocked = settings.quietHoursEnabled && !settings.quietHoursStrictMode
 
         switch decision.action {
         case "notify":
-            if quietHoursBlocked { return true }
+            if quietHoursBlocked || suppressNotifications { return true }
             if let title = decision.title, let body = decision.body {
+                // TEMP: log AI notification action
+                print("🤖 AI action: notify | title=\(title) | reason=\(decision.reason ?? "none")")
                 await NotificationService.shared.sendAgentNotification(title: title, body: body)
                 recordIntervention(
                     context: modelContext,
@@ -338,8 +393,10 @@ final class AgenticRecommendationService {
             }
             return false
         case "break":
-            if quietHoursBlocked { return true }
+            if quietHoursBlocked || suppressNotifications { return true }
             let breakMinutes = decision.breakMinutes ?? settings.breakDurationMinutes
+            // TEMP: log AI break action
+            print("🤖 AI action: break | minutes=\(breakMinutes) | reason=\(decision.reason ?? "none")")
             await NotificationService.shared.sendBreakReminder(
                 sessionMinutes: sessionMinutes,
                 breakMinutes: breakMinutes,
@@ -360,6 +417,8 @@ final class AgenticRecommendationService {
             return true
         case "sync":
             if decision.triggerSync == true {
+                // TEMP: log AI sync action
+                print("🤖 AI action: sync | reason=\(decision.reason ?? "none")")
                 _ = await maybeTriggerHealthKitSync(modelContext: modelContext, state: fetchOrCreateAgentState(context: modelContext), now: now)
                 return true
             }
@@ -381,6 +440,8 @@ final class AgenticRecommendationService {
                 }
             }
             if changed {
+                // TEMP: log AI adjust action
+                print("🤖 AI action: adjust_settings | dailyLimit=\(settings.dailyExposureLimit) | volumeThreshold=\(settings.volumeAlertThresholdDB) | reason=\(decision.reason ?? "none")")
                 settings.lastModified = Date()
                 recordIntervention(
                     context: modelContext,
@@ -397,6 +458,19 @@ final class AgenticRecommendationService {
         default:
             return false
         }
+    }
+
+    private func shouldSuppressNotifications(
+        modelContext: ModelContext,
+        now: Date
+    ) -> Bool {
+        let cutoff = now.addingTimeInterval(-ignoreWindow)
+        let predicate = #Predicate<AgentInterventionEvent> { event in
+            event.timestamp >= cutoff && event.complianceOutcome == "no_change"
+        }
+        let descriptor = FetchDescriptor<AgentInterventionEvent>(predicate: predicate)
+        let ignoredCount = (try? modelContext.fetch(descriptor).count) ?? 0
+        return ignoredCount >= ignoreThreshold
     }
 
     private func clamp(_ value: Int, min: Int, max: Int) -> Int {
@@ -524,7 +598,7 @@ final class AgenticRecommendationService {
             }
 
             let beforeWindowStart = intervention.timestamp.addingTimeInterval(-5 * 60)
-            let afterWindowEnd = min(now, intervention.timestamp.addingTimeInterval(complianceWindow))
+            let afterWindowEnd = min(now, intervention.timestamp.addingTimeInterval(5 * 60))
 
             let beforeSamples = samples.filter {
                 $0.endDate >= beforeWindowStart && $0.endDate <= intervention.timestamp
@@ -536,7 +610,22 @@ final class AgenticRecommendationService {
             let beforeAverage = averageLevel(from: beforeSamples)
             let afterAverage = averageLevel(from: afterSamples)
 
-            if afterSamples.isEmpty, elapsed > 5 * 60 {
+            if let firstAfter = afterSamples.first {
+                let gap = firstAfter.startDate.timeIntervalSince(intervention.timestamp)
+                if gap >= breakDetectionThreshold {
+                    recordCompliance(
+                        modelContext: modelContext,
+                        intervention: intervention,
+                        outcome: "stopped_listening",
+                        responseSeconds: gap,
+                        volumeDeltaDB: nil,
+                        stoppedListening: true
+                    )
+                    continue
+                }
+            }
+
+            if afterSamples.isEmpty, elapsed >= complianceWindow {
                 recordCompliance(
                     modelContext: modelContext,
                     intervention: intervention,
@@ -551,11 +640,14 @@ final class AgenticRecommendationService {
             if let beforeAverage, let afterAverage {
                 let delta = beforeAverage - afterAverage
                 if delta >= volumeDropThresholdDB {
+                    let responseSeconds = afterSamples.first.map {
+                        $0.startDate.timeIntervalSince(intervention.timestamp)
+                    } ?? elapsed
                     recordCompliance(
                         modelContext: modelContext,
                         intervention: intervention,
                         outcome: "volume_reduced",
-                        responseSeconds: elapsed,
+                        responseSeconds: responseSeconds,
                         volumeDeltaDB: delta,
                         stoppedListening: false
                     )
@@ -590,6 +682,8 @@ final class AgenticRecommendationService {
         volumeDeltaDB: Double?,
         stoppedListening: Bool
     ) {
+        // TEMP: log detected user response to interventions
+        print("🤖 AI compliance: outcome=\(outcome) responseSeconds=\(responseSeconds?.rounded() ?? 0) volumeDeltaDB=\(volumeDeltaDB?.rounded() ?? 0) stopped=\(stoppedListening)")
         let compliance = AgentComplianceEvent(
             interventionId: intervention.id,
             outcome: outcome,
