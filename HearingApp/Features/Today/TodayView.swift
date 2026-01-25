@@ -8,7 +8,6 @@ struct TodayView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = TodayViewModel()
     @ObservedObject private var routeMonitor = AudioRouteMonitor.shared
-    @Query private var agentStates: [AgentState]
 
     @State private var isRefreshing = false
     
@@ -32,10 +31,6 @@ struct TodayView: View {
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.2)
-
-                    aiStatusCard
-                        .padding(.horizontal)
-                        .cardEntrance(delay: 0.25)
 
                     // Session Summary Card
                     SessionSummaryCard(
@@ -108,39 +103,6 @@ struct TodayView: View {
             }
         }
     }
-}
-
-private extension TodayView {
-    var aiStatusCard: some View {
-        let state = agentStates.first
-        let lastEvaluated = state?.lastEvaluatedAt
-        let lastIntervention = state?.lastInterventionAt
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-
-        let evaluatedText = lastEvaluated.map { formatter.localizedString(for: $0, relativeTo: Date()) } ?? "never"
-        let interventionText = lastIntervention.map { formatter.localizedString(for: $0, relativeTo: Date()) } ?? "none"
-
-        return VStack(alignment: .leading, spacing: 6) {
-            Text("AI Status")
-                .font(AppTypography.subheadline)
-                .foregroundColor(AppColors.label)
-
-            Text("Last decision: \(evaluatedText)")
-                .font(AppTypography.caption1)
-                .foregroundColor(AppColors.secondaryLabel)
-
-            Text("Last action: \(interventionText)")
-                .font(AppTypography.caption1)
-                .foregroundColor(AppColors.secondaryLabel)
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppColors.secondaryBackground)
-        )
-    }
-}
 
 // MARK: - Recent Events Section
 
