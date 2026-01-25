@@ -32,10 +32,10 @@ struct OnboardingView: View {
                 
                 // Page content
                 TabView(selection: $currentPage) {
-                    WelcomePage()
+                    PrivacyFirstPage()
                         .tag(0)
                     
-                    PrivacyFirstPage()
+                    HowItWorksPage()
                         .tag(1)
                     
                     PermissionsPage(isRequesting: $isRequestingPermissions)
@@ -105,60 +105,6 @@ struct OnboardingView: View {
     }
 }
 
-// MARK: - Welcome Page
-
-struct WelcomePage: View {
-    @State private var isAnimated = false
-    
-    var body: some View {
-        VStack(spacing: 32) {
-            Spacer()
-            
-            // App icon/logo
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [AppColors.primaryFallback, AppColors.accent],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 120, height: 120)
-                    .shadow(color: AppColors.primaryFallback.opacity(0.4), radius: 20, x: 0, y: 10)
-                
-                Image(systemName: "ear.and.waveform")
-                    .font(.system(size: 50, weight: .medium))
-                    .foregroundColor(.white)
-            }
-            .scaleEffect(isAnimated ? 1.0 : 0.8)
-            .opacity(isAnimated ? 1.0 : 0)
-            
-            VStack(spacing: 16) {
-                Text("bloop.")
-                    .font(AppTypography.largeTitle)
-                    .foregroundColor(.white)
-                
-                Text("Safe listening for kids.\nPeace of mind for parents.")
-                    .font(AppTypography.title3)
-                    .foregroundColor(.white.opacity(0.8))
-                    .multilineTextAlignment(.center)
-            }
-            .offset(y: isAnimated ? 0 : 20)
-            .opacity(isAnimated ? 1.0 : 0)
-            
-            Spacer()
-            Spacer()
-        }
-        .padding()
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2)) {
-                isAnimated = true
-            }
-        }
-    }
-}
-
 // MARK: - Privacy First Page
 
 struct PrivacyFirstPage: View {
@@ -222,6 +168,83 @@ struct PrivacyFirstPage: View {
             Text(text)
                 .font(AppTypography.body)
                 .foregroundColor(.white.opacity(0.9))
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - How It Works Page
+
+struct HowItWorksPage: View {
+    @State private var isAnimated = false
+    
+    var body: some View {
+        VStack(spacing: 32) {
+            Spacer()
+            
+            Text("How It Works")
+                .font(AppTypography.title1)
+                .foregroundColor(.white)
+            
+            VStack(spacing: 24) {
+                howItWorksItem(
+                    number: 1,
+                    icon: "headphones",
+                    title: "We read volume levels",
+                    description: "From Apple's HealthKit when you use headphones"
+                )
+                
+                howItWorksItem(
+                    number: 2,
+                    icon: "function",
+                    title: "Calculate your dose",
+                    description: "Using WHO-recommended safety formulas"
+                )
+                
+                howItWorksItem(
+                    number: 3,
+                    icon: "bell.badge",
+                    title: "Alert you before damage",
+                    description: "Smart notifications help you stay safe"
+                )
+            }
+            .padding(.horizontal, 16)
+            .offset(y: isAnimated ? 0 : 30)
+            .opacity(isAnimated ? 1.0 : 0)
+            
+            Spacer()
+            Spacer()
+        }
+        .padding()
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1)) {
+                isAnimated = true
+            }
+        }
+    }
+    
+    private func howItWorksItem(number: Int, icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(AppColors.primaryFallback.opacity(0.2))
+                    .frame(width: 50, height: 50)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundColor(AppColors.primaryFallback)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(AppTypography.headline)
+                    .foregroundColor(.white)
+                
+                Text(description)
+                    .font(AppTypography.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+            }
             
             Spacer()
         }
