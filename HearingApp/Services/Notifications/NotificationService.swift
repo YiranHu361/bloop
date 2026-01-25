@@ -63,6 +63,31 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         }
     }
 
+    func checkAndNotify(
+        for dosePercent: Double,
+        limit: Int,
+        warn50: Bool,
+        warn80: Bool,
+        warn100: Bool
+    ) async {
+        guard isAuthorized else { return }
+
+        cleanupOldCooldowns()
+
+        let limitValue = Double(limit)
+        let threshold50 = limitValue * 0.5
+        let threshold80 = limitValue * 0.8
+        let threshold100 = limitValue
+
+        if warn100, dosePercent >= threshold100 {
+            await sendThresholdNotification(threshold: 100, dosePercent: dosePercent)
+        } else if warn80, dosePercent >= threshold80 {
+            await sendThresholdNotification(threshold: 80, dosePercent: dosePercent)
+        } else if warn50, dosePercent >= threshold50 {
+            await sendThresholdNotification(threshold: 50, dosePercent: dosePercent)
+        }
+    }
+
     private func sendThresholdNotification(threshold: Int, dosePercent: Double) async {
         // Check cooldown
         if let lastNotification = notificationCooldowns[threshold],
@@ -431,6 +456,31 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     
     func resetCooldowns() {
         notificationCooldowns.removeAll()
+    }
+
+    // MARK: - Agent Notifications
+
+    func sendAgentNotification(title: String, body: String, threadId: String = "agent-alerts") async {
+        await checkAuthorizationStatus()
+        guard isAuthorized else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.threadIdentifier = threadId
+
+        let request = UNNotificationRequest(
+            identifier: "agent-\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+
+        do {
+            try await center.add(request)
+        } catch {
+            // Failed to send agent notification
+        }
     }
 
     // MARK: - Foreground Presentation

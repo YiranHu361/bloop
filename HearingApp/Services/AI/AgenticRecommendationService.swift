@@ -13,6 +13,10 @@ final class AgenticRecommendationService {
     private let volumeDropThresholdDB: Double = 3
     static let recentSampleWindowSeconds: TimeInterval = 10 * 60
     private let syncCooldown: TimeInterval = 10 * 60
+    private let dailyLimitMin = 70
+    private let dailyLimitMax = 100
+    private let volumeThresholdMin = 60
+    private let volumeThresholdMax = 95
 
     private init() {}
 
@@ -36,6 +40,7 @@ final class AgenticRecommendationService {
 
         let settings = fetchUserSettings(context: modelContext)
 
+        // Guardrail: no notifications during quiet hours unless strict mode is enabled.
         if isInQuietHours(settings: settings, now: now), !settings.quietHoursStrictMode {
             try? modelContext.save()
             return
@@ -69,6 +74,33 @@ final class AgenticRecommendationService {
             )
             try? modelContext.save()
             return
+        }
+
+        if APIConfig.isGeminiConfigured {
+            if let decision = await fetchAIDecision(
+                dose: dose,
+                settings: settings,
+                insight: aiInsight,
+                currentLevelDB: currentLevelDB,
+                sessionDuration: sessionDuration
+            ) {
+                let sessionMinutes = sessionDuration.map { Int($0 / 60) } ?? 0
+                let handled = await applyDecision(
+                    decision,
+                    modelContext: modelContext,
+                    settings: settings,
+                    dose: dose,
+                    insight: aiInsight,
+                    sessionId: sessionId,
+                    sessionMinutes: sessionMinutes,
+                    now: now
+                )
+
+                if handled {
+                    try? modelContext.save()
+                    return
+                }
+            }
         }
 
         if await maybeTriggerHealthKitSync(
@@ -162,6 +194,213 @@ final class AgenticRecommendationService {
         )
 
         try? modelContext.save()
+    }
+
+    private struct AgentDecision: Codable {
+        let action: String
+        let title: String?
+        let body: String?
+        let triggerSync: Bool?
+        let setDailyLimit: Int?
+        let setVolumeThresholdDB: Int?
+        let breakMinutes: Int?
+        let reason: String?
+    }
+
+    private func fetchAIDecision(
+        dose: DailyDose,
+        settings: UserSettings,
+        insight: AIInsight,
+        currentLevelDB: Double?,
+        sessionDuration: TimeInterval?
+    ) async -> AgentDecision? {
+        let prompt = buildAgentPrompt(
+            dose: dose,
+            settings: settings,
+            insight: insight,
+            currentLevelDB: currentLevelDB,
+            sessionDuration: sessionDuration
+        )
+
+        do {
+            let response = try await GeminiService.shared.generateText(
+                prompt: prompt,
+                temperature: 0.2,
+                maxOutputTokens: 220
+            )
+            return parseDecision(from: response)
+        } catch {
+            return nil
+        }
+    }
+
+    private func buildAgentPrompt(
+        dose: DailyDose,
+        settings: UserSettings,
+        insight: AIInsight,
+        currentLevelDB: Double?,
+        sessionDuration: TimeInterval?
+    ) -> String {
+        let sessionMinutes = sessionDuration.map { Int($0 / 60) } ?? 0
+        let level = currentLevelDB.map { String(format: "%.1f", $0) } ?? "unknown"
+        let etaMinutes = insight.etaToLimit.map { Int($0 / 60) }
+        let quietHours = settings.quietHoursEnabled && !settings.quietHoursStrictMode
+
+        return """
+        You are a safety-first hearing assistant deciding the next action. Output ONLY valid JSON.
+
+        Current state:
+        - dosePercent: \(Int(dose.dosePercent))
+        - burnRatePerHour: \(String(format: "%.1f", insight.burnRatePerHour))
+        - etaMinutes: \(etaMinutes?.description ?? "null")
+        - isActivelyListening: \(insight.isActivelyListening)
+        - currentLevelDB: \(level)
+        - sessionMinutes: \(sessionMinutes)
+        - dailyExposureLimit: \(settings.dailyExposureLimit)
+        - volumeAlertThresholdDB: \(settings.volumeAlertThresholdDB)
+        - quietHoursActive: \(quietHours)
+
+        Guardrails:
+        - Do NOT send notifications when quietHoursActive is true.
+        - Daily limit can be adjusted only within \(dailyLimitMin)-\(dailyLimitMax).
+        - Volume alert threshold can be adjusted only within \(volumeThresholdMin)-\(volumeThresholdMax).
+        - Actions allowed: "none", "notify", "break", "sync", "adjust_settings".
+
+        JSON schema:
+        {
+          "action": "none|notify|break|sync|adjust_settings",
+          "title": "string or null",
+          "body": "string or null",
+          "triggerSync": true|false|null,
+          "setDailyLimit": number or null,
+          "setVolumeThresholdDB": number or null,
+          "breakMinutes": number or null,
+          "reason": "string or null"
+        }
+
+        Respond with JSON only.
+        """
+    }
+
+    private func parseDecision(from response: String) -> AgentDecision? {
+        if let direct = decodeDecision(from: response) {
+            return direct
+        }
+
+        guard let start = response.firstIndex(of: "{"),
+              let end = response.lastIndex(of: "}") else {
+            return nil
+        }
+
+        let jsonSlice = response[start...end]
+        return decodeDecision(from: String(jsonSlice))
+    }
+
+    private func decodeDecision(from json: String) -> AgentDecision? {
+        do {
+            let data = Data(json.utf8)
+            return try JSONDecoder().decode(AgentDecision.self, from: data)
+        } catch {
+            return nil
+        }
+    }
+
+    private func applyDecision(
+        _ decision: AgentDecision,
+        modelContext: ModelContext,
+        settings: UserSettings,
+        dose: DailyDose,
+        insight: AIInsight,
+        sessionId: String?,
+        sessionMinutes: Int,
+        now: Date
+    ) async -> Bool {
+        let quietHoursBlocked = settings.quietHoursEnabled && !settings.quietHoursStrictMode
+
+        switch decision.action {
+        case "notify":
+            if quietHoursBlocked { return true }
+            if let title = decision.title, let body = decision.body {
+                await NotificationService.shared.sendAgentNotification(title: title, body: body)
+                recordIntervention(
+                    context: modelContext,
+                    trigger: "ai_notify",
+                    action: "notify",
+                    message: decision.reason ?? "ai_notify",
+                    dose: dose,
+                    insight: insight,
+                    sessionId: sessionId
+                )
+                if let state = try? modelContext.fetch(FetchDescriptor<AgentState>()).first {
+                    state.lastInterventionAt = now
+                }
+                return true
+            }
+            return false
+        case "break":
+            if quietHoursBlocked { return true }
+            let breakMinutes = decision.breakMinutes ?? settings.breakDurationMinutes
+            await NotificationService.shared.sendBreakReminder(
+                sessionMinutes: sessionMinutes,
+                breakMinutes: breakMinutes,
+                cooldownSeconds: TimeInterval(settings.breakIntervalMinutes * 60)
+            )
+            recordIntervention(
+                context: modelContext,
+                trigger: "ai_break",
+                action: "break",
+                message: decision.reason ?? "ai_break",
+                dose: dose,
+                insight: insight,
+                sessionId: sessionId
+            )
+            if let state = try? modelContext.fetch(FetchDescriptor<AgentState>()).first {
+                state.lastInterventionAt = now
+            }
+            return true
+        case "sync":
+            if decision.triggerSync == true {
+                _ = await maybeTriggerHealthKitSync(modelContext: modelContext, state: fetchOrCreateAgentState(context: modelContext), now: now)
+                return true
+            }
+            return false
+        case "adjust_settings":
+            var changed = false
+            if let newLimit = decision.setDailyLimit {
+                let clamped = clamp(newLimit, min: dailyLimitMin, max: dailyLimitMax)
+                if clamped != settings.dailyExposureLimit {
+                    settings.dailyExposureLimit = clamped
+                    changed = true
+                }
+            }
+            if let newThreshold = decision.setVolumeThresholdDB {
+                let clamped = clamp(newThreshold, min: volumeThresholdMin, max: volumeThresholdMax)
+                if clamped != settings.volumeAlertThresholdDB {
+                    settings.volumeAlertThresholdDB = clamped
+                    changed = true
+                }
+            }
+            if changed {
+                settings.lastModified = Date()
+                recordIntervention(
+                    context: modelContext,
+                    trigger: "ai_adjust",
+                    action: "adjust_settings",
+                    message: decision.reason ?? "ai_adjust",
+                    dose: dose,
+                    insight: insight,
+                    sessionId: sessionId
+                )
+                return true
+            }
+            return false
+        default:
+            return false
+        }
+    }
+
+    private func clamp(_ value: Int, min: Int, max: Int) -> Int {
+        Swift.max(min, Swift.min(max, value))
     }
 
     private func fetchOrCreateAgentState(context: ModelContext) -> AgentState {
