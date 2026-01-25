@@ -237,7 +237,24 @@ final class SettingsViewModel: ObservableObject {
     // MARK: - Debug AI Notification
 
     func sendAINotificationTest(context: ModelContext) async {
-        guard APIConfig.isGeminiConfigured else { return }
+        // Ensure we have permission (user-initiated tap is a good time to prompt)
+        await NotificationService.shared.requestAuthorization()
+        await NotificationService.shared.checkAuthorizationStatus()
+
+        guard NotificationService.shared.isAuthorized else {
+            // If notifications are denied, we can't deliver. Consider surfacing UI to direct user to Settings.
+            print("🔕 Notifications not authorized — unable to send AI note.")
+            return
+        }
+
+        // If Gemini isn't configured, send a default test notification so the button always works.
+        guard APIConfig.isGeminiConfigured else {
+            await NotificationService.shared.sendAgentNotification(
+                title: "Hearing Check",
+                body: "Keep volumes comfortable for safe listening."
+            )
+            return
+        }
 
         let dosePercent = fetchTodayDosePercent(context: context)
         let prompt = """
@@ -470,3 +487,4 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 }
+
