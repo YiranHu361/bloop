@@ -387,7 +387,7 @@ final class SettingsViewModel: ObservableObject {
             let dosePercent: Double
             if daysAgo == 0 {
                 // dosePercent = Double.random(in: 20...80)
-                dosePercent = 49
+                dosePercent = 89
             } else {
                 dosePercent = Double.random(in: 20...120)
             }

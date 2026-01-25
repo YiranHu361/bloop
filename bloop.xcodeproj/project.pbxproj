@@ -146,7 +146,7 @@
 		A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureSample.swift; sourceTree = "<group>"; };
 		A0D26536D4D22635131036B8 /* AlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBanner.swift; sourceTree = "<group>"; };
 		A246F88B85F89CA3E18B40EF /* AudioRouteMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteMonitor.swift; sourceTree = "<group>"; };
-		A5CC73C70F7E105B6E84F4E4 /* bloop..app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bloop..app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5CC73C70F7E105B6E84F4E4 /* bloop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bloop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADBBD125000CF49572A0B097 /* bloopTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = bloopTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADD6FEBB272E683231B67FBD /* HearingApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HearingApp.entitlements; sourceTree = "<group>"; };
 		B62038C342C4AA2FFD9BBF26 /* HealthKitSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSyncService.swift; sourceTree = "<group>"; };
@@ -188,7 +188,7 @@
 		1471B7479A006CBF39EB03B8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A5CC73C70F7E105B6E84F4E4 /* bloop..app */,
+				A5CC73C70F7E105B6E84F4E4 /* bloop.app */,
 				ADBBD125000CF49572A0B097 /* bloopTests.xctest */,
 				F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */,
 			);
@@ -481,7 +481,7 @@
 			packageProductDependencies = (
 			);
 			productName = bloop;
-			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop..app */;
+			productReference = A5CC73C70F7E105B6E84F4E4 /* bloop.app */;
 			productType = "com.apple.product-type.application";
 		};
 		9AF6D3D4AE1D372C01E318F4 /* bloopTests */ = {
@@ -819,7 +819,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app;
-				PRODUCT_NAME = bloop.;
+				PRODUCT_NAME = bloop;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -842,7 +842,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app;
-				PRODUCT_NAME = bloop.;
+				PRODUCT_NAME = bloop;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

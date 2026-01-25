@@ -312,6 +312,14 @@ final class AgenticRecommendationService {
         - If daily dose frequently exceeds the current limit for multiple days, consider lowering the daily limit.
         - If average listening levels are consistently low (roughly <60 dB) for a few days, consider relaxing the volume threshold.
 
+        Notification hints:
+        - If the user is actively listening and the current level is above the volume alert threshold, suggest a volume adjustment.
+        - Keep it under 20 words total.
+        - Try to vary the wording while staying supportive and clear.
+
+        Break hints:
+        - If the user has been listening for prolonged periods of time, using up disproportionately high amounts of their daily dose, suggest a break.
+
         JSON schema:
         {
           "action": "none|notify|break|sync|adjust_settings",
