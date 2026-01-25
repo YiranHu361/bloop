@@ -2,7 +2,7 @@
 
 **Safe listening for kids. Peace of mind for parents.**
 
-> Built at HoyaHacks 2025
+> Built at HoyaHacks 2026
 
 ## The Problem
 
