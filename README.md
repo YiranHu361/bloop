@@ -59,9 +59,9 @@ Based on NIOSH/WHO guidelines:
 ## Team
 
 Built with care by:
+- **Kaien Hung**
+- **David Xie**
 - **Yiran Hu**
-- **Kaien Yang**
-- **David Miron**
 
 ## Screenshots
 
@@ -115,14 +115,5 @@ bloop/
 ├── HearingWidget/              # Home & Lock Screen widgets
 └── project.yml                 # Xcodegen configuration
 ```
-
-## Acknowledgments
-
-- WHO Safe Listening Guidelines
-- NIOSH Noise Exposure Standards
-- Apple HealthKit & ActivityKit
-- Google Gemini API
-
----
 
 *Protecting the next generation's hearing, one bloop at a time.*
