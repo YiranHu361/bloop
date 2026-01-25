@@ -1,119 +1,128 @@
-# HearingApp
+# bloop.
 
-A privacy-first iOS app that tracks your headphone sound exposure to help protect your hearing.
+**Safe listening for kids. Peace of mind for parents.**
 
-## Features
+> Built at HoyaHacks 2025
 
-- **Daily Sound Allowance tracking** - See how much of your safe listening limit you've used
-- **Real-time status** - Green/Yellow/Red indicators show your current exposure level
-- **7-day and 30-day trends** - Track your listening habits over time
-- **Smart notifications** - Get alerts at 50%, 80%, and 100% of your daily limit
-- **Privacy-first** - No microphone access, no content analysis, all data stays on device
+## The Problem
 
-## Requirements
+Children are increasingly exposed to unsafe sound levels through headphones, leading to irreversible hearing damage. The WHO estimates that over 1 billion young people are at risk of hearing loss due to unsafe listening practices. Parents have no easy way to monitor and protect their children's hearing health.
 
+## Our Solution
+
+**bloop** is a privacy-first iOS app that tracks headphone sound exposure using Apple HealthKit data and provides intelligent, personalized recommendations to help families maintain safe listening habits.
+
+### Key Features
+
+- **Real-time Sound Dose Tracking** - Visual ring shows daily exposure as a percentage of safe limits
+- **AI-Powered Recommendations** - Gemini-powered agentic AI analyzes listening patterns and provides personalized suggestions
+- **Smart Notifications** - Proactive alerts at 50%, 80%, and 100% thresholds before damage occurs
+- **Home Screen Widgets** - Glanceable dose status without opening the app
+- **Live Activities & Dynamic Island** - Real-time exposure during active listening sessions
+- **7-day & 30-day Trends** - Track patterns and progress over time
+
+## Privacy First
+
+We believe protecting hearing shouldn't mean sacrificing privacy:
+
+- **No microphone access** - We never listen to audio content
+- **No content analysis** - We don't know what you're listening to
+- **100% on-device** - All data stays on your phone
+- **No analytics or tracking** - Your data is yours alone
+
+## How It Works
+
+1. **HealthKit Integration** - Reads headphone audio exposure data (dBASPL levels) from Apple Health
+2. **WHO/NIOSH Calculations** - Uses scientifically-backed formulas to calculate safe exposure limits
+3. **AI Analysis** - Gemini analyzes patterns to provide actionable, kid-friendly recommendations
+4. **Proactive Alerts** - Notifies before reaching unsafe levels, not after
+
+### Sound Dose Science
+
+Based on NIOSH/WHO guidelines:
+- **85 dB** = 8 hours safe exposure
+- **88 dB** = 4 hours (every +3 dB halves safe time)
+- **91 dB** = 2 hours
+- **94 dB** = 1 hour
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Platform | iOS 17+ / SwiftUI |
+| Data | SwiftData + HealthKit |
+| AI | Google Gemini API |
+| Widgets | WidgetKit |
+| Live Activity | ActivityKit |
+| Architecture | MVVM |
+
+## Team
+
+Built with care by:
+- **Yiran Hu**
+- **Kaien Yang**
+- **David Miron**
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/1-dashboard.png" width="200" alt="Dashboard">
+  <img src="screenshots/2-trends.png" width="200" alt="Trends">
+  <img src="screenshots/4-widget.jpg" width="200" alt="Widget">
+  <img src="screenshots/5-notification.png" width="200" alt="Notification">
+</p>
+
+| Dashboard | Trends | Widget | Notification |
+|:-:|:-:|:-:|:-:|
+| Real-time dose tracking with exposure zones | 7-day history with insights | Home screen widget | Smart alerts |
+
+## Getting Started
+
+```bash
+# Clone the repo
+git clone https://github.com/YiranHu361/bloop.git
+
+# Open in Xcode
+open bloop.xcodeproj
+
+# Build and run on device (HealthKit requires physical device)
+```
+
+**Requirements:**
 - iOS 17.0+
 - Xcode 15.0+
-- Swift 5.9+
-
-## Setup
-
-### Option 1: Using Xcodegen (Recommended)
-
-1. Install Xcodegen if you haven't already:
-   ```bash
-   brew install xcodegen
-   ```
-
-2. Generate the Xcode project:
-   ```bash
-   cd hearing-app
-   xcodegen generate
-   ```
-
-3. Open the generated project:
-   ```bash
-   open HearingApp.xcodeproj
-   ```
-
-### Option 2: Manual Xcode Setup
-
-1. Open Xcode and create a new iOS App project
-2. Choose SwiftUI for the interface
-3. Enable HealthKit capability in Signing & Capabilities
-4. Copy the source files from `HearingApp/` into your project
-5. Add the Info.plist entries for HealthKit usage descriptions
+- Physical iOS device (HealthKit not available in Simulator)
+- Apple Developer account (for HealthKit entitlements)
 
 ## Project Structure
 
 ```
-hearing-app/
+bloop/
 ├── HearingApp/
-│   ├── App/                    # App entry point and state
+│   ├── App/                    # App entry & state management
 │   ├── Features/
-│   │   ├── Today/              # Main dashboard
-│   │   ├── Trends/             # Weekly/monthly charts
-│   │   ├── Settings/           # User preferences
-│   │   └── Onboarding/         # First-run experience
+│   │   ├── Today/              # Main dashboard with dose ring
+│   │   ├── Trends/             # Weekly/monthly analytics
+│   │   ├── Settings/           # Preferences & AI settings
+│   │   └── Onboarding/         # Privacy-first onboarding flow
 │   ├── Services/
-│   │   ├── HealthKit/          # HealthKit integration
+│   │   ├── HealthKit/          # HealthKit sync service
+│   │   ├── AI/                 # Gemini agentic recommendations
 │   │   ├── Dose/               # Sound dose calculations
-│   │   └── Notifications/      # Local notifications
+│   │   └── Notifications/      # Smart alerts & Live Activity
 │   ├── Storage/                # SwiftData models
-│   ├── DesignSystem/           # Colors, typography, components
-│   └── Resources/              # Assets, Info.plist, entitlements
-├── HearingAppTests/            # Unit tests
-├── project.yml                 # Xcodegen configuration
-└── README.md
+│   └── DesignSystem/           # Glassmorphism UI components
+├── HearingWidget/              # Home & Lock Screen widgets
+└── project.yml                 # Xcodegen configuration
 ```
-
-## How It Works
-
-### Sound Dose Calculation
-
-The app uses the NIOSH/WHO-recommended formula for calculating safe sound exposure:
-
-- **Reference level**: 85 dBA for 8 hours = 100% daily dose
-- **Exchange rate**: Every 3 dB increase halves the allowable time
-- **Formula**: `Allowable Time = 8h × 2^((85-L)/3)`
-
-For example:
-- 85 dB → 8 hours
-- 88 dB → 4 hours
-- 91 dB → 2 hours
-- 94 dB → 1 hour
-
-### Data Sources
-
-The app reads headphone audio exposure data from Apple HealthKit:
-- `HKQuantityTypeIdentifierHeadphoneAudioExposure` - Sound level samples in dBASPL
-- `HKCategoryTypeIdentifierHeadphoneAudioExposureEvent` - Exposure threshold events
-
-**Note**: Accuracy is highest with AirPods and Beats headphones, which report actual measured levels. Other headphones use estimated values based on volume settings.
-
-## Privacy
-
-This app is designed with privacy as a core principle:
-
-- **No microphone access** - We never record ambient sound
-- **No content analysis** - We don't know what you're listening to
-- **On-device processing** - All calculations happen locally
-- **No network requests** - Your data never leaves your phone
-- **No analytics** - We don't track your usage
-
-## Testing
-
-Run the unit tests:
-```bash
-xcodebuild test -scheme HearingApp -destination 'platform=iOS Simulator,name=iPhone 15'
-```
-
-## License
-
-MIT License - See LICENSE file for details.
 
 ## Acknowledgments
 
 - WHO Safe Listening Guidelines
 - NIOSH Noise Exposure Standards
-- Apple HealthKit Documentation
+- Apple HealthKit & ActivityKit
+- Google Gemini API
+
+---
+
+*Protecting the next generation's hearing, one bloop at a time.*
