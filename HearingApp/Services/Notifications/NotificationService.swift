@@ -25,7 +25,7 @@ final class NotificationService: ObservableObject {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
             isAuthorized = granted
         } catch {
-            print("Notification authorization error: \(error)")
+            AppLogger.error("Notification authorization error: \(error)", category: AppLogger.notifications)
             isAuthorized = false
         }
     }
@@ -105,7 +105,7 @@ final class NotificationService: ObservableObject {
             try await center.add(request)
             notificationCooldowns[threshold] = Date()
         } catch {
-            print("Failed to send notification: \(error)")
+            AppLogger.error("Failed to send notification: \(error)", category: AppLogger.notifications)
         }
     }
 
@@ -169,7 +169,7 @@ final class NotificationService: ObservableObject {
             try await center.add(request)
             notificationCooldowns[actionableCooldownKey] = Date()
         } catch {
-            print("Failed to send actionable notification: \(error)")
+            AppLogger.error("Failed to send actionable notification: \(error)", category: AppLogger.notifications)
         }
     }
 
@@ -208,7 +208,7 @@ final class NotificationService: ObservableObject {
         do {
             try await center.add(request)
         } catch {
-            print("Failed to send volume suggestion: \(error)")
+            AppLogger.error("Failed to send volume suggestion: \(error)", category: AppLogger.notifications)
         }
     }
     
@@ -234,7 +234,7 @@ final class NotificationService: ObservableObject {
         do {
             try await center.add(request)
         } catch {
-            print("Failed to send exposure event notification: \(error)")
+            AppLogger.error("Failed to send exposure event notification: \(error)", category: AppLogger.notifications)
         }
     }
     
@@ -271,7 +271,7 @@ final class NotificationService: ObservableObject {
         do {
             try await center.add(request)
         } catch {
-            print("Failed to schedule daily summary: \(error)")
+            AppLogger.error("Failed to schedule daily summary: \(error)", category: AppLogger.notifications)
         }
     }
     

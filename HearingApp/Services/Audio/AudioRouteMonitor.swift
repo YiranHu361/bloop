@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import Combine
+import UIKit
 
 /// Monitors the audio output route to detect headphone connections.
 /// Used to improve UI state (e.g., "Headphones connected", "No headphones detected").
@@ -62,17 +63,37 @@ final class AudioRouteMonitor: ObservableObject {
     // MARK: - Private
     
     nonisolated(unsafe) private var routeChangeObserver: NSObjectProtocol?
+    nonisolated(unsafe) private var appActiveObserver: NSObjectProtocol?
     
     // MARK: - Init
     
     private init() {
+        configureAudioSession()
         checkCurrentRoute()
         startMonitoring()
     }
     
+    /// Configure audio session to receive route change notifications.
+    /// Uses ambient category with mix mode to avoid interrupting other audio.
+    private func configureAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true)
+        } catch {
+            // Non-fatal - route detection may still work via notifications
+            if FeatureFlags.verboseLoggingEnabled {
+                print("AudioRouteMonitor: Failed to configure audio session - \(error)")
+            }
+        }
+    }
+    
     deinit {
-        // Clean up observer directly since deinit runs in nonisolated context
+        // Clean up observers directly since deinit runs in nonisolated context
         if let observer = routeChangeObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = appActiveObserver {
             NotificationCenter.default.removeObserver(observer)
         }
     }
@@ -98,6 +119,10 @@ final class AudioRouteMonitor: ObservableObject {
         for output in currentRoute.outputs {
             let type = classifyPort(output.portType, portName: output.portName)
             
+            if FeatureFlags.verboseLoggingEnabled {
+                print("AudioRouteMonitor: Port '\(output.portName)' type=\(output.portType.rawValue) -> \(type.rawValue)")
+            }
+            
             if type.isHeadphoneType {
                 foundHeadphones = true
                 outputType = type
@@ -114,9 +139,16 @@ final class AudioRouteMonitor: ObservableObject {
             outputType = .speaker
         }
         
+        // Only log state changes to reduce noise
+        let stateChanged = isHeadphonesConnected != foundHeadphones || currentOutputType != outputType
+        
         isHeadphonesConnected = foundHeadphones
         currentOutputType = outputType
         deviceName = name
+        
+        if stateChanged && FeatureFlags.verboseLoggingEnabled {
+            print("AudioRouteMonitor: State changed -> headphones=\(foundHeadphones), type=\(outputType.rawValue)")
+        }
     }
     
     /// Classify a port type, using the port name to distinguish BT headphones from BT speakers
@@ -222,12 +254,29 @@ final class AudioRouteMonitor: ObservableObject {
                 self?.checkCurrentRoute()
             }
         }
+        
+        // Refresh route when app becomes active (route may have changed in background)
+        appActiveObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                // Re-configure session in case it was deactivated
+                self?.configureAudioSession()
+                self?.checkCurrentRoute()
+            }
+        }
     }
     
     private func stopMonitoring() {
         if let observer = routeChangeObserver {
             NotificationCenter.default.removeObserver(observer)
             routeChangeObserver = nil
+        }
+        if let observer = appActiveObserver {
+            NotificationCenter.default.removeObserver(observer)
+            appActiveObserver = nil
         }
     }
     

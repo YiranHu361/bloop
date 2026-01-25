@@ -85,30 +85,23 @@ struct TodayView: View {
         }
         .onAppear {
             viewModel.setup(modelContext: modelContext)
-            // Start live streaming immediately
+            // Start live streaming - this pushes updates via notifications
             HealthKitSyncService.shared.startLiveUpdates()
             Task {
-                // Force a sync to get latest data
+                // Initial sync and load
                 try? await HealthKitSyncService.shared.performIncrementalSync()
                 await viewModel.loadData()
-                viewModel.startPeriodicRefresh()
             }
-        }
-        .onDisappear {
-            viewModel.stopPeriodicRefresh()
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
-                // Restart live HealthKit streaming (may have been killed by iOS)
+                // Restart live streaming (may have been killed by iOS in background)
                 HealthKitSyncService.shared.startLiveUpdates()
-                // Force sync and refresh when returning to foreground
+                // Sync and reload when returning to foreground
                 Task {
                     try? await HealthKitSyncService.shared.performIncrementalSync()
-                    await viewModel.silentRefresh()
+                    await viewModel.loadDataSilently()
                 }
-                viewModel.startPeriodicRefresh()
-            } else if newPhase == .background {
-                viewModel.stopPeriodicRefresh()
             }
         }
     }

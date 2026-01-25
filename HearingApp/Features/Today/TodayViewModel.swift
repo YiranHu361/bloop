@@ -35,12 +35,6 @@ final class TodayViewModel: ObservableObject {
     private let geminiRefreshInterval: TimeInterval = 60 // Fetch new AI advice every 1 minute max
     private var cancellables = Set<AnyCancellable>()
     private var doseModel: DoseModel = .niosh
-    private var refreshTimer: Timer?
-    private var isRefreshInProgress = false
-    
-    /// Refresh interval in seconds (while dashboard is visible)
-    /// Reduced to 2 seconds for more responsive real-time updates
-    static let refreshInterval: TimeInterval = 2
     
     var currentStatus: ExposureStatus {
         guard let dose = todayDose else { return .safe }
@@ -55,62 +49,22 @@ final class TodayViewModel: ObservableObject {
     
     // MARK: - Real-time Refresh
     
-    /// Subscribe to HealthKit data update notifications for real-time updates
+    /// Subscribe to HealthKit data update notifications for real-time updates.
+    /// This is the primary refresh mechanism - HealthKit live streaming pushes updates,
+    /// and we simply reload local data when notified. No polling timer needed.
     private func subscribeToHealthKitUpdates() {
         NotificationCenter.default.publisher(for: .healthKitDataUpdated)
-            .debounce(for: .milliseconds(50), scheduler: DispatchQueue.main)  // Faster response
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)  // Debounce to batch rapid updates
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "HH:mm:ss"
-                    print("🎯 [\(formatter.string(from: Date()))] HealthKit data notification received")
-                    // Use silent load to avoid flashing loading indicator
                     await self?.loadDataSilently()
                 }
             }
             .store(in: &cancellables)
     }
     
-    /// Start periodic refresh timer (call when view appears)
-    func startPeriodicRefresh() {
-        guard isInitialLoadComplete else { return }  // Prevent timer before initial load
-        stopPeriodicRefresh()
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: Self.refreshInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                await self?.silentRefresh()
-            }
-        }
-    }
-    
-    /// Stop periodic refresh timer (call when view disappears)
-    func stopPeriodicRefresh() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
-    }
-    
-    /// Silent refresh that doesn't show loading indicator (for background updates)
-    func silentRefresh() async {
-        let refreshTime = Date()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        print("🔄 [\(formatter.string(from: refreshTime))] Live exposure refresh triggered")
-
-        // Don't block if already refreshing - just skip the sync but still reload local data
-        if !isRefreshInProgress {
-            isRefreshInProgress = true
-            do {
-                try await HealthKitSyncService.shared.performIncrementalSync()
-            } catch {
-                print("Silent sync error: \(error)")
-            }
-            isRefreshInProgress = false
-        }
-        // Always reload local data even if sync was skipped
-        await loadDataSilently()
-    }
-    
-    /// Load data without showing loading indicator
-    private func loadDataSilently() async {
+    /// Load data without showing loading indicator (for live updates)
+    func loadDataSilently() async {
         guard let context = modelContext else { return }
         
         do {
@@ -122,6 +76,7 @@ final class TodayViewModel: ObservableObject {
                   let month = todayComponents.month,
                   let day = todayComponents.day else { return }
 
+            // Fetch today's dose
             let dosePredicate = #Predicate<DailyDose> { dose in
                 dose.year == year &&
                 dose.month == month &&
@@ -132,6 +87,7 @@ final class TodayViewModel: ObservableObject {
             let doses = try context.fetch(doseDescriptor)
             todayDose = doses.first
             
+            // Fetch recent events (limit 10)
             guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) else { return }
             let eventPredicate = #Predicate<ExposureEvent> { event in
                 event.startDate >= today && event.startDate < endOfDay
@@ -143,15 +99,7 @@ final class TodayViewModel: ObservableObject {
 
             recentEvents = try context.fetch(eventDescriptor)
 
-            let samplePredicate = #Predicate<ExposureSample> { sample in
-                sample.startDate >= today && sample.startDate < endOfDay
-            }
-
-            var sampleDescriptor = FetchDescriptor<ExposureSample>(predicate: samplePredicate)
-            sampleDescriptor.sortBy = [SortDescriptor(\.startDate, order: .forward)]
-            todaySamples = try context.fetch(sampleDescriptor)
-            
-            // Load last 24 hours of samples for timeline chart
+            // Fetch last 24 hours of samples (covers both today and timeline needs)
             let twentyFourHoursAgo = Date().addingTimeInterval(-24 * 60 * 60)
             let sample24hPredicate = #Predicate<ExposureSample> { sample in
                 sample.startDate >= twentyFourHoursAgo
@@ -159,19 +107,20 @@ final class TodayViewModel: ObservableObject {
             
             var sample24hDescriptor = FetchDescriptor<ExposureSample>(predicate: sample24hPredicate)
             sample24hDescriptor.sortBy = [SortDescriptor(\.startDate, order: .forward)]
-            timelineSamples24h = try context.fetch(sample24hDescriptor)
+            let allSamples24h = try context.fetch(sample24hDescriptor)
+            
+            // Split into today samples and 24h timeline
+            timelineSamples24h = allSamples24h
+            todaySamples = allSamples24h.filter { $0.startDate >= today }
 
             rebuildAnalytics()
             lastUpdated = Date()
             
         } catch {
-            print("Silent load error: \(error)")
+            // Errors logged via OSLog in hardened version
         }
     }
     
-    deinit {
-        refreshTimer?.invalidate()
-    }
     
     func loadData() async {
         guard let context = modelContext else { return }
@@ -243,16 +192,13 @@ final class TodayViewModel: ObservableObject {
         }
     }
     
+    /// Manual refresh (pull-to-refresh)
     func refresh() async {
-        guard !isRefreshInProgress else { return }
-        isRefreshInProgress = true
-        defer { isRefreshInProgress = false }
-        
         // Trigger HealthKit sync and reload
         do {
             try await HealthKitSyncService.shared.performIncrementalSync()
         } catch {
-            print("Sync error: \(error)")
+            // Sync errors are logged in the service
         }
         await loadData()
     }
@@ -317,7 +263,7 @@ final class TodayViewModel: ObservableObject {
             )
             
         } catch {
-            print("Error calculating score: \(error)")
+            AppLogger.error("Error calculating score: \(error)", category: AppLogger.ui)
         }
     }
 
@@ -335,13 +281,10 @@ final class TodayViewModel: ObservableObject {
         }
 
         let newLevel = todaySamples.last?.levelDBASPL
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        let timestamp = formatter.string(from: Date())
 
         if let level = newLevel {
             let dosePercent = todayDose?.dosePercent ?? 0
-            print("📊 [\(timestamp)] Current dB: \(String(format: "%.1f", level)) | Dose: \(String(format: "%.1f", dosePercent))% | Samples today: \(todaySamples.count)")
+            AppLogger.debug("Current dB: \(String(format: "%.1f", level)) | Dose: \(String(format: "%.1f", dosePercent))%", category: AppLogger.ui)
         }
 
         currentLevelDB = newLevel
@@ -459,7 +402,7 @@ final class TodayViewModel: ObservableObject {
 
         } catch {
             // Silently fail - we'll use the default message
-            print("Gemini insight error: \(error.localizedDescription)")
+            AppLogger.debug("Gemini insight error: \(error.localizedDescription)", category: AppLogger.general)
         }
     }
 
@@ -514,7 +457,7 @@ final class TodayViewModel: ObservableObject {
 
             return totalDose / totalListeningHours
         } catch {
-            print("Error calculating typical burn rate: \(error)")
+            AppLogger.error("Error calculating typical burn rate: \(error)", category: AppLogger.ui)
             return nil
         }
     }

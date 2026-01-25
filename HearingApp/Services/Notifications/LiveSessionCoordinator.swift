@@ -155,7 +155,7 @@ final class LiveSessionCoordinator: ObservableObject {
         // Start inactivity timer
         resetInactivityTimer()
         
-        print("🎧 LiveSession: Started - dose=\(Int(currentDosePercent))%, limit=\(dailyLimitPercent)%")
+        AppLogger.debug("LiveSession: Started - dose=\(Int(currentDosePercent))%, limit=\(dailyLimitPercent)%", category: AppLogger.notifications)
     }
     
     private func refreshDoseAndUpdateActivity() async {
@@ -195,7 +195,7 @@ final class LiveSessionCoordinator: ObservableObject {
             loadUserSettings()
             
         } catch {
-            print("LiveSession: Error fetching dose - \(error)")
+            AppLogger.error("LiveSession: Error fetching dose - \(error)", category: AppLogger.notifications)
         }
     }
     
@@ -241,7 +241,7 @@ final class LiveSessionCoordinator: ObservableObject {
         let duration = sessionStartTime.map { Date().timeIntervalSince($0) } ?? 0
         let durationMinutes = Int(duration / 60)
         
-        print("🎧 LiveSession: Ended (\(reason)) - duration=\(durationMinutes)m, final_dose=\(Int(currentDosePercent))%")
+        AppLogger.debug("LiveSession: Ended (\(reason)) - duration=\(durationMinutes)m, final_dose=\(Int(currentDosePercent))%", category: AppLogger.notifications)
         
         sessionStartTime = nil
         lastSampleTime = nil

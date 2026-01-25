@@ -87,7 +87,7 @@ final class BloopLiveActivity: ObservableObject {
         dailyLimitPercent: Int = 100
     ) async {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            print("BloopLiveActivity: Activities not enabled")
+            AppLogger.debug("BloopLiveActivity: Activities not enabled", category: AppLogger.notifications)
             return
         }
         
@@ -116,9 +116,9 @@ final class BloopLiveActivity: ObservableObject {
             )
             currentActivity = activity
             isRunning = true
-            print("BloopLiveActivity: Started activity \(activity.id)")
+            AppLogger.debug("BloopLiveActivity: Started activity \(activity.id)", category: AppLogger.notifications)
         } catch {
-            print("BloopLiveActivity: Failed to start - \(error)")
+            AppLogger.error("BloopLiveActivity: Failed to start - \(error)", category: AppLogger.notifications)
         }
     }
     

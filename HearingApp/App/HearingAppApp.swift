@@ -70,7 +70,7 @@ struct BloopApp: App {
                 let canRead = await HealthKitService.shared.canReadHealthKitData()
 
                 guard canRead else {
-                    print("⚠️ Cannot read HealthKit data - authorization may be denied")
+                    AppLogger.warning("Cannot read HealthKit data - authorization may be denied", category: AppLogger.healthKit)
                     return
                 }
 
@@ -87,7 +87,7 @@ struct BloopApp: App {
                 let needsReset = !UserDefaults.standard.bool(forKey: "hasPerformedDataReset_v2")
 
                 if needsReset {
-                    print("🔄 Performing one-time data reset to fix duplicates...")
+                    AppLogger.info("Performing one-time data reset", category: AppLogger.sync)
                     try await HealthKitSyncService.shared.resetAndResync(days: 30)
                     UserDefaults.standard.set(true, forKey: "hasPerformedDataReset_v2")
                 } else {
@@ -98,9 +98,9 @@ struct BloopApp: App {
                 // Start live streaming for real-time updates
                 HealthKitSyncService.shared.startLiveUpdates()
 
-                print("✅ HealthKit services started successfully")
+                AppLogger.info("HealthKit services started", category: AppLogger.healthKit)
             } catch {
-                print("Error setting up services: \(error)")
+                AppLogger.error("Error setting up services: \(error)", category: AppLogger.general)
             }
         }
     }
