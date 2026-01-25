@@ -85,6 +85,8 @@ struct TodayView: View {
         }
         .onAppear {
             viewModel.setup(modelContext: modelContext)
+            // Refresh headphone status on appear
+            routeMonitor.refresh()
             // Load data - initial sync is handled by HearingAppApp.setupServices()
             Task {
                 await viewModel.loadData()

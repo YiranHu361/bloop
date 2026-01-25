@@ -163,57 +163,33 @@ final class AudioRouteMonitor: ObservableObject {
     }
     
     /// Use heuristics on device name to classify Bluetooth devices as headphones or speakers.
-    /// Conservative approach: unknown BT devices default to NOT headphones (matches HealthKit semantics).
+    /// Permissive approach: unknown BT devices default to headphones (most common use case).
     private func classifyBluetoothDevice(portName: String) -> OutputType {
         let nameLower = portName.lowercased()
         
-        // Known headphone patterns (AirPods, Beats, common earbuds/headphones)
-        let headphonePatterns = [
-            "airpod", "airpods",
-            "beats", "powerbeats", "beatsx", "beats fit", "beats studio buds",
-            "buds", "earbuds", "earbud",
-            "headphone", "headphones", "headset",
-            "wh-1000", "wf-1000",  // Sony headphones
-            "qc35", "qc45", "nc700",  // Bose headphones
-            "px7", "px8",  // Bowers & Wilkins
-            "momentum",  // Sennheiser
-            "freebuds",  // Huawei
-            "galaxy buds",  // Samsung
-            "jabra elite",
-            "nothing ear",
-            "pixel buds",
-        ]
-        
-        // Known speaker patterns
+        // Known speaker patterns - check these FIRST to exclude them
         let speakerPatterns = [
             "speaker", "soundbar", "soundlink",
             "homepod", "echo", "alexa",
-            "sonos", "bose soundlink", "jbl",
+            "sonos", "bose soundlink", "jbl flip", "jbl charge", "jbl xtreme",
             "ue boom", "megaboom", "wonderboom",
             "marshall", "harman kardon",
-            "flip", "charge", "xtreme",  // JBL portable speakers
             "pill",  // Beats Pill
             "soundcore",
-            "anker",
+            "anker soundcore",
+            "boombox",
         ]
         
-        // Check for headphone patterns first
-        for pattern in headphonePatterns {
-            if nameLower.contains(pattern) {
-                return .bluetoothHeadphones
-            }
-        }
-        
-        // Then check for speaker patterns
+        // Check for speaker patterns first - exclude these
         for pattern in speakerPatterns {
             if nameLower.contains(pattern) {
                 return .bluetoothSpeaker
             }
         }
         
-        // Default: unknown Bluetooth device - conservative approach, NOT headphones
-        // This aligns with HealthKit's "headphone audio exposure" semantics
-        return .bluetoothUnknown
+        // Everything else is assumed to be headphones
+        // This is more permissive but matches user expectations (AirPods, etc.)
+        return .bluetoothHeadphones
     }
     
     // MARK: - Monitoring

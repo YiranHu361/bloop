@@ -44,6 +44,9 @@ struct BloopApp: App {
     private func setupServices() {
         Task { @MainActor in
             do {
+                // Initialize audio route monitor early for headphone detection
+                _ = AudioRouteMonitor.shared
+                
                 // Configure sync service with model context and dose model
                 HealthKitSyncService.shared.configure(modelContext: sharedModelContainer.mainContext)
                 HealthKitSyncService.shared.setDoseModel(appState.selectedDoseModel)
