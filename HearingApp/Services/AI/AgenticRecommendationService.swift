@@ -308,6 +308,10 @@ final class AgenticRecommendationService {
         - Volume alert threshold can be adjusted only within \(volumeThresholdMin)-\(volumeThresholdMax).
         - Actions allowed: "none", "notify", "break", "sync", "adjust_settings".
 
+        Adjustment hints (use judgment):
+        - If daily dose frequently exceeds the current limit for multiple days, consider lowering the daily limit.
+        - If average listening levels are consistently low (roughly <60 dB) for a few days, consider relaxing the volume threshold.
+
         JSON schema:
         {
           "action": "none|notify|break|sync|adjust_settings",
