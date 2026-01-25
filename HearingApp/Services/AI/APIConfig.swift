@@ -7,7 +7,7 @@ enum APIConfig {
 
     /// Your Gemini API key - get one at https://aistudio.google.com/app/apikey
     /// Replace "YOUR_GEMINI_API_KEY_HERE" with your actual key
-    static let geminiAPIKey = "AIzaSyD-5PX4zvtrvOD_dEs1BJCbHGOCBgow4y8"
+    static let geminiAPIKey = "YOUR_GEMINI_API_KEY_HERE"
 
     /// Gemini API base URL
     static let geminiBaseURL = "https://generativelanguage.googleapis.com/v1beta"
