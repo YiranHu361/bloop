@@ -376,13 +376,21 @@ final class SettingsViewModel: ObservableObject {
     // MARK: - Debug Functions
     
     func generateSampleData(context: ModelContext) async {
+        await resetAgentHistory(context: context)
+
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         
         for daysAgo in 0..<14 {
             guard let date = calendar.date(byAdding: .day, value: -daysAgo, to: today) else { continue }
             
-            let dosePercent = Double.random(in: 20...120)
+            let dosePercent: Double
+            if daysAgo == 0 {
+                // dosePercent = Double.random(in: 20...80)
+                dosePercent = 49
+            } else {
+                dosePercent = Double.random(in: 20...120)
+            }
             let avgLevel = Double.random(in: 65...95)
             let peakLevel = avgLevel + Double.random(in: 5...15)
             let exposureTime = Double.random(in: 1800...14400)
@@ -413,16 +421,24 @@ final class SettingsViewModel: ObservableObject {
             context.insert(sample)
         }
 
-        // TEMP: add an "active listening" sample in the last 5 minutes
-        if let recentStart = calendar.date(byAdding: .minute, value: -5, to: Date()),
-           let recentEnd = calendar.date(byAdding: .minute, value: -1, to: Date()) {
-            let sample = ExposureSample(
-                healthKitUUID: "debug-active-\(UUID().uuidString)",
-                startDate: recentStart,
-                endDate: recentEnd,
-                levelDBASPL: 85
-            )
-            context.insert(sample)
+        // TEMP: add recent loud samples to force listening=true in debug
+        let now = Date()
+        let recentOffsets: [(start: Int, end: Int, level: Double)] = [
+            (-6, -4, 92),
+            (-4, -2, 95),
+            (-2, 0, 90)
+        ]
+        for offset in recentOffsets {
+            if let recentStart = calendar.date(byAdding: .minute, value: offset.start, to: now),
+               let recentEnd = calendar.date(byAdding: .minute, value: offset.end, to: now) {
+                let sample = ExposureSample(
+                    healthKitUUID: "debug-active-\(UUID().uuidString)",
+                    startDate: recentStart,
+                    endDate: recentEnd,
+                    levelDBASPL: offset.level
+                )
+                context.insert(sample)
+            }
         }
         
         try? context.save()

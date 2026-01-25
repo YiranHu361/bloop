@@ -65,6 +65,8 @@
 		F162CAC288AFF4A23B3BDB2A /* DoseCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3E33501712C2C1176E9DB5 /* DoseCalculator.swift */; };
 		F16F9D98F3CB5E3F1911C055 /* StatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 157D7994F17F52E1564FD5CE /* StatCardView.swift */; };
 		F233F9E6C409FE5485693EFC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55247140D2389C8123F2597 /* ContentView.swift */; };
+		F8465E6D2F2606CE00B0876D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F8465E6A2F2602AD00B0876D /* Assets.xcassets */; };
+		F8465E6F2F260B6E00B0876D /* bloop-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = F8465E6E2F260B6E00B0876D /* bloop-icon.icon */; };
 		FA0C31367B0EE4463D534077 /* GlassDoseRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBD04FA5A075D9E55380D13 /* GlassDoseRingView.swift */; };
 /* End PBXBuildFile section */
 
@@ -165,6 +167,8 @@
 		F092A50C1972266D5E38364B /* AgenticRecommendationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgenticRecommendationService.swift; sourceTree = "<group>"; };
 		F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigestView.swift; sourceTree = "<group>"; };
 		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F8465E6A2F2602AD00B0876D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = HearingApp/Resources/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		F8465E6E2F260B6E00B0876D /* bloop-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "bloop-icon.icon"; sourceTree = "<group>"; };
 		FAB03C61E0A2B4FD3BF46496 /* BloopLiveActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloopLiveActivityView.swift; sourceTree = "<group>"; };
 		FAF33A90C96C54EBB8BAC7A8 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -176,6 +180,7 @@
 				3EEC0D7F7157B2235DCC371E /* HearingApp.entitlements */,
 				FAF33A90C96C54EBB8BAC7A8 /* Info-Debug.plist */,
 				5A8B90DEBAB960557633242F /* Info.plist */,
+				F8465E6A2F2602AD00B0876D /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -374,6 +379,7 @@
 		BA0B4FAEECE75BB027819E2C = {
 			isa = PBXGroup;
 			children = (
+				F8465E6E2F260B6E00B0876D /* bloop-icon.icon */,
 				98C77C3A4A89AE1048E9819B /* HearingApp */,
 				1DB9567672B6674314F39B04 /* HearingAppTests */,
 				41864DE6CF217D1D63FB4B74 /* HearingWidget */,
@@ -429,6 +435,16 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		F8465E6B2F2606A600B0876D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
 		149892A44449853DCCE9D266 /* bloopWidget */ = {
 			isa = PBXNativeTarget;
@@ -451,8 +467,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 219F84321979C146474D2B66 /* Build configuration list for PBXNativeTarget "bloop" */;
 			buildPhases = (
+				F8465E6B2F2606A600B0876D /* Headers */,
 				24EB2ADE51E869A282932B0B /* Sources */,
 				5E5BB2E9ED58C59A58854781 /* Embed Foundation Extensions */,
+				F8465E6C2F2606C800B0876D /* Resources */,
 			);
 			buildRules = (
 			);
@@ -524,6 +542,18 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F8465E6C2F2606C800B0876D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F8465E6F2F260B6E00B0876D /* bloop-icon.icon in Resources */,
+				F8465E6D2F2606CE00B0876D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		017F8BDD7003A05A0E87EF1F /* Sources */ = {
@@ -775,12 +805,14 @@
 		3CC037B347A817F563269FED /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "bloop-icon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = DF47MDSFSX;
 				INFOPLIST_FILE = HearingApp/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = bloop;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -796,12 +828,14 @@
 		489D58E6DD39EC1002F1B19C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "bloop-icon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = DF47MDSFSX;
 				INFOPLIST_FILE = "HearingApp/Resources/Info-Debug.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = bloop;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
