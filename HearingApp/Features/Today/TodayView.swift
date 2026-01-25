@@ -8,9 +8,9 @@ struct TodayView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = TodayViewModel()
     @ObservedObject private var routeMonitor = AudioRouteMonitor.shared
-
+    
     @State private var isRefreshing = false
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -31,7 +31,7 @@ struct TodayView: View {
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.2)
-
+                    
                     // Session Summary Card
                     SessionSummaryCard(
                         averageDB: viewModel.todayDose?.averageLevelDBASPL,
@@ -40,7 +40,7 @@ struct TodayView: View {
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.25)
-
+                    
                     // Exposure Details (Timeline / Log) - Last 24 hours
                     ExposureProfileView(
                         timeline: viewModel.exposureTimeline,
@@ -51,14 +51,14 @@ struct TodayView: View {
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.35)
-
+                    
                     // Recent Events
                     if !viewModel.recentEvents.isEmpty {
                         RecentEventsSection(events: viewModel.recentEvents)
                             .padding(.horizontal)
                             .cardEntrance(delay: 0.45)
                     }
-
+                    
                     // Bottom spacing
                     Spacer(minLength: 40)
                 }
@@ -76,8 +76,8 @@ struct TodayView: View {
                         // Headphone status indicator
                         HeadphoneStatusDot(isConnected: routeMonitor.isHeadphonesConnected)
                         
-                        if viewModel.isLoading || isRefreshing {
-                            ProgressView()
+                    if viewModel.isLoading || isRefreshing {
+                        ProgressView()
                         }
                     }
                 }
@@ -109,22 +109,22 @@ struct TodayView: View {
 
 struct RecentEventsSection: View {
     let events: [ExposureEvent]
-
+    
     @Environment(\.colorScheme) private var colorScheme
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "waveform.badge.exclamationmark")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppColors.caution)
-
+                
                 Text("Recent Loud Exposures")
                     .font(AppTypography.headline)
                     .foregroundColor(AppColors.label)
-
+                
                 Spacer()
-
+                
                 Text("\(events.count)")
                     .font(AppTypography.caption1Bold)
                     .foregroundColor(AppColors.secondaryLabel)
@@ -135,11 +135,11 @@ struct RecentEventsSection: View {
                             .fill(Color.gray.opacity(0.15))
                     )
             }
-
+            
             ForEach(events.prefix(3), id: \.healthKitUUID) { event in
                 RecentEventRow(event: event)
             }
-
+            
             if events.count > 3 {
                 Button(action: {}) {
                     Text("View all \(events.count) events")
@@ -159,7 +159,7 @@ struct RecentEventsSection: View {
         )
         .shadow(color: AppColors.cardShadow, radius: 8, x: 0, y: 4)
     }
-
+    
     private var cardBackground: some View {
         ZStack {
             if colorScheme == .dark {
@@ -170,7 +170,7 @@ struct RecentEventsSection: View {
         }
         .background(.ultraThinMaterial)
     }
-
+    
     private var borderGradient: LinearGradient {
         LinearGradient(
             colors: [
@@ -185,13 +185,13 @@ struct RecentEventsSection: View {
 
 struct RecentEventRow: View {
     let event: ExposureEvent
-
+    
     private var timeAgo: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: event.startDate, relativeTo: Date())
     }
-
+    
     private var levelColor: Color {
         guard let level = event.eventLevelDBASPL else { return AppColors.secondaryLabel }
         switch level {
@@ -200,7 +200,7 @@ struct RecentEventRow: View {
         default: return AppColors.danger
         }
     }
-
+    
     var body: some View {
         HStack(spacing: 12) {
             // Level indicator
@@ -208,14 +208,14 @@ struct RecentEventRow: View {
                 Circle()
                     .fill(levelColor.opacity(0.15))
                     .frame(width: 40, height: 40)
-
+                
                 if let level = event.eventLevelDBASPL {
                     Text("\(Int(level))")
                         .font(AppTypography.caption1Bold)
                         .foregroundColor(levelColor)
                 }
             }
-
+            
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     if let level = event.eventLevelDBASPL {
@@ -224,14 +224,14 @@ struct RecentEventRow: View {
                             .fontWeight(.medium)
                             .foregroundColor(AppColors.label)
                     }
-
+                    
                     Spacer()
-
+                    
                     Text(timeAgo)
                         .font(AppTypography.caption1)
                         .foregroundColor(AppColors.tertiaryLabel)
                 }
-
+                
                 if let duration = event.eventDurationSeconds {
                     Text("Duration: \(formatDuration(duration))")
                         .font(AppTypography.caption1)
@@ -241,7 +241,7 @@ struct RecentEventRow: View {
         }
         .padding(.vertical, 4)
     }
-
+    
     private func formatDuration(_ seconds: Double) -> String {
         let minutes = Int(seconds) / 60
         if minutes >= 60 {

@@ -17,7 +17,7 @@ final class HealthKitSyncService: ObservableObject {
     private var liveEventQuery: HKAnchoredObjectQuery?
     private let healthStore = HKHealthStore()
     private var currentDoseModel: DoseModel = .niosh
-
+    
     private init() {}
 
     /// Set the dose model to use for calculations
@@ -90,7 +90,7 @@ final class HealthKitSyncService: ObservableObject {
         var insertedCount = 0
         for sample in samples {
             let hkUUID = sample.uuid.uuidString
-
+            
             if !existingSampleUUIDs.contains(hkUUID) {
                 let exposureSample = ExposureSample(
                     healthKitUUID: hkUUID,
@@ -117,11 +117,11 @@ final class HealthKitSyncService: ObservableObject {
         } catch {
             // Error fetching existing event UUIDs
         }
-
+        
         // Upsert events with fast in-memory deduplication
         for event in events {
             let hkUUID = event.uuid.uuidString
-
+            
             if !existingEventUUIDs.contains(hkUUID) {
                 let metadata = HealthKitService.eventMetadata(from: event)
                 let exposureEvent = ExposureEvent(
@@ -196,19 +196,19 @@ final class HealthKitSyncService: ObservableObject {
             let hkUUID = sample.uuid.uuidString
             guard seenSampleUUIDs.insert(hkUUID).inserted else { continue }
             
-            let exposureSample = ExposureSample(
-                healthKitUUID: hkUUID,
-                startDate: sample.startDate,
-                endDate: sample.endDate,
-                levelDBASPL: HealthKitService.decibels(from: sample),
-                sourceBundleId: sample.sourceRevision.source.bundleIdentifier,
-                sourceName: sample.sourceRevision.source.name,
-                deviceName: sample.device?.name,
-                isCalibrated: HealthKitService.isCalibrated(sample: sample)
-            )
-            context.insert(exposureSample)
-            affectedDates.insert(calendar.startOfDay(for: sample.startDate))
-            insertedCount += 1
+                let exposureSample = ExposureSample(
+                    healthKitUUID: hkUUID,
+                    startDate: sample.startDate,
+                    endDate: sample.endDate,
+                    levelDBASPL: HealthKitService.decibels(from: sample),
+                    sourceBundleId: sample.sourceRevision.source.bundleIdentifier,
+                    sourceName: sample.sourceRevision.source.name,
+                    deviceName: sample.device?.name,
+                    isCalibrated: HealthKitService.isCalibrated(sample: sample)
+                )
+                context.insert(exposureSample)
+                affectedDates.insert(calendar.startOfDay(for: sample.startDate))
+                insertedCount += 1
         }
         
         // Dedupe events within batch
@@ -217,17 +217,17 @@ final class HealthKitSyncService: ObservableObject {
             let hkUUID = event.uuid.uuidString
             guard seenEventUUIDs.insert(hkUUID).inserted else { continue }
             
-            let metadata = HealthKitService.eventMetadata(from: event)
-            let exposureEvent = ExposureEvent(
-                healthKitUUID: hkUUID,
-                startDate: event.startDate,
-                endDate: event.endDate,
-                eventLevelDBASPL: metadata.level,
-                eventDurationSeconds: metadata.duration,
-                sourceBundleId: event.sourceRevision.source.bundleIdentifier,
-                sourceName: event.sourceRevision.source.name
-            )
-            context.insert(exposureEvent)
+                let metadata = HealthKitService.eventMetadata(from: event)
+                let exposureEvent = ExposureEvent(
+                    healthKitUUID: hkUUID,
+                    startDate: event.startDate,
+                    endDate: event.endDate,
+                    eventLevelDBASPL: metadata.level,
+                    eventDurationSeconds: metadata.duration,
+                    sourceBundleId: event.sourceRevision.source.bundleIdentifier,
+                    sourceName: event.sourceRevision.source.name
+                )
+                context.insert(exposureEvent)
         }
         
         // Save anchors
@@ -264,31 +264,31 @@ final class HealthKitSyncService: ObservableObject {
         // Start sample query
         if let exposureType = HKQuantityType.quantityType(forIdentifier: .headphoneAudioExposure) {
             let sampleAnchor: HKQueryAnchor?
-            do {
+        do {
                 sampleAnchor = try getSyncAnchor(for: SyncState.exposureSamplesId)
-            } catch {
+        } catch {
                 sampleAnchor = nil
-            }
-
+        }
+        
             let sampleQuery = HKAnchoredObjectQuery(
-                type: exposureType,
-                predicate: nil,
+            type: exposureType,
+            predicate: nil,
                 anchor: sampleAnchor,
-                limit: HKObjectQueryNoLimit
-            ) { [weak self] query, samples, deleted, newAnchor, error in
+            limit: HKObjectQueryNoLimit
+        ) { [weak self] query, samples, deleted, newAnchor, error in
                 if error != nil { return }
-                Task { @MainActor [weak self] in
-                    await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
-                }
+            Task { @MainActor [weak self] in
+                await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
             }
-
+        }
+        
             sampleQuery.updateHandler = { [weak self] query, samples, deleted, newAnchor, error in
                 if error != nil { return }
-                Task { @MainActor [weak self] in
-                    await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
-                }
+            Task { @MainActor [weak self] in
+                await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
             }
-
+        }
+        
             liveSampleQuery = sampleQuery
             healthStore.execute(sampleQuery)
         }
@@ -326,7 +326,7 @@ final class HealthKitSyncService: ObservableObject {
         }
 
     }
-
+    
     /// Stop live streaming
     func stopLiveUpdates() {
         if let query = liveSampleQuery {
@@ -406,31 +406,31 @@ final class HealthKitSyncService: ObservableObject {
             NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
             return
         }
-
+        
         let calendar = Calendar.current
         var affectedDates = Set<Date>()
         var insertedCount = 0
         var latestSample: HKQuantitySample?
-
+        
         // Dedupe within incoming batch only (anchor handles cross-batch deduplication)
         var seenUUIDs = Set<String>()
         for sample in quantitySamples {
             let hkUUID = sample.uuid.uuidString
             guard seenUUIDs.insert(hkUUID).inserted else { continue }
             
-            let exposureSample = ExposureSample(
-                healthKitUUID: hkUUID,
-                startDate: sample.startDate,
-                endDate: sample.endDate,
-                levelDBASPL: HealthKitService.decibels(from: sample),
-                sourceBundleId: sample.sourceRevision.source.bundleIdentifier,
-                sourceName: sample.sourceRevision.source.name,
-                deviceName: sample.device?.name,
-                isCalibrated: HealthKitService.isCalibrated(sample: sample)
-            )
-            context.insert(exposureSample)
-            affectedDates.insert(calendar.startOfDay(for: sample.startDate))
-            insertedCount += 1
+                    let exposureSample = ExposureSample(
+                        healthKitUUID: hkUUID,
+                        startDate: sample.startDate,
+                        endDate: sample.endDate,
+                        levelDBASPL: HealthKitService.decibels(from: sample),
+                        sourceBundleId: sample.sourceRevision.source.bundleIdentifier,
+                        sourceName: sample.sourceRevision.source.name,
+                        deviceName: sample.device?.name,
+                        isCalibrated: HealthKitService.isCalibrated(sample: sample)
+                    )
+                    context.insert(exposureSample)
+                    affectedDates.insert(calendar.startOfDay(for: sample.startDate))
+                    insertedCount += 1
 
             // Track most recent sample for Live Activity notification
             if latestSample == nil || sample.endDate > latestSample!.endDate {
@@ -439,18 +439,18 @@ final class HealthKitSyncService: ObservableObject {
         }
 
         do {
-            try context.save()
-
-            // Recalculate affected daily doses
-            for date in affectedDates {
-                try await recalculateDailyDose(for: date)
-            }
-
-            lastSyncDate = Date()
-
+                try context.save()
+                
+                // Recalculate affected daily doses
+                for date in affectedDates {
+                    try await recalculateDailyDose(for: date)
+                }
+                
+                lastSyncDate = Date()
+                
             // Always post notification when we receive samples (keeps UI fresh)
-            NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
-
+                NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
+                
             // Notify LiveSessionCoordinator (only if we inserted at least one new sample)
             if insertedCount > 0, let sample = latestSample {
                 let payload = ExposureSamplePayload(

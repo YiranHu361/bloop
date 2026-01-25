@@ -228,7 +228,7 @@ final class SettingsViewModel: ObservableObject {
         pinProtectionEnabled = false
         isPINVerified = false
         saveSettings()
-    }
+        }
     
     // MARK: - Preset Application
     

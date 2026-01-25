@@ -6,14 +6,14 @@ struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
     @State private var currentPage = 0
     @State private var isRequestingPermissions = false
-    
+
     private let totalPages = 4
-    
+
     var body: some View {
         ZStack {
             // Animated background
             MeshGradientBackground()
-            
+
             VStack(spacing: 0) {
                 // Skip button
                 HStack {
@@ -29,7 +29,7 @@ struct OnboardingView: View {
                         .padding()
                     }
                 }
-                
+
                 // Page content
                 TabView(selection: $currentPage) {
                     WelcomePage()
@@ -48,7 +48,7 @@ struct OnboardingView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentPage)
-                
+
                 // Progress indicators and navigation
                 VStack(spacing: 24) {
                     // Page dots
@@ -60,7 +60,7 @@ struct OnboardingView: View {
                                 .animation(.spring(response: 0.3), value: currentPage)
                         }
                     }
-                    
+
                     // Navigation button
                     if currentPage < totalPages - 1 {
                         Button(action: {
@@ -109,11 +109,11 @@ struct OnboardingView: View {
 
 struct WelcomePage: View {
     @State private var isAnimated = false
-    
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            
+
             // App icon/logo
             ZStack {
                 Circle()
@@ -126,19 +126,19 @@ struct WelcomePage: View {
                     )
                     .frame(width: 120, height: 120)
                     .shadow(color: AppColors.primaryFallback.opacity(0.4), radius: 20, x: 0, y: 10)
-                
+
                 Image(systemName: "ear.and.waveform")
                     .font(.system(size: 50, weight: .medium))
                     .foregroundColor(.white)
             }
             .scaleEffect(isAnimated ? 1.0 : 0.8)
             .opacity(isAnimated ? 1.0 : 0)
-            
+
             VStack(spacing: 16) {
                 Text("bloop.")
                     .font(AppTypography.largeTitle)
                     .foregroundColor(.white)
-                
+
                 Text("Safe listening for kids.\nPeace of mind for parents.")
                     .font(AppTypography.title3)
                     .foregroundColor(.white.opacity(0.8))
@@ -146,7 +146,7 @@ struct WelcomePage: View {
             }
             .offset(y: isAnimated ? 0 : 20)
             .opacity(isAnimated ? 1.0 : 0)
-            
+
             Spacer()
             Spacer()
         }
@@ -163,34 +163,34 @@ struct WelcomePage: View {
 
 struct PrivacyFirstPage: View {
     @State private var isAnimated = false
-    
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            
+
             // Shield icon
             ZStack {
                 Circle()
                     .fill(AppColors.safe.opacity(0.15))
                     .frame(width: 100, height: 100)
-                
+
                 Image(systemName: "hand.raised.fill")
                     .font(.system(size: 44, weight: .medium))
                     .foregroundColor(AppColors.safe)
             }
             .scaleEffect(isAnimated ? 1.0 : 0.8)
-            
+
             VStack(spacing: 16) {
                 Text("Privacy First")
                     .font(AppTypography.title1)
                     .foregroundColor(.white)
-                
+
                 Text("We don't listen to what you're listening to")
                     .font(AppTypography.headline)
                     .foregroundColor(.white.opacity(0.9))
                     .multilineTextAlignment(.center)
             }
-            
+
             VStack(alignment: .leading, spacing: 20) {
                 privacyItem(icon: "mic.slash.fill", text: "No microphone access")
                 privacyItem(icon: "waveform.slash", text: "No audio content analysis")
@@ -200,7 +200,7 @@ struct PrivacyFirstPage: View {
             .padding(.horizontal, 20)
             .offset(y: isAnimated ? 0 : 30)
             .opacity(isAnimated ? 1.0 : 0)
-            
+
             Spacer()
             Spacer()
         }
@@ -211,18 +211,18 @@ struct PrivacyFirstPage: View {
             }
         }
     }
-    
+
     private func privacyItem(icon: String, text: String) -> some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.system(size: 20))
                 .foregroundColor(AppColors.safe)
                 .frame(width: 28)
-            
+
             Text(text)
                 .font(AppTypography.body)
                 .foregroundColor(.white.opacity(0.9))
-            
+
             Spacer()
         }
     }
@@ -238,21 +238,21 @@ struct PermissionsPage: View {
     enum PermissionStatus {
         case notDetermined, granted, denied
     }
-    
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            
+
             Text("Quick Setup")
                 .font(AppTypography.title1)
                 .foregroundColor(.white)
-            
+
             Text("We need a couple of permissions to protect their hearing")
                 .font(AppTypography.subheadline)
                 .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            
+
             VStack(spacing: 16) {
                 permissionCard(
                     icon: "heart.fill",
@@ -263,7 +263,7 @@ struct PermissionsPage: View {
                 ) {
                     await requestHealthKit()
                 }
-                
+
                 permissionCard(
                     icon: "bell.fill",
                     iconColor: AppColors.caution,
@@ -275,13 +275,13 @@ struct PermissionsPage: View {
                 }
             }
             .padding(.horizontal, 20)
-            
+
             Spacer()
             Spacer()
         }
         .padding()
     }
-    
+
     private func permissionCard(
         icon: String,
         iconColor: Color,
@@ -295,24 +295,24 @@ struct PermissionsPage: View {
                 Circle()
                     .fill(iconColor.opacity(0.15))
                     .frame(width: 50, height: 50)
-                
+
                 Image(systemName: icon)
                     .font(.system(size: 22))
                     .foregroundColor(iconColor)
             }
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(AppTypography.headline)
                     .foregroundColor(.white)
-                
+
                 Text(description)
                     .font(AppTypography.caption1)
                     .foregroundColor(.white.opacity(0.6))
             }
-            
+
             Spacer()
-            
+
             switch status {
             case .notDetermined:
                 Button("Allow") {
@@ -344,7 +344,7 @@ struct PermissionsPage: View {
         .background(Color.white.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
-    
+
     private func requestHealthKit() async {
         do {
             try await HealthKitService.shared.requestAuthorization()
@@ -357,7 +357,7 @@ struct PermissionsPage: View {
             }
         }
     }
-    
+
     private func requestNotifications() async {
         await NotificationService.shared.requestAuthorization()
         withAnimation {
@@ -371,28 +371,28 @@ struct PermissionsPage: View {
 struct GetStartedPage: View {
     let onComplete: () -> Void
     @State private var isAnimated = false
-    
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            
+
             // Celebration icon
             ZStack {
                 Circle()
                     .fill(AppColors.safe.opacity(0.15))
                     .frame(width: 100, height: 100)
-                
+
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 50))
                     .foregroundColor(AppColors.safe)
             }
             .scaleEffect(isAnimated ? 1.0 : 0.5)
-            
+
             VStack(spacing: 16) {
                 Text("You're All Set!")
                     .font(AppTypography.title1)
                     .foregroundColor(.white)
-                
+
                 Text("Start protecting their hearing today.\nWe'll help them stay within safe limits.")
                     .font(AppTypography.body)
                     .foregroundColor(.white.opacity(0.8))
@@ -400,15 +400,15 @@ struct GetStartedPage: View {
             }
             .offset(y: isAnimated ? 0 : 20)
             .opacity(isAnimated ? 1.0 : 0)
-            
+
             Spacer()
-            
+
             // Get Started button
             Button(action: onComplete) {
                 HStack {
                     Text("Let's Go!")
                         .font(AppTypography.buttonLarge)
-                    
+
                     Image(systemName: "arrow.right")
                         .font(.system(size: 14, weight: .semibold))
                 }
@@ -428,7 +428,7 @@ struct GetStartedPage: View {
             .padding(.horizontal, 40)
             .scaleEffect(isAnimated ? 1.0 : 0.9)
             .opacity(isAnimated ? 1.0 : 0)
-            
+
             Spacer()
         }
         .padding()
