@@ -100,6 +100,15 @@ actor GeminiService {
 
     /// Generate a general text response from Gemini
     func generateText(prompt: String) async throws -> String {
+        return try await generateText(prompt: prompt, temperature: 0.7, maxOutputTokens: 150)
+    }
+
+    /// Generate a text response with custom generation config
+    func generateText(
+        prompt: String,
+        temperature: Double,
+        maxOutputTokens: Int
+    ) async throws -> String {
         guard APIConfig.isGeminiConfigured else {
             throw GeminiServiceError.notConfigured
         }
@@ -115,8 +124,8 @@ actor GeminiService {
                 GeminiRequest.Content(parts: [GeminiRequest.Part(text: prompt)])
             ],
             generationConfig: GeminiRequest.GenerationConfig(
-                temperature: 0.7,
-                maxOutputTokens: 150
+                temperature: temperature,
+                maxOutputTokens: maxOutputTokens
             )
         )
 

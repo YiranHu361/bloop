@@ -246,8 +246,8 @@ extension DoseCalculator {
         let recentDoseResult = calculateDailyDose(from: recentSamples)
 
         // If minimal dose in window, user isn't actively listening at risky levels
-        // Threshold: less than 0.5% dose contribution in the window
-        guard recentDoseResult.dosePercent > 0.5 else {
+        // Threshold: less than 0.1% dose contribution in the window (lenient for testing)
+        guard recentDoseResult.dosePercent > 0.1 else {
             return .inactive
         }
 
@@ -255,7 +255,7 @@ extension DoseCalculator {
         let actualListeningSeconds = recentSamples.reduce(0.0) { $0 + $1.duration }
 
         // Need meaningful listening time to calculate rate
-        guard actualListeningSeconds > 60 else { // At least 1 minute of data
+        guard actualListeningSeconds > 10 else { // At least 10 seconds of data (lenient for testing)
             return .inactive
         }
 

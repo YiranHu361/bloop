@@ -610,8 +610,20 @@ final class HealthKitSyncService: ObservableObject {
             let doses = try context.fetch(descriptor)
 
             if let todayDose = doses.first {
-                // Send threshold notifications
-                await NotificationService.shared.checkAndNotify(for: todayDose.dosePercent)
+                let settings = try context.fetch(FetchDescriptor<UserSettings>()).first
+                let limit = settings?.dailyExposureLimit ?? 100
+                let warn50 = settings?.warningThreshold50Enabled ?? true
+                let warn80 = settings?.warningThreshold80Enabled ?? true
+                let warn100 = settings?.warningThreshold100Enabled ?? true
+
+                // Send threshold notifications (scaled to daily limit)
+                await NotificationService.shared.checkAndNotify(
+                    for: todayDose.dosePercent,
+                    limit: limit,
+                    warn50: warn50,
+                    warn80: warn80,
+                    warn100: warn100
+                )
 
                 // Update widget data
                 updateWidgetData(dose: todayDose)

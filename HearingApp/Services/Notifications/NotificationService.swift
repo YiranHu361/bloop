@@ -3,7 +3,7 @@ import UserNotifications
 
 /// Service for managing local notifications
 @MainActor
-final class NotificationService: ObservableObject {
+final class NotificationService: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationService()
     
     @Published var isAuthorized: Bool = false
@@ -12,7 +12,9 @@ final class NotificationService: ObservableObject {
     private var notificationCooldowns: [Int: Date] = [:] // threshold -> last notification time
     private let cooldownInterval: TimeInterval = 3600 // 1 hour between same threshold notifications
     
-    private init() {
+    private override init() {
+        super.init()
+        center.delegate = self
         Task {
             await checkAuthorizationStatus()
         }
@@ -57,6 +59,31 @@ final class NotificationService: ObservableObject {
         } else if dosePercent >= 80 {
             await sendThresholdNotification(threshold: 80, dosePercent: dosePercent)
         } else if dosePercent >= 50 {
+            await sendThresholdNotification(threshold: 50, dosePercent: dosePercent)
+        }
+    }
+
+    func checkAndNotify(
+        for dosePercent: Double,
+        limit: Int,
+        warn50: Bool,
+        warn80: Bool,
+        warn100: Bool
+    ) async {
+        guard isAuthorized else { return }
+
+        cleanupOldCooldowns()
+
+        let limitValue = Double(limit)
+        let threshold50 = limitValue * 0.5
+        let threshold80 = limitValue * 0.8
+        let threshold100 = limitValue
+
+        if warn100, dosePercent >= threshold100 {
+            await sendThresholdNotification(threshold: 100, dosePercent: dosePercent)
+        } else if warn80, dosePercent >= threshold80 {
+            await sendThresholdNotification(threshold: 80, dosePercent: dosePercent)
+        } else if warn50, dosePercent >= threshold50 {
             await sendThresholdNotification(threshold: 50, dosePercent: dosePercent)
         }
     }
@@ -237,6 +264,42 @@ final class NotificationService: ObservableObject {
             // Failed to send exposure event notification
         }
     }
+
+    // MARK: - Break Reminders
+
+    func sendBreakReminder(
+        sessionMinutes: Int,
+        breakMinutes: Int,
+        cooldownSeconds: TimeInterval
+    ) async {
+        guard isAuthorized else { return }
+
+        let cooldownKey = 2001
+        if let lastNotification = notificationCooldowns[cooldownKey],
+           Date().timeIntervalSince(lastNotification) < cooldownSeconds {
+            return
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Time for a Listening Break"
+        content.body = "You've been listening for \(sessionMinutes) minutes. A \(breakMinutes)-minute break can help protect your hearing."
+        content.sound = .default
+        content.categoryIdentifier = NotificationCategory.breakReminder.rawValue
+        content.threadIdentifier = "break-reminders"
+
+        let request = UNNotificationRequest(
+            identifier: "break-reminder-\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+
+        do {
+            try await center.add(request)
+            notificationCooldowns[cooldownKey] = Date()
+        } catch {
+            // Failed to send break reminder
+        }
+    }
     
     // MARK: - Daily Summary
     
@@ -278,6 +341,7 @@ final class NotificationService: ObservableObject {
     func cancelDailySummary() {
         center.removePendingNotificationRequests(withIdentifiers: ["daily-summary"])
     }
+
     
     // MARK: - Notification Categories
 
@@ -361,6 +425,13 @@ final class NotificationService: ObservableObject {
             intentIdentifiers: []
         )
 
+        // Break reminder category
+        let breakReminderCategory = UNNotificationCategory(
+            identifier: NotificationCategory.breakReminder.rawValue,
+            actions: [startBreakTimerAction, dismissAction],
+            intentIdentifiers: []
+        )
+
         center.setNotificationCategories([
             doseCategory,
             eventCategory,
@@ -368,7 +439,8 @@ final class NotificationService: ObservableObject {
             remainingTimeCategory,
             volumeSuggestionCategory,
             contextAwareCategory,
-            weeklyDigestCategory
+            weeklyDigestCategory,
+            breakReminderCategory
         ])
     }
     
@@ -384,5 +456,39 @@ final class NotificationService: ObservableObject {
     
     func resetCooldowns() {
         notificationCooldowns.removeAll()
+    }
+
+    // MARK: - Agent Notifications
+
+    func sendAgentNotification(title: String, body: String, threadId: String = "agent-alerts") async {
+        await checkAuthorizationStatus()
+        guard isAuthorized else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.threadIdentifier = threadId
+
+        let request = UNNotificationRequest(
+            identifier: "agent-\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+
+        do {
+            try await center.add(request)
+        } catch {
+            // Failed to send agent notification
+        }
+    }
+
+    // MARK: - Foreground Presentation
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound, .badge]
     }
 }

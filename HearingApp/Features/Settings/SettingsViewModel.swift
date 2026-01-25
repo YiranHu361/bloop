@@ -55,6 +55,10 @@ final class SettingsViewModel: ObservableObject {
     @Published var historyDuration: Int = 30 // days, 0 = forever
     
     private var modelContext: ModelContext?
+    private struct AINotificationPayload: Codable {
+        let title: String
+        let body: String
+    }
     
     // MARK: - Available Options
     
@@ -228,7 +232,104 @@ final class SettingsViewModel: ObservableObject {
         pinProtectionEnabled = false
         isPINVerified = false
         saveSettings()
+    }
+
+    // MARK: - Debug AI Notification
+
+    func sendAINotificationTest(context: ModelContext) async {
+        guard APIConfig.isGeminiConfigured else { return }
+
+        let dosePercent = fetchTodayDosePercent(context: context)
+        let prompt = """
+        You are generating a short hearing safety notification.
+        Return ONLY valid JSON with fields: title, body.
+        Keep it under 20 words total.
+        Try to vary the wording while staying supportive and clear.
+
+        Current state:
+        - dosePercent: \(dosePercent)
+
+        Example:
+        {"title":"Hearing Check","body":"Keep volumes comfortable for safe listening."}
+        """
+
+        do {
+            let response = try await GeminiService.shared.generateText(
+                prompt: prompt,
+                temperature: 0.5,
+                maxOutputTokens: 120
+            )
+
+            // TEMP: log raw AI response for notification test
+            print("🤖 AI notify raw: \(response)")
+
+            let payload = decodeAINotification(from: response)
+            let title = payload?.title ?? "Hearing Check"
+            let body = payload?.body ?? "Keep volumes comfortable for safe listening."
+            await NotificationService.shared.sendAgentNotification(title: title, body: body)
+        } catch {
+            // TEMP: log error for notification test
+            print("🤖 AI notify error: \(error.localizedDescription)")
+            await NotificationService.shared.sendAgentNotification(
+                title: "Hearing Check",
+                body: "Keep volumes comfortable for safe listening."
+            )
         }
+    }
+
+    private func fetchTodayDosePercent(context: ModelContext) -> Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let components = calendar.dateComponents([.year, .month, .day], from: today)
+        guard let year = components.year,
+              let month = components.month,
+              let day = components.day else {
+            return 0
+        }
+
+        let predicate = #Predicate<DailyDose> { dose in
+            dose.year == year &&
+            dose.month == month &&
+            dose.day == day
+        }
+
+        let descriptor = FetchDescriptor<DailyDose>(predicate: predicate)
+        let doses = (try? context.fetch(descriptor)) ?? []
+        return Int(doses.first?.dosePercent ?? 0)
+    }
+
+    private func decodeAINotification(from response: String) -> AINotificationPayload? {
+        let cleaned = stripCodeFences(response)
+        if let direct = decodeAINotificationJSON(cleaned) {
+            return direct
+        }
+
+        guard let start = cleaned.firstIndex(of: "{"),
+              let end = cleaned.lastIndex(of: "}") else {
+            return nil
+        }
+
+        let jsonSlice = cleaned[start...end]
+        return decodeAINotificationJSON(String(jsonSlice))
+    }
+
+    private func decodeAINotificationJSON(_ json: String) -> AINotificationPayload? {
+        do {
+            let data = Data(json.utf8)
+            return try JSONDecoder().decode(AINotificationPayload.self, from: data)
+        } catch {
+            return nil
+        }
+    }
+
+    private func stripCodeFences(_ text: String) -> String {
+        var cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleaned.hasPrefix("```") {
+            cleaned = cleaned.replacingOccurrences(of: "```json", with: "")
+            cleaned = cleaned.replacingOccurrences(of: "```", with: "")
+        }
+        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
     
     // MARK: - Preset Application
     
@@ -311,8 +412,21 @@ final class SettingsViewModel: ObservableObject {
             )
             context.insert(sample)
         }
+
+        // TEMP: add an "active listening" sample in the last 5 minutes
+        if let recentStart = calendar.date(byAdding: .minute, value: -5, to: Date()),
+           let recentEnd = calendar.date(byAdding: .minute, value: -1, to: Date()) {
+            let sample = ExposureSample(
+                healthKitUUID: "debug-active-\(UUID().uuidString)",
+                startDate: recentStart,
+                endDate: recentEnd,
+                levelDBASPL: 85
+            )
+            context.insert(sample)
+        }
         
         try? context.save()
+        NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
     }
     
     func clearAllData(context: ModelContext) async {
@@ -324,6 +438,19 @@ final class SettingsViewModel: ObservableObject {
             try context.save()
         } catch {
             // Error clearing data
+        }
+    }
+
+    // MARK: - Debug Agent Reset
+
+    func resetAgentHistory(context: ModelContext) async {
+        do {
+            try context.delete(model: AgentInterventionEvent.self)
+            try context.delete(model: AgentComplianceEvent.self)
+            try context.delete(model: AgentState.self)
+            try context.save()
+        } catch {
+            // Error resetting agent history
         }
     }
 }

@@ -15,6 +15,10 @@ struct BloopApp: App {
             WeeklyDigest.self,
             PersonalizedThreshold.self,
             PersonalizationPreferences.self,
+            AgentState.self,
+            AgentInterventionEvent.self,
+            AgentComplianceEvent.self,
+            AgentHealthKitStatus.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

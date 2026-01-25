@@ -10,6 +10,7 @@
 		0175519A0712F63228ADC2AF /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4778164EF93E0BC942699A83 /* UserSettings.swift */; };
 		01915FD49A2D68B9A215D1E6 /* BloopLiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB03C61E0A2B4FD3BF46496 /* BloopLiveActivityView.swift */; };
 		0573BAB6E84CF46C5D87EF25 /* ExposureSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */; };
+		0AA0CBDEAD54FF4AB0E0DA0C /* AgentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5673ECE5F2FB96290E811500 /* AgentModels.swift */; };
 		0E9846BC09C70E3A7D98AA72 /* LiveRiskIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5653B1D0AC3FC1865D43BA6 /* LiveRiskIndicator.swift */; };
 		0FF3C7125B347F0CABBB86F5 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3727F53B5D59E9796BDB8A6B /* GlassCard.swift */; };
 		16A5440D640941ECC8C518E2 /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD9EDBC37D55D268B270C1 /* GeminiService.swift */; };
@@ -45,6 +46,7 @@
 		ABD7A307023C41C653F50D90 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0299043F84C1568EB2FC10E8 /* TrendsViewModel.swift */; };
 		AC779DADBF3E15DDB4B88EEE /* BloopLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B98F9F250B7A851BEB68107 /* BloopLiveActivity.swift */; };
 		B0E6DA0A440AFDC1091AD7DB /* LiveSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8094772391AC678C082BE73D /* LiveSessionCoordinator.swift */; };
+		BC801048B9DFC039F7F5298E /* AgenticRecommendationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F092A50C1972266D5E38364B /* AgenticRecommendationService.swift */; };
 		BDCFCCCF4692DE61DACC217B /* AlertBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D26536D4D22635131036B8 /* AlertBanner.swift */; };
 		BE38B868D94EE2D9AB0CED6B /* DoseRingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453EE8485C3A46640EF2778C /* DoseRingWidgetView.swift */; };
 		C55802E99AE3093C3991DA96 /* AccuracyInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD26AE300C296B58CB77D76 /* AccuracyInfoView.swift */; };
@@ -115,6 +117,7 @@
 		4778164EF93E0BC942699A83 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		4EE231F1E5D7B68E21049A16 /* ActionableNotificationBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionableNotificationBuilder.swift; sourceTree = "<group>"; };
 		54B6AC37D612540CF43BBE96 /* AppTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypography.swift; sourceTree = "<group>"; };
+		5673ECE5F2FB96290E811500 /* AgentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentModels.swift; sourceTree = "<group>"; };
 		573DB75926349D4033B2CC45 /* PersonalizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationService.swift; sourceTree = "<group>"; };
 		5A8B90DEBAB960557633242F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5DD26AE300C296B58CB77D76 /* AccuracyInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccuracyInfoView.swift; sourceTree = "<group>"; };
@@ -159,6 +162,7 @@
 		E5057FBA8B953E59D8FC42C6 /* DoseRingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseRingView.swift; sourceTree = "<group>"; };
 		EBF9A61CFA1E84CABAA04B58 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EDB2BD5F180D8A0FFDE1EE74 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
+		F092A50C1972266D5E38364B /* AgenticRecommendationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgenticRecommendationService.swift; sourceTree = "<group>"; };
 		F15056251CEBEC82C632E0BB /* WeeklyDigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyDigestView.swift; sourceTree = "<group>"; };
 		F2DBFF55FDE16FCFFC39688C /* bloopWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = bloopWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAB03C61E0A2B4FD3BF46496 /* BloopLiveActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloopLiveActivityView.swift; sourceTree = "<group>"; };
@@ -197,6 +201,7 @@
 		23F1CB71CF85B44B6DDAB026 /* AI */ = {
 			isa = PBXGroup;
 			children = (
+				F092A50C1972266D5E38364B /* AgenticRecommendationService.swift */,
 				89CCF6EB37948393D5024FD2 /* APIConfig.swift */,
 				9BFD9EDBC37D55D268B270C1 /* GeminiService.swift */,
 			);
@@ -300,6 +305,7 @@
 		7E6070AED05B73520DEB7C6F /* Storage */ = {
 			isa = PBXGroup;
 			children = (
+				5673ECE5F2FB96290E811500 /* AgentModels.swift */,
 				B6BFC7B9769C02EB8AEDC984 /* DailyDose.swift */,
 				C9EABFB9D794B8099F7AA30B /* ExposureEvent.swift */,
 				A05A5F66D064CEE83F1BECE9 /* ExposureSample.swift */,
@@ -536,6 +542,8 @@
 				EA5776E3B9B989123DF4B3A2 /* APIConfig.swift in Sources */,
 				C55802E99AE3093C3991DA96 /* AccuracyInfoView.swift in Sources */,
 				4D7E1278D6E165878CD0C261 /* ActionableNotificationBuilder.swift in Sources */,
+				0AA0CBDEAD54FF4AB0E0DA0C /* AgentModels.swift in Sources */,
+				BC801048B9DFC039F7F5298E /* AgenticRecommendationService.swift in Sources */,
 				BDCFCCCF4692DE61DACC217B /* AlertBanner.swift in Sources */,
 				DC6E23B9CF14D29E8A38EA5C /* AnimationTokens.swift in Sources */,
 				CA3B3256E107D9ED311709F9 /* AppColors.swift in Sources */,
@@ -679,7 +687,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
+				DEVELOPMENT_TEAM = DF47MDSFSX;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -688,7 +696,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app.widget;
 				PRODUCT_NAME = bloopWidget;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -771,14 +779,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
+				DEVELOPMENT_TEAM = DF47MDSFSX;
 				INFOPLIST_FILE = HearingApp/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app;
 				PRODUCT_NAME = bloop.;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -792,14 +800,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HearingApp/Resources/HearingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
+				DEVELOPMENT_TEAM = DF47MDSFSX;
 				INFOPLIST_FILE = "HearingApp/Resources/Info-Debug.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app;
 				PRODUCT_NAME = bloop.;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -816,7 +824,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/bloop.app/bloop";
@@ -828,7 +836,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = HearingWidget/HearingWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = XUFG4TWAV8;
+				DEVELOPMENT_TEAM = DF47MDSFSX;
 				INFOPLIST_FILE = HearingWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -837,7 +845,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app.widget;
 				PRODUCT_NAME = bloopWidget;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -855,7 +863,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bloopapp.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.blooptest.app.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/bloop.app/bloop";
