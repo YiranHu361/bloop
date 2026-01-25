@@ -6,9 +6,9 @@ struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
     @State private var currentPage = 0
     @State private var isRequestingPermissions = false
-
+    
     private let totalPages = 4
-
+    
     var body: some View {
         ZStack {
             // Animated background
@@ -32,10 +32,10 @@ struct OnboardingView: View {
 
                 // Page content
                 TabView(selection: $currentPage) {
-                    WelcomePage()
+                    PrivacyFirstPage()
                         .tag(0)
                     
-                    PrivacyFirstPage()
+                    HowItWorksPage()
                         .tag(1)
                     
                     PermissionsPage(isRequesting: $isRequestingPermissions)
@@ -105,6 +105,7 @@ struct OnboardingView: View {
     }
 }
 
+<<<<<<< HEAD
 // MARK: - Welcome Page
 
 struct WelcomePage: View {
@@ -159,6 +160,8 @@ struct WelcomePage: View {
     }
 }
 
+=======
+>>>>>>> David
 // MARK: - Privacy First Page
 
 struct PrivacyFirstPage: View {
