@@ -237,6 +237,42 @@ final class NotificationService: ObservableObject {
             // Failed to send exposure event notification
         }
     }
+
+    // MARK: - Break Reminders
+
+    func sendBreakReminder(
+        sessionMinutes: Int,
+        breakMinutes: Int,
+        cooldownSeconds: TimeInterval
+    ) async {
+        guard isAuthorized else { return }
+
+        let cooldownKey = 2001
+        if let lastNotification = notificationCooldowns[cooldownKey],
+           Date().timeIntervalSince(lastNotification) < cooldownSeconds {
+            return
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Time for a Listening Break"
+        content.body = "You've been listening for \(sessionMinutes) minutes. A \(breakMinutes)-minute break can help protect your hearing."
+        content.sound = .default
+        content.categoryIdentifier = NotificationCategory.breakReminder.rawValue
+        content.threadIdentifier = "break-reminders"
+
+        let request = UNNotificationRequest(
+            identifier: "break-reminder-\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+
+        do {
+            try await center.add(request)
+            notificationCooldowns[cooldownKey] = Date()
+        } catch {
+            // Failed to send break reminder
+        }
+    }
     
     // MARK: - Daily Summary
     
@@ -277,6 +313,31 @@ final class NotificationService: ObservableObject {
     
     func cancelDailySummary() {
         center.removePendingNotificationRequests(withIdentifiers: ["daily-summary"])
+    }
+
+    // MARK: - Manual Test Notification
+
+    func sendManualNotification(title: String, body: String) async {
+        guard isAuthorized else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.categoryIdentifier = NotificationCategory.doseThreshold.rawValue
+        content.threadIdentifier = "manual-test"
+
+        let request = UNNotificationRequest(
+            identifier: "manual-\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+
+        do {
+            try await center.add(request)
+        } catch {
+            // Failed to send manual notification
+        }
     }
     
     // MARK: - Notification Categories
@@ -361,6 +422,13 @@ final class NotificationService: ObservableObject {
             intentIdentifiers: []
         )
 
+        // Break reminder category
+        let breakReminderCategory = UNNotificationCategory(
+            identifier: NotificationCategory.breakReminder.rawValue,
+            actions: [startBreakTimerAction, dismissAction],
+            intentIdentifiers: []
+        )
+
         center.setNotificationCategories([
             doseCategory,
             eventCategory,
@@ -368,7 +436,8 @@ final class NotificationService: ObservableObject {
             remainingTimeCategory,
             volumeSuggestionCategory,
             contextAwareCategory,
-            weeklyDigestCategory
+            weeklyDigestCategory,
+            breakReminderCategory
         ])
     }
     

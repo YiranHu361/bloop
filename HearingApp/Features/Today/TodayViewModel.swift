@@ -35,6 +35,8 @@ final class TodayViewModel: ObservableObject {
     private let geminiRefreshInterval: TimeInterval = 60 // Fetch new AI advice every 1 minute max
     private var cancellables = Set<AnyCancellable>()
     private var doseModel: DoseModel = .niosh
+    private let syncCooldown: TimeInterval = 60
+    private var lastSyncAt: Date?
     
     var currentStatus: ExposureStatus {
         guard let dose = todayDose else { return .safe }
@@ -195,12 +197,22 @@ final class TodayViewModel: ObservableObject {
     /// Manual refresh (pull-to-refresh)
     func refresh() async {
         // Trigger HealthKit sync and reload
-        do {
-            try await HealthKitSyncService.shared.performIncrementalSync()
-        } catch {
-            // Sync errors are logged in the service
+        if shouldSync(now: Date()) {
+            do {
+                try await HealthKitSyncService.shared.performIncrementalSync()
+                lastSyncAt = Date()
+            } catch {
+                // Sync errors are logged in the service
+            }
         }
         await loadData()
+    }
+
+    private func shouldSync(now: Date) -> Bool {
+        if let lastSyncAt, now.timeIntervalSince(lastSyncAt) < syncCooldown {
+            return false
+        }
+        return true
     }
 
     // MARK: - Safe Listening Score Calculation
@@ -330,6 +342,19 @@ final class TodayViewModel: ObservableObject {
         }
 
         aiInsight = insight
+
+        if let context = modelContext {
+            Task { @MainActor in
+                await AgenticRecommendationService.shared.evaluateIfNeeded(
+                    modelContext: context,
+                    dose: todayDose,
+                    samples: todaySamples,
+                    aiInsight: aiInsight,
+                    currentLevelDB: currentLevelDB,
+                    doseModel: doseModel
+                )
+            }
+        }
 
         // Fetch new Gemini insight if needed (rate limited)
         Task {
