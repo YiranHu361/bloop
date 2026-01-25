@@ -85,11 +85,8 @@ struct TodayView: View {
         }
         .onAppear {
             viewModel.setup(modelContext: modelContext)
-            // Start live streaming - this pushes updates via notifications
-            HealthKitSyncService.shared.startLiveUpdates()
+            // Load data - initial sync is handled by HearingAppApp.setupServices()
             Task {
-                // Initial sync and load
-                try? await HealthKitSyncService.shared.performIncrementalSync()
                 await viewModel.loadData()
             }
         }
@@ -97,9 +94,8 @@ struct TodayView: View {
             if newPhase == .active {
                 // Restart live streaming (may have been killed by iOS in background)
                 HealthKitSyncService.shared.startLiveUpdates()
-                // Sync and reload when returning to foreground
+                // Reload local data when returning to foreground
                 Task {
-                    try? await HealthKitSyncService.shared.performIncrementalSync()
                     await viewModel.loadDataSilently()
                 }
             }

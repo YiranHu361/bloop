@@ -33,6 +33,8 @@ final class HealthKitSyncService: ObservableObject {
     
     /// Clear all local data and resync from HealthKit (fixes duplicate issues)
     func resetAndResync(days: Int = 30) async throws {
+        // Prevent concurrent syncs
+        guard !isSyncing else { return }
         guard let context = modelContext else { return }
         
         isSyncing = true
@@ -52,11 +54,9 @@ final class HealthKitSyncService: ObservableObject {
     // MARK: - Full Sync
     
     /// Perform a full sync of the last N days (uses upsert to prevent duplicates)
+    /// Note: Called from resetAndResync which handles isSyncing state
     func performFullSync(days: Int = 30) async throws {
         guard let context = modelContext else { return }
-        
-        isSyncing = true
-        defer { isSyncing = false }
         
         let calendar = Calendar.current
         let endDate = Date()
@@ -152,6 +152,8 @@ final class HealthKitSyncService: ObservableObject {
     /// Perform incremental sync using anchored queries.
     /// Relies on HealthKit anchors to prevent re-delivery - no expensive DB lookups.
     func performIncrementalSync() async throws {
+        // Prevent concurrent syncs - can cause SwiftData deadlock
+        guard !isSyncing else { return }
         guard let context = modelContext else { return }
         
         isSyncing = true
