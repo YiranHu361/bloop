@@ -56,6 +56,50 @@ Based on NIOSH/WHO guidelines:
 | Live Activity | ActivityKit |
 | Architecture | MVVM |
 
+## API Setup (Gemini AI)
+
+bloop uses Google's Gemini API for intelligent, context-aware recommendations. The agentic AI system:
+
+1. **Monitors listening patterns** in real-time via HealthKit samples
+2. **Evaluates risk factors** (dose %, burn rate, session duration, volume levels)
+3. **Decides when to intervene** with smart cooldowns to avoid notification fatigue
+4. **Generates personalized insights** using Gemini 2.0 Flash
+
+### Configuration
+
+1. Get a free API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+2. Create `HearingApp/Services/AI/Secrets.swift`:
+   ```swift
+   import Foundation
+
+   enum Secrets {
+       static let geminiAPIKey = "YOUR_API_KEY_HERE"
+   }
+   ```
+
+3. Update `APIConfig.swift` to use your key:
+   ```swift
+   static let geminiAPIKey = Secrets.geminiAPIKey
+   ```
+
+### API Flow
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   HealthKit     │────▶│  Agentic Loop    │────▶│   Gemini API    │
+│   Samples       │     │  (evaluation)    │     │   (insights)    │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                               │
+                               ▼
+                        ┌──────────────────┐
+                        │  Smart Notification │
+                        │  or Live Activity   │
+                        └──────────────────┘
+```
+
+The agent evaluates every 60 seconds during active listening, with a 10-minute cooldown between interventions to respect user attention.
+
 ## Team
 
 Built with care by:
