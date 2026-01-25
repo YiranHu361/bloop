@@ -103,6 +103,7 @@ struct TodayView: View {
             }
         }
     }
+}
 
 // MARK: - Recent Events Section
 
