@@ -317,7 +317,8 @@ final class TodayViewModel: ObservableObject {
 
         // Get samples from the last 30 minutes for burn rate calculation
         let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
-        let recentSamples = todaySamples.filter { $0.startDate >= thirtyMinutesAgo }
+        let recentSamplesSource = timelineSamples24h.isEmpty ? todaySamples : timelineSamples24h
+        let recentSamples = recentSamplesSource.filter { $0.endDate >= thirtyMinutesAgo }
 
         // Get typical burn rate from personalization if available
         let typicalBurnRate = calculateTypicalBurnRate()

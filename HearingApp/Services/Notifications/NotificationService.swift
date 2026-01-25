@@ -3,7 +3,7 @@ import UserNotifications
 
 /// Service for managing local notifications
 @MainActor
-final class NotificationService: ObservableObject {
+final class NotificationService: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationService()
     
     @Published var isAuthorized: Bool = false
@@ -12,7 +12,9 @@ final class NotificationService: ObservableObject {
     private var notificationCooldowns: [Int: Date] = [:] // threshold -> last notification time
     private let cooldownInterval: TimeInterval = 3600 // 1 hour between same threshold notifications
     
-    private init() {
+    private override init() {
+        super.init()
+        center.delegate = self
         Task {
             await checkAuthorizationStatus()
         }
@@ -315,30 +317,6 @@ final class NotificationService: ObservableObject {
         center.removePendingNotificationRequests(withIdentifiers: ["daily-summary"])
     }
 
-    // MARK: - Manual Test Notification
-
-    func sendManualNotification(title: String, body: String) async {
-        guard isAuthorized else { return }
-
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = .default
-        content.categoryIdentifier = NotificationCategory.doseThreshold.rawValue
-        content.threadIdentifier = "manual-test"
-
-        let request = UNNotificationRequest(
-            identifier: "manual-\(Date().timeIntervalSince1970)",
-            content: content,
-            trigger: nil
-        )
-
-        do {
-            try await center.add(request)
-        } catch {
-            // Failed to send manual notification
-        }
-    }
     
     // MARK: - Notification Categories
 
@@ -453,5 +431,14 @@ final class NotificationService: ObservableObject {
     
     func resetCooldowns() {
         notificationCooldowns.removeAll()
+    }
+
+    // MARK: - Foreground Presentation
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound, .badge]
     }
 }

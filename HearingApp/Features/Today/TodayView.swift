@@ -8,7 +8,6 @@ struct TodayView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = TodayViewModel()
     @ObservedObject private var routeMonitor = AudioRouteMonitor.shared
-    @Query private var userSettings: [UserSettings]
 
     @State private var isRefreshing = false
 
@@ -32,10 +31,6 @@ struct TodayView: View {
                     )
                     .padding(.horizontal)
                     .cardEntrance(delay: 0.2)
-
-                    notificationGateStatusCard
-                        .padding(.horizontal)
-                        .cardEntrance(delay: 0.25)
 
                     // Session Summary Card
                     SessionSummaryCard(
@@ -107,102 +102,6 @@ struct TodayView: View {
                 }
             }
         }
-    }
-}
-
-private extension TodayView {
-    var notificationGateStatusCard: some View {
-        let settings = userSettings.first
-        let lastSampleDate = viewModel.todaySamples.last?.endDate
-        let isRecent = lastSampleDate.map { Date().timeIntervalSince($0) <= AgenticRecommendationService.recentSampleWindowSeconds } ?? false
-        let isListening = viewModel.aiInsight.isActivelyListening
-        let isHeadphones = routeMonitor.currentOutputType.isHeadphoneType
-        let instantAlerts = settings?.instantVolumeAlerts ?? true
-        let quietHours = isInQuietHours(settings: settings)
-        let levelText = viewModel.currentLevelDB.map { "\(Int($0)) dB" } ?? "--"
-
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("Notification Gates")
-                .font(AppTypography.subheadline)
-                .foregroundColor(AppColors.label)
-
-            Text("Listening: \(yesNo(isListening)) • Recent: \(yesNo(isRecent)) • Headphones: \(yesNo(isHeadphones))")
-                .font(AppTypography.caption1)
-                .foregroundColor(AppColors.secondaryLabel)
-
-            Text("Quiet Hours: \(yesNo(quietHours)) • Instant Alerts: \(yesNo(instantAlerts)) • Level: \(levelText)")
-                .font(AppTypography.caption1)
-                .foregroundColor(AppColors.secondaryLabel)
-
-            Text("Last Sample: \(lastSampleAgeText(from: lastSampleDate))")
-                .font(AppTypography.caption2)
-                .foregroundColor(AppColors.tertiaryLabel)
-
-            Button {
-                Task {
-                    let dosePercent = viewModel.todayDose?.dosePercent ?? 0
-                    let body = "Manual notification at \(levelText), dose \(Int(dosePercent))%."
-                    await NotificationService.shared.sendManualNotification(title: "Test Notification", body: body)
-                }
-            } label: {
-                Text("Send Test Notification")
-                    .font(AppTypography.buttonSmall)
-                    .foregroundColor(AppColors.primaryFallback)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(AppColors.primaryFallback.opacity(0.12))
-                    )
-            }
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppColors.secondaryBackground)
-        )
-    }
-
-    func lastSampleAgeText(from date: Date?) -> String {
-        guard let date else { return "No samples yet" }
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
-
-    func yesNo(_ value: Bool) -> String {
-        value ? "Yes" : "No"
-    }
-
-    func isInQuietHours(settings: UserSettings?) -> Bool {
-        guard let settings,
-              settings.quietHoursEnabled,
-              let start = settings.quietHoursStart,
-              let end = settings.quietHoursEnd else {
-            return false
-        }
-
-        let calendar = Calendar.current
-        let nowComponents = calendar.dateComponents([.hour, .minute], from: Date())
-        let startComponents = calendar.dateComponents([.hour, .minute], from: start)
-        let endComponents = calendar.dateComponents([.hour, .minute], from: end)
-
-        guard let nowMinutes = minutes(from: nowComponents),
-              let startMinutes = minutes(from: startComponents),
-              let endMinutes = minutes(from: endComponents) else {
-            return false
-        }
-
-        if startMinutes <= endMinutes {
-            return nowMinutes >= startMinutes && nowMinutes <= endMinutes
-        }
-
-        return nowMinutes >= startMinutes || nowMinutes <= endMinutes
-    }
-
-    func minutes(from components: DateComponents) -> Int? {
-        guard let hour = components.hour, let minute = components.minute else { return nil }
-        return hour * 60 + minute
     }
 }
 
