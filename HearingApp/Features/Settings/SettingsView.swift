@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var showPrivacyPolicy = false
     @State private var showExportSheet = false
     @State private var showResetConfirmation = false
+    @State private var isGeneratingSampleData = false
     
     var body: some View {
         NavigationStack {
@@ -127,13 +128,35 @@ struct SettingsView: View {
                 // Debug Section (only in debug builds)
                 #if DEBUG
                 Section {
-                    Button("Generate Sample Data") {
+                    Button {
+                        guard !isGeneratingSampleData else { return }
+                        // Haptic feedback
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                        
+                        isGeneratingSampleData = true
                         Task {
                             await viewModel.generateSampleData(context: modelContext)
+                            // Success haptic
+                            let successFeedback = UINotificationFeedbackGenerator()
+                            successFeedback.notificationOccurred(.success)
+                            isGeneratingSampleData = false
+                        }
+                    } label: {
+                        HStack {
+                            Text("Generate Sample Data")
+                            Spacer()
+                            if isGeneratingSampleData {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
                         }
                     }
+                    .disabled(isGeneratingSampleData)
                     
                     Button("Reset Onboarding") {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                        impactFeedback.impactOccurred()
                         appState.resetOnboarding()
                     }
                 } header: {
