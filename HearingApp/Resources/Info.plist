@@ -22,11 +22,17 @@
 	<string>1</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>bloop. needs access to your child's headphone audio levels to track daily sound exposure and help protect their hearing.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>bloop. does not write health data, but this permission is required by HealthKit.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.bloopapp.healthkit.sync</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
