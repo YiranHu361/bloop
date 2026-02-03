@@ -32,3 +32,8 @@ fastlane/screenshots/**/*.png
 
 # AppIcons source files
 AppIcons/
+
+# Secrets
+Secrets.swift
+*.secret
+*.secrets
