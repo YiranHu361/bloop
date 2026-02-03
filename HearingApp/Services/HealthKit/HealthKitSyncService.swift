@@ -83,7 +83,7 @@ final class HealthKitSyncService: ObservableObject {
             let allSamples = try context.fetch(allSamplesDescriptor)
             existingSampleUUIDs = Set(allSamples.map { $0.healthKitUUID })
         } catch {
-            // Error fetching existing sample UUIDs
+            AppLogger.logError(error, context: "fetchExistingSampleUUIDs", logger: AppLogger.sync)
         }
 
         // Upsert samples with fast in-memory deduplication
@@ -115,7 +115,7 @@ final class HealthKitSyncService: ObservableObject {
             let allEvents = try context.fetch(allEventsDescriptor)
             existingEventUUIDs = Set(allEvents.map { $0.healthKitUUID })
         } catch {
-            // Error fetching existing event UUIDs
+            AppLogger.logError(error, context: "fetchExistingEventUUIDs", logger: AppLogger.sync)
         }
         
         // Upsert events with fast in-memory deduplication
@@ -276,14 +276,24 @@ final class HealthKitSyncService: ObservableObject {
                 anchor: sampleAnchor,
             limit: HKObjectQueryNoLimit
         ) { [weak self] query, samples, deleted, newAnchor, error in
-                if error != nil { return }
+            if let error = error {
+                Task { @MainActor in
+                    AppLogger.logError(error, context: "sampleQueryInitial", logger: AppLogger.healthKit)
+                }
+                return
+            }
             Task { @MainActor [weak self] in
                 await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
             }
         }
-        
+
             sampleQuery.updateHandler = { [weak self] query, samples, deleted, newAnchor, error in
-                if error != nil { return }
+            if let error = error {
+                Task { @MainActor in
+                    AppLogger.logError(error, context: "sampleQueryUpdate", logger: AppLogger.healthKit)
+                }
+                return
+            }
             Task { @MainActor [weak self] in
                 await self?.handleLiveUpdate(samples: samples, newAnchor: newAnchor)
             }
@@ -308,14 +318,24 @@ final class HealthKitSyncService: ObservableObject {
                 anchor: eventAnchor,
                 limit: HKObjectQueryNoLimit
             ) { [weak self] query, events, deleted, newAnchor, error in
-                if error != nil { return }
+                if let error = error {
+                    Task { @MainActor in
+                        AppLogger.logError(error, context: "eventQueryInitial", logger: AppLogger.healthKit)
+                    }
+                    return
+                }
                 Task { @MainActor [weak self] in
                     await self?.handleLiveEventUpdate(events: events, newAnchor: newAnchor)
                 }
             }
 
             eventQuery.updateHandler = { [weak self] query, events, deleted, newAnchor, error in
-                if error != nil { return }
+                if let error = error {
+                    Task { @MainActor in
+                        AppLogger.logError(error, context: "eventQueryUpdate", logger: AppLogger.healthKit)
+                    }
+                    return
+                }
                 Task { @MainActor [weak self] in
                     await self?.handleLiveEventUpdate(events: events, newAnchor: newAnchor)
                 }
@@ -347,7 +367,7 @@ final class HealthKitSyncService: ObservableObject {
             do {
                 try saveSyncAnchor(newAnchor, for: SyncState.exposureEventsId)
             } catch {
-                // Event anchor save error
+                AppLogger.logError(error, context: "saveEventAnchor", logger: AppLogger.sync)
             }
         }
 
@@ -382,8 +402,7 @@ final class HealthKitSyncService: ObservableObject {
             try context.save()
             NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
         } catch {
-            // Log only in debug
-            // Live event save error
+            AppLogger.logError(error, context: "saveLiveEvents", logger: AppLogger.sync)
         }
     }
     
@@ -395,7 +414,7 @@ final class HealthKitSyncService: ObservableObject {
             do {
                 try saveSyncAnchor(newAnchor, for: SyncState.exposureSamplesId)
             } catch {
-                // Anchor save error
+                AppLogger.logError(error, context: "saveSampleAnchor", logger: AppLogger.sync)
             }
         }
 
@@ -433,24 +452,33 @@ final class HealthKitSyncService: ObservableObject {
                     insertedCount += 1
 
             // Track most recent sample for Live Activity notification
-            if latestSample == nil || sample.endDate > latestSample!.endDate {
+            if let latest = latestSample {
+                if sample.endDate > latest.endDate {
+                    latestSample = sample
+                }
+            } else {
                 latestSample = sample
             }
         }
 
         do {
                 try context.save()
-                
+
                 // Recalculate affected daily doses
                 for date in affectedDates {
                     try await recalculateDailyDose(for: date)
                 }
-                
+
                 lastSyncDate = Date()
-                
+
             // Always post notification when we receive samples (keeps UI fresh)
                 NotificationCenter.default.post(name: .healthKitDataUpdated, object: nil)
-                
+
+            // Update widget immediately on every live update for real-time progress
+            if insertedCount > 0 {
+                await updateWidgetFromLiveData()
+            }
+
             // Notify LiveSessionCoordinator (only if we inserted at least one new sample)
             if insertedCount > 0, let sample = latestSample {
                 let payload = ExposureSamplePayload(
@@ -461,8 +489,7 @@ final class HealthKitSyncService: ObservableObject {
                 NotificationCenter.default.post(name: .exposureSampleArrived, object: payload)
             }
         } catch {
-            // Log only in debug
-            // Live update save error
+            AppLogger.logError(error, context: "saveLiveUpdate", logger: AppLogger.sync)
         }
     }
     
@@ -629,16 +656,44 @@ final class HealthKitSyncService: ObservableObject {
                 updateWidgetData(dose: todayDose)
             }
         } catch {
-            // Error checking notifications
+            AppLogger.logError(error, context: "checkAndSendNotifications", logger: AppLogger.sync)
         }
     }
 
     // MARK: - Widget Integration
 
-    private func updateWidgetData(dose: DailyDose) {
-        let appGroupIdentifier = "group.com.bloopapp.shared"
+    /// Updates widget data immediately from live HealthKit updates
+    /// Called on every new sample to ensure widget stays in sync during active listening
+    private func updateWidgetFromLiveData() async {
+        guard let context = modelContext else { return }
 
-        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else {
+        do {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let components = calendar.dateComponents([.year, .month, .day], from: today)
+            guard let year = components.year, let month = components.month, let day = components.day else {
+                return
+            }
+
+            let predicate = #Predicate<DailyDose> { dose in
+                dose.year == year &&
+                dose.month == month &&
+                dose.day == day
+            }
+
+            let descriptor = FetchDescriptor<DailyDose>(predicate: predicate)
+            let doses = try context.fetch(descriptor)
+
+            if let todayDose = doses.first {
+                updateWidgetData(dose: todayDose)
+            }
+        } catch {
+            AppLogger.logError(error, context: "updateWidgetFromLiveData", logger: AppLogger.sync)
+        }
+    }
+
+    private func updateWidgetData(dose: DailyDose) {
+        guard let defaults = UserDefaults(suiteName: AppConfig.appGroupIdentifier) else {
             return
         }
 

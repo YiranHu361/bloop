@@ -78,6 +78,74 @@ When the user invokes `/check`, perform a comprehensive code review of recent ch
    [Brief paragraph on code health, key areas needing attention, and recommended priority for fixes]
    ```
 
+### /iteration [N]
+When the user invokes `/iteration N` (where N is a number), perform N automated improvement iterations on the codebase. This is a fully autonomous process.
+
+**Parameters:**
+- `N` - Number of iterations to perform (e.g., `/iteration 3` runs 3 cycles)
+
+**Behavior:**
+This command runs autonomously without requiring user input. Claude is entitled to:
+- Execute ANY shell commands (build, test, lint, etc.)
+- Use build tools and run tests
+- Auto-accept the best recommendations without asking
+- Make code changes directly
+
+**Each Iteration Performs:**
+
+1. **Codebase Research**
+   - Scan and analyze the entire codebase structure
+   - Identify all files, dependencies, and architecture patterns
+   - Map relationships between components
+   - Note any technical debt or areas needing attention
+
+2. **Best Practices & Production Readiness Audit**
+   - **API Rate Limiting**: Ensure all API calls have proper rate limiting, retry logic with exponential backoff, and request queuing
+   - **Scalability**: Check for bottlenecks, optimize data structures, ensure efficient algorithms, proper caching strategies
+   - **Error Handling**: Fix lingering errors, add comprehensive error handling, proper error propagation, user-friendly error messages
+   - **Code Quality**: Apply language-specific best practices (Swift/SwiftUI for this project), fix anti-patterns, improve maintainability
+   - **Security**: Validate inputs, secure API keys, proper data storage
+   - **Performance**: Identify and fix performance issues, memory leaks, unnecessary re-renders
+
+3. **Automated Fixes**
+   - Apply fixes directly without asking for confirmation
+   - Run tests after changes to verify nothing breaks
+   - Build the project to catch compile-time errors
+   - Revert changes if they cause failures
+
+4. **Progress Recording**
+   - Create/update `ITERATION_LOG.md` in the project root
+   - Log format for each iteration:
+     ```markdown
+     ## Iteration [X] - [Timestamp]
+
+     ### Research Findings
+     - [Key observations about codebase state]
+
+     ### Changes Made
+     - [ ] File: Description of change
+
+     ### Issues Fixed
+     - [List of resolved issues]
+
+     ### Remaining Issues
+     - [Issues to address in next iteration]
+
+     ### Build/Test Status
+     - Build: ✅/❌
+     - Tests: ✅/❌ (X passed, Y failed)
+
+     ### Next Iteration Focus
+     - [Priority items for next cycle]
+     ```
+
+**Completion:**
+After all N iterations, provide a final summary including:
+- Total changes made across all iterations
+- Overall codebase health improvement
+- Any remaining critical issues
+- Recommendations for future iterations
+
 ---
 
 ## Project Context

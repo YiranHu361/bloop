@@ -124,10 +124,17 @@ struct MediumWidgetView: View {
                         .foregroundColor(.primary)
                 }
 
-                // Last updated
-                Text("Updated \(entry.date.formatted(.relative(presentation: .named)))")
-                    .font(.system(size: 9))
-                    .foregroundColor(.secondary)
+                // Last updated with stale indicator
+                HStack(spacing: 4) {
+                    if entry.isStale {
+                        Image(systemName: "exclamationmark.circle")
+                            .font(.system(size: 9))
+                            .foregroundColor(.orange)
+                    }
+                    Text(entry.isStale ? "Data may be stale" : "Updated \(entry.date.formatted(.relative(presentation: .named)))")
+                        .font(.system(size: 9))
+                        .foregroundColor(entry.isStale ? .orange : .secondary)
+                }
             }
             .padding(.leading, 2)
 
@@ -233,7 +240,9 @@ struct RectangularAccessoryView: View {
         dosePercent: 65,
         remainingTime: 2 * 3600,
         listeningTime: 3 * 3600 + 45 * 60,
-        status: .moderate
+        status: .moderate,
+        isStale: false,
+        lastDataUpdate: .now
     ))
     .previewContext(WidgetPreviewContext(family: .systemSmall))
 }
@@ -244,7 +253,9 @@ struct RectangularAccessoryView: View {
         dosePercent: 45,
         remainingTime: 4 * 3600,
         listeningTime: 2 * 3600 + 15 * 60,
-        status: .safe
+        status: .safe,
+        isStale: false,
+        lastDataUpdate: .now
     ))
     .previewContext(WidgetPreviewContext(family: .systemMedium))
 }

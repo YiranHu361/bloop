@@ -4,6 +4,13 @@ import Foundation
 actor GeminiService {
     static let shared = GeminiService()
 
+    // MARK: - Rate Limiting
+
+    /// Maximum requests per minute (Gemini free tier: 60 RPM)
+    private let maxRequestsPerMinute = 15
+    private var requestTimestamps: [Date] = []
+    private var isRequestInProgress = false
+
     private init() {}
 
     // MARK: - Types
@@ -54,6 +61,8 @@ actor GeminiService {
         case invalidResponse
         case apiError(String)
         case decodingError(Error)
+        case rateLimited
+        case requestInProgress
 
         var errorDescription: String? {
             switch self {
@@ -67,6 +76,10 @@ actor GeminiService {
                 return "Gemini API error: \(message)"
             case .decodingError(let error):
                 return "Failed to decode response: \(error.localizedDescription)"
+            case .rateLimited:
+                return "Too many requests. Please try again later."
+            case .requestInProgress:
+                return "A request is already in progress."
             }
         }
     }
@@ -103,6 +116,12 @@ actor GeminiService {
         return try await generateText(prompt: prompt, temperature: 0.7, maxOutputTokens: 150)
     }
 
+    // MARK: - Configuration (references AppConfig.API)
+
+    private var maxRetries: Int { AppConfig.API.geminiMaxRetries }
+    private var baseRetryDelay: TimeInterval { AppConfig.API.geminiBaseRetryDelaySeconds }
+    private var requestTimeout: TimeInterval { AppConfig.API.geminiRequestTimeoutSeconds }
+
     /// Generate a text response with custom generation config
     func generateText(
         prompt: String,
@@ -113,11 +132,37 @@ actor GeminiService {
             throw GeminiServiceError.notConfigured
         }
 
-        let url = URL(string: "\(APIConfig.geminiBaseURL)/models/\(APIConfig.geminiModel):generateContent?key=\(APIConfig.geminiAPIKey)")!
+        // Check rate limit
+        guard canMakeRequest() else {
+            throw GeminiServiceError.rateLimited
+        }
+
+        // Wait for any in-progress request to complete (prevents quota exhaustion)
+        // Retry up to 3 times with brief waits instead of immediately failing
+        var waitAttempts = 0
+        while isRequestInProgress && waitAttempts < 3 {
+            waitAttempts += 1
+            try await Task.sleep(nanoseconds: 500_000_000) // 0.5 second
+        }
+
+        guard !isRequestInProgress else {
+            throw GeminiServiceError.requestInProgress
+        }
+
+        isRequestInProgress = true
+        defer { isRequestInProgress = false }
+
+        recordRequest()
+
+        let urlString = "\(APIConfig.geminiBaseURL)/models/\(APIConfig.geminiModel):generateContent?key=\(APIConfig.geminiAPIKey)"
+        guard let url = URL(string: urlString) else {
+            throw GeminiServiceError.invalidResponse
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = requestTimeout
 
         let body = GeminiRequest(
             contents: [
@@ -132,7 +177,7 @@ actor GeminiService {
         let encoder = JSONEncoder()
         request.httpBody = try encoder.encode(body)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await performRequestWithRetry(request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw GeminiServiceError.invalidResponse
@@ -159,6 +204,59 @@ actor GeminiService {
         }
 
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    // MARK: - Rate Limiting Helpers
+
+    /// Check if we can make a request based on rate limits
+    private func canMakeRequest() -> Bool {
+        cleanupOldTimestamps()
+        return requestTimestamps.count < maxRequestsPerMinute
+    }
+
+    /// Record a request timestamp
+    private func recordRequest() {
+        requestTimestamps.append(Date())
+    }
+
+    /// Remove timestamps older than 1 minute
+    private func cleanupOldTimestamps() {
+        let oneMinuteAgo = Date().addingTimeInterval(-60)
+        requestTimestamps.removeAll { $0 < oneMinuteAgo }
+    }
+
+    // MARK: - Retry Logic
+
+    /// Perform HTTP request with exponential backoff retry
+    private func performRequestWithRetry(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        var lastError: Error?
+
+        for attempt in 0..<maxRetries {
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                return (data, response)
+            } catch {
+                lastError = error
+
+                // Don't retry on certain errors
+                if let urlError = error as? URLError {
+                    switch urlError.code {
+                    case .cancelled, .badURL, .unsupportedURL, .userAuthenticationRequired:
+                        throw GeminiServiceError.networkError(error)
+                    default:
+                        break
+                    }
+                }
+
+                // Exponential backoff: 1s, 2s, 4s...
+                if attempt < maxRetries - 1 {
+                    let delay = baseRetryDelay * pow(2.0, Double(attempt))
+                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                }
+            }
+        }
+
+        throw GeminiServiceError.networkError(lastError ?? URLError(.timedOut))
     }
 
     // MARK: - Private Methods

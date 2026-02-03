@@ -22,6 +22,8 @@
 	<string>1</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>bloop. needs access to your child's headphone audio levels to track daily sound exposure and help protect their hearing.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>

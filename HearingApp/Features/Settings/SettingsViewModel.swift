@@ -242,8 +242,8 @@ final class SettingsViewModel: ObservableObject {
         await NotificationService.shared.checkAuthorizationStatus()
 
         guard NotificationService.shared.isAuthorized else {
-            // If notifications are denied, we can't deliver. Consider surfacing UI to direct user to Settings.
-            print("🔕 Notifications not authorized — unable to send AI note.")
+            // If notifications are denied, we can't deliver
+            AppLogger.logWarning("Notifications not authorized — unable to send AI note", context: "AINotification", logger: AppLogger.notifications)
             return
         }
 
@@ -277,16 +277,14 @@ final class SettingsViewModel: ObservableObject {
                 maxOutputTokens: 120
             )
 
-            // TEMP: log raw AI response for notification test
-            print("🤖 AI notify raw: \(response)")
+            AppLogger.logDebug("AI notify response: \(response)", context: "AINotification", logger: AppLogger.ai)
 
             let payload = decodeAINotification(from: response)
             let title = payload?.title ?? "Hearing Check"
             let body = payload?.body ?? "Keep volumes comfortable for safe listening."
             await NotificationService.shared.sendAgentNotification(title: title, body: body)
         } catch {
-            // TEMP: log error for notification test
-            print("🤖 AI notify error: \(error.localizedDescription)")
+            AppLogger.logError(error, context: "AINotification", logger: AppLogger.ai)
             await NotificationService.shared.sendAgentNotification(
                 title: "Hearing Check",
                 body: "Keep volumes comfortable for safe listening."

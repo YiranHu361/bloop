@@ -195,7 +195,7 @@ final class LiveSessionCoordinator: ObservableObject {
             loadUserSettings()
             
         } catch {
-            // Error fetching dose
+            AppLogger.logError(error, context: "refreshDose", logger: AppLogger.notifications)
         }
     }
     

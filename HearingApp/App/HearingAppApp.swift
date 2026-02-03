@@ -4,7 +4,10 @@ import SwiftData
 @main
 struct BloopApp: App {
     @StateObject private var appState = AppState()
-    
+
+    /// Tracks whether we're using fallback in-memory storage
+    private static var _isUsingFallbackStorage = false
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             ExposureSample.self,
@@ -25,7 +28,21 @@ struct BloopApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // Log the error for diagnostics
+            AppLogger.logError(error, context: "ModelContainer initialization", logger: AppLogger.general)
+            AppLogger.logWarning("Falling back to in-memory storage - data will NOT persist across app launches", context: "ModelContainer", logger: AppLogger.general)
+
+            // Mark that we're using fallback storage
+            _isUsingFallbackStorage = true
+
+            // Attempt fallback to in-memory store
+            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            do {
+                return try ModelContainer(for: schema, configurations: [fallbackConfig])
+            } catch {
+                // If even in-memory fails, we truly cannot proceed
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
     }()
     
@@ -35,6 +52,8 @@ struct BloopApp: App {
                 ContentView()
                     .environmentObject(appState)
                     .onAppear {
+                        // Sync fallback storage state to AppState for UI visibility
+                        appState.isUsingFallbackStorage = Self._isUsingFallbackStorage
                         setupServices()
                     }
             } else {
@@ -104,7 +123,7 @@ struct BloopApp: App {
                 HealthKitSyncService.shared.startLiveUpdates()
 
             } catch {
-                // Error setting up services
+                AppLogger.logError(error, context: "Service setup", logger: AppLogger.general)
             }
         }
     }

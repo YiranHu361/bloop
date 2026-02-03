@@ -69,14 +69,58 @@ struct BloopExposureAttributes: ActivityAttributes {
 @MainActor
 final class BloopLiveActivity: ObservableObject {
     static let shared = BloopLiveActivity()
-    
+
     @Published private(set) var currentActivity: Activity<BloopExposureAttributes>?
     @Published private(set) var isRunning: Bool = false
-    
+
     /// Cached daily limit to use when updating
     private var cachedDailyLimit: Int = 100
-    
-    private init() {}
+
+    private init() {
+        // Sync with any existing activity on init (handles app restart scenarios)
+        syncWithExistingActivity()
+    }
+
+    /// Syncs the currentActivity reference with any existing Live Activity
+    /// This handles cases where the app restarts but a Live Activity is still running
+    private func syncWithExistingActivity() {
+        let existingActivities = Activity<BloopExposureAttributes>.activities
+        if let existing = existingActivities.first {
+            currentActivity = existing
+            isRunning = true
+            AppLogger.logInfo("Synced with existing Live Activity: \(existing.id)", context: "syncWithExistingActivity", logger: AppLogger.notifications)
+        }
+    }
+
+    /// Ends ALL existing Live Activities to prevent duplicates
+    /// This handles orphaned activities from app crashes, restarts, or state loss
+    private func endAllExistingActivities() async {
+        let existingActivities = Activity<BloopExposureAttributes>.activities
+
+        guard !existingActivities.isEmpty else { return }
+
+        AppLogger.logInfo("Ending \(existingActivities.count) existing Live Activities", context: "endAllExistingActivities", logger: AppLogger.notifications)
+
+        for activity in existingActivities {
+            let finalState = BloopExposureAttributes.ContentState(
+                currentPercent: 0,
+                dailyLimitPercent: cachedDailyLimit,
+                currentDB: 0,
+                status: .safe,
+                message: "Session ended",
+                remainingMinutes: nil,
+                isBreakTime: false
+            )
+
+            await activity.end(
+                ActivityContent(state: finalState, staleDate: nil),
+                dismissalPolicy: .immediate
+            )
+        }
+
+        currentActivity = nil
+        isRunning = false
+    }
     
     // MARK: - Start/Update/End
     
@@ -87,12 +131,12 @@ final class BloopLiveActivity: ObservableObject {
         dailyLimitPercent: Int = 100
     ) async {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            // Activities not enabled
+            AppLogger.logWarning("Live Activities not enabled by user", context: "startExposureTracking", logger: AppLogger.notifications)
             return
         }
-        
-        // End any existing activity first
-        await endActivity()
+
+        // End ALL existing activities first (prevents duplicates from orphaned activities)
+        await endAllExistingActivities()
         
         // Cache the limit
         cachedDailyLimit = dailyLimitPercent
@@ -116,9 +160,9 @@ final class BloopLiveActivity: ObservableObject {
             )
             currentActivity = activity
             isRunning = true
-            _ = activity.id // Activity started
+            AppLogger.logInfo("Live Activity started: \(activity.id)", context: "startExposureTracking", logger: AppLogger.notifications)
         } catch {
-            // Failed to start Live Activity
+            AppLogger.logError(error, context: "startLiveActivity", logger: AppLogger.notifications)
         }
     }
     
@@ -219,13 +263,13 @@ extension ExposureStatus {
     var kidFriendlyMessage: String {
         switch self {
         case .safe:
-            return ["Your ears are happy!", "Great listening!", "Safe and sound!"].randomElement()!
+            return ["Your ears are happy!", "Great listening!", "Safe and sound!"].randomElement() ?? "Your ears are happy!"
         case .moderate:
-            return ["Getting a bit loud", "Maybe turn it down?", "Ears say: careful!"].randomElement()!
+            return ["Getting a bit loud", "Maybe turn it down?", "Ears say: careful!"].randomElement() ?? "Getting a bit loud"
         case .high:
-            return ["Too loud!", "Time to turn it down", "Your ears need help!"].randomElement()!
+            return ["Too loud!", "Time to turn it down", "Your ears need help!"].randomElement() ?? "Too loud!"
         case .dangerous:
-            return ["Way too loud!", "Take a break now!", "Ears need rest!"].randomElement()!
+            return ["Way too loud!", "Take a break now!", "Ears need rest!"].randomElement() ?? "Take a break now!"
         }
     }
 }

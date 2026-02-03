@@ -7,16 +7,53 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     static let shared = NotificationService()
     
     @Published var isAuthorized: Bool = false
-    
+
     private let center = UNUserNotificationCenter.current()
     private var notificationCooldowns: [Int: Date] = [:] // threshold -> last notification time
     private let cooldownInterval: TimeInterval = 3600 // 1 hour between same threshold notifications
-    
+    private let cooldownStorageKey = "notification_cooldowns"
+
     private override init() {
         super.init()
         center.delegate = self
+        loadPersistedCooldowns()
         Task {
             await checkAuthorizationStatus()
+        }
+    }
+
+    // MARK: - Cooldown Persistence
+
+    /// Codable wrapper for notification cooldowns to ensure type-safe persistence
+    private struct CooldownEntry: Codable {
+        let threshold: Int
+        let lastNotificationDate: Date
+    }
+
+    private func loadPersistedCooldowns() {
+        guard let data = UserDefaults.standard.data(forKey: cooldownStorageKey) else {
+            return
+        }
+
+        do {
+            let entries = try JSONDecoder().decode([CooldownEntry].self, from: data)
+            notificationCooldowns = entries.reduce(into: [:]) { result, entry in
+                result[entry.threshold] = entry.lastNotificationDate
+            }
+        } catch {
+            AppLogger.logWarning("Failed to decode cooldowns, resetting: \(error.localizedDescription)", context: "loadPersistedCooldowns", logger: AppLogger.notifications)
+            notificationCooldowns = [:]
+        }
+    }
+
+    private func persistCooldowns() {
+        let entries = notificationCooldowns.map { CooldownEntry(threshold: $0.key, lastNotificationDate: $0.value) }
+
+        do {
+            let data = try JSONEncoder().encode(entries)
+            UserDefaults.standard.set(data, forKey: cooldownStorageKey)
+        } catch {
+            AppLogger.logError(error, context: "persistCooldowns", logger: AppLogger.notifications)
         }
     }
     
@@ -27,7 +64,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
             isAuthorized = granted
         } catch {
-            // Notification authorization error
+            AppLogger.logError(error, context: "requestAuthorization", logger: AppLogger.notifications)
             isAuthorized = false
         }
     }
@@ -131,8 +168,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         do {
             try await center.add(request)
             notificationCooldowns[threshold] = Date()
+            persistCooldowns()
         } catch {
-            // Failed to send notification
+            AppLogger.logError(error, context: "sendThresholdNotification(\(threshold))", logger: AppLogger.notifications)
         }
     }
 
@@ -155,7 +193,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         let timeContext = ActionableNotificationBuilder.TimeContext.current
 
         // Check cooldown for actionable notifications (separate from threshold cooldowns)
-        let actionableCooldownKey = 1000 // Use a distinct key
+        let actionableCooldownKey = AppConfig.NotificationCooldownKey.actionable
         if let lastNotification = notificationCooldowns[actionableCooldownKey],
            Date().timeIntervalSince(lastNotification) < cooldownInterval {
             return
@@ -195,8 +233,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         do {
             try await center.add(request)
             notificationCooldowns[actionableCooldownKey] = Date()
+            persistCooldowns()
         } catch {
-            // Failed to send actionable notification
+            AppLogger.logError(error, context: "sendActionableNotification", logger: AppLogger.notifications)
         }
     }
 
@@ -235,7 +274,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         do {
             try await center.add(request)
         } catch {
-            // Failed to send volume suggestion
+            AppLogger.logError(error, context: "sendVolumeSuggestion", logger: AppLogger.notifications)
         }
     }
     
@@ -261,7 +300,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         do {
             try await center.add(request)
         } catch {
-            // Failed to send exposure event notification
+            AppLogger.logError(error, context: "sendExposureEventNotification", logger: AppLogger.notifications)
         }
     }
 
@@ -274,7 +313,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     ) async {
         guard isAuthorized else { return }
 
-        let cooldownKey = 2001
+        let cooldownKey = AppConfig.NotificationCooldownKey.breakReminder
         if let lastNotification = notificationCooldowns[cooldownKey],
            Date().timeIntervalSince(lastNotification) < cooldownSeconds {
             return
@@ -296,8 +335,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         do {
             try await center.add(request)
             notificationCooldowns[cooldownKey] = Date()
+            persistCooldowns()
         } catch {
-            // Failed to send break reminder
+            AppLogger.logError(error, context: "sendBreakReminder", logger: AppLogger.notifications)
         }
     }
     
@@ -334,7 +374,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         do {
             try await center.add(request)
         } catch {
-            // Failed to schedule daily summary
+            AppLogger.logError(error, context: "scheduleDailySummary", logger: AppLogger.notifications)
         }
     }
     
@@ -456,6 +496,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     
     func resetCooldowns() {
         notificationCooldowns.removeAll()
+        UserDefaults.standard.removeObject(forKey: cooldownStorageKey)
     }
 
     // MARK: - Agent Notifications
@@ -479,7 +520,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         do {
             try await center.add(request)
         } catch {
-            // Failed to send agent notification
+            AppLogger.logError(error, context: "sendAgentNotification", logger: AppLogger.notifications)
         }
     }
 

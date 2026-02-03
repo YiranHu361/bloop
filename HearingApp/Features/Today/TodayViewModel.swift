@@ -293,11 +293,7 @@ final class TodayViewModel: ObservableObject {
             return
         }
 
-        let newLevel = todaySamples.last?.levelDBASPL
-
-        _ = newLevel // Silence unused variable warning
-
-        currentLevelDB = newLevel
+        currentLevelDB = todaySamples.last?.levelDBASPL
         exposureBands = Self.buildBands(from: todaySamples)
         
         // Use 24h samples for timeline chart (or today samples if 24h is empty)

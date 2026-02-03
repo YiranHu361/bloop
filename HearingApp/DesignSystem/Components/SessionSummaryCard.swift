@@ -44,7 +44,7 @@ struct SessionSummaryCard: View {
                 // Average dB
                 statItem(
                     icon: "waveform",
-                    value: averageDB != nil ? "\(Int(averageDB!)) dB" : "—",
+                    value: averageDB.map { "\(Int($0)) dB" } ?? "—",
                     label: "Avg Level",
                     color: levelColor(for: averageDB ?? 0)
                 )

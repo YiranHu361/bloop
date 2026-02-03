@@ -10,6 +10,10 @@ final class AppState: ObservableObject {
     @Published var healthKitAuthorizationStatus: HealthKitAuthorizationStatus = .notDetermined
     @Published var currentDailyDose: Double = 0.0
     @Published var isLoading: Bool = false
+
+    /// Indicates if the app is running with in-memory storage (data won't persist across launches)
+    /// This happens when persistent storage initialization fails
+    @Published var isUsingFallbackStorage: Bool = false
     
     var selectedDoseModel: DoseModel {
         get { DoseModel(rawValue: selectedDoseModelRaw) ?? .niosh }
